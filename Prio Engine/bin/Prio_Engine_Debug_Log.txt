@@ -1,0 +1,3 @@
+00001  Successfully opened Prio_Engine_Debug_Log.txt
+00002  Completed initilisation of Prio Engine.
+00003  Logger destructor has been called, closing log.
