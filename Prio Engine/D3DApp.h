@@ -2,25 +2,33 @@
 #ifndef D3DAPP_H
 #define D3DAPP_H
 
-#include <windows.h>
+#if defined(DEBUG) || defined(_DEBUG)
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
 #include "GameTimer.h"
+#include <DirectXMath.h>
+
+// Link necessary d3d12 libraries.
+#pragma comment(lib,"d3dcompiler.lib")
+#pragma comment(lib, "D3D12.lib")
+#pragma comment(lib, "dxgi.lib")
 
 class D3DApp
 {
-protected:
-	bool InitMainWindow();
+private:
+	CGameTimer* mTimer;
+	bool mAppPaused;
+public:
 	D3DApp(HINSTANCE hInstance);
 	~D3DApp();
-public:
-	static D3DApp* GetApp();
-	virtual bool Initialise();
-	virtual LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-protected:
-	static D3DApp* mApp;
-	bool           mAppPaused = false;	// Boolean flag indicating if app is paused or not.
 
-	// a timer used for multiple functions throughout a game.
-	CGameTimer mTimer;
+	virtual bool Initialise();
+
+	int Run();
+protected:
+
 };
 
 #endif

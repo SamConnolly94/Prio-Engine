@@ -3,6 +3,7 @@
 #define ENGINE_H
 
 #include "Logger.h"
+#include "InitDirect3DApp.h"
 #include <WindowsX.h>
 
 /*
@@ -11,22 +12,20 @@
 class CEngine
 {
 private:
-	//Constructor definition.
-	CEngine();
-	CEngine(CEngine const&) = delete;
-	void operator=(CEngine const&) = delete;
-
 	CLogger* mLogger;
-	bool OpenMainWindow();
-	void Initialise();
+	void InitialiseLogger();
+	int InitialiseD3DApp(HINSTANCE hInstance);
+	int mD3DInitCode;
+	CInitDirect3DApp mD3DApp;
 public:
-	static CEngine& getInstance()
-	{
-		static CEngine instance;
-		
-		return instance;
-	}
-	void Cleanup();
+	//Constructor.
+	CEngine(HINSTANCE hInstance);
+	// Destructor.
+	~CEngine();
+
+	// Run the Direct X Application
+	int RunGameLoop();
+
 };
 
 #endif

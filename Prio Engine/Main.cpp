@@ -4,11 +4,16 @@
 
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	// Start the game engine.
-	CEngine* myEngine;
-	myEngine->getInstance();
+	// Enable run time memory check while running in debug.
+#if defined(DEBUG) | defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 
-	myEngine->getInstance().Cleanup();
+	// Start the game engine.
+	CEngine* myEngine = new CEngine();
+
+	// Clean up the engine before we exit the program.
+	delete (myEngine);
 	return 0;
 }
 
