@@ -19,9 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include <cassert>
-#include "d3dx12.h"
-#include "DDSTextureLoader.h"
-#include "MathHelper.h"
+#include "Resources\Microsoft DirectX Headers\d3dx12.h"
 
 class CD3DUtil
 {

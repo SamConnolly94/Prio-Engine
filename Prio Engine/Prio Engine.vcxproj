@@ -170,6 +170,7 @@
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="InitDirect3DApp.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Resources\Microsoft DirectX Headers\d3dx12.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

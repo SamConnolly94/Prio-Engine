@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Microsoft Default DirectX Headers">
+      <UniqueIdentifier>{e329d14a-4a92-480c-afe4-11f7974e4e78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -55,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="D3DUtil.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Microsoft DirectX Headers\d3dx12.h">
+      <Filter>Header Files\Microsoft Default DirectX Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

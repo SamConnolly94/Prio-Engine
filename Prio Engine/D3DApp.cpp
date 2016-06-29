@@ -1,13 +1,15 @@
 #include "D3DApp.h"
 #include <WindowsX.h>
 
+using namespace std;
+using namespace DirectX;
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//Grab the handle on the window to get messages.
 	return D3DApp::GetApp()->MsgProc(hwnd, msg, wParam, lParam);
 }
-
 /* Returns a pointer to our Direct3D Application. All pointers are static. */
 D3DApp* D3DApp::mApp = nullptr;
 D3DApp* D3DApp::GetApp()
@@ -15,10 +17,12 @@ D3DApp* D3DApp::GetApp()
 	return mApp;
 }
 
-D3DApp::D3DApp(HINSTANCE hInstance) : mhAppInst(hInstance)
+D3DApp::D3DApp(HINSTANCE hInstance)
 {
 	mTimer = new CGameTimer();
 	mAppPaused = false;
+	mLogger->GetLogger();
+	mhAppInst = hInstance;
 
 	// Only one D3DApp can be constructed.
 	assert(mApp == nullptr);
@@ -33,50 +37,139 @@ D3DApp::~D3DApp()
 /* Controls messages from the OS about our window. */
 LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// Control what behaviour should occur depending on what message we recieve from the OS.
 	switch (msg)
 	{
-	// Controls what happens when our window is activated or deactivated.
+		// WM_ACTIVATE is sent when the window is activated or deactivated.  
+		// We pause the game when the window is deactivated and unpause it 
+		// when it becomes active.  
 	case WM_ACTIVATE:
-		// If window is inactive (loses focus).
-		if (LOWORD(wParam) == WA_INACTIVE) 
+		if (LOWORD(wParam) == WA_INACTIVE)
 		{
-			// Pause the game as we lost focus.
 			mAppPaused = true;
 			mTimer->Stop();
-		} 
+		}
 		else
 		{
-			// Resume the game, regained focus.
 			mAppPaused = false;
 			mTimer->Start();
 		}
 		return 0;
-	// Control what happens when the resize event of the window is triggered.
+
+		// WM_SIZE is sent when the user resizes the window.  
 	case WM_SIZE:
+		// Save the new client area dimensions.
 		mClientWidth = LOWORD(lParam);
 		mClientHeight = HIWORD(lParam);
-
-		// If our Direct3D device has been initialised.
-		if ( md3dDevice )
+		if (md3dDevice)
 		{
-			// If the window is minimised.
-			if ( wParam == SIZE_MINIMIZED )
+			if (wParam == SIZE_MINIMIZED)
 			{
-				// Pause the app, don't bother resetting timer, our active event will handle that.
 				mAppPaused = true;
 				mMinimized = true;
 				mMaximized = false;
 			}
-			else if ( wParam == SIZE_MAXIMIZED )
+			else if (wParam == SIZE_MAXIMIZED)
 			{
 				mAppPaused = false;
 				mMinimized = false;
 				mMaximized = true;
-				OnRisize();
+				OnResize();
+			}
+			else if (wParam == SIZE_RESTORED)
+			{
+
+				// Restoring from minimized state?
+				if (mMinimized)
+				{
+					mAppPaused = false;
+					mMinimized = false;
+					OnResize();
+				}
+
+				// Restoring from maximized state?
+				else if (mMaximized)
+				{
+					mAppPaused = false;
+					mMaximized = false;
+					OnResize();
+				}
+				else if (mResizing)
+				{
+					// If user is dragging the resize bars, we do not resize 
+					// the buffers here because as the user continuously 
+					// drags the resize bars, a stream of WM_SIZE messages are
+					// sent to the window, and it would be pointless (and slow)
+					// to resize for each WM_SIZE message received from dragging
+					// the resize bars.  So instead, we reset after the user is 
+					// done resizing the window and releases the resize bars, which 
+					// sends a WM_EXITSIZEMOVE message.
+				}
+				else // API call such as SetWindowPos or mSwapChain->SetFullscreenState.
+				{
+					OnResize();
+				}
 			}
 		}
+		return 0;
+
+		// WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
+	case WM_ENTERSIZEMOVE:
+		mAppPaused = true;
+		mResizing = true;
+		mTimer->Stop();
+		return 0;
+
+		// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
+		// Here we reset everything based on the new window dimensions.
+	case WM_EXITSIZEMOVE:
+		mAppPaused = false;
+		mResizing = false;
+		mTimer->Start();
+		OnResize();
+		return 0;
+
+		// WM_DESTROY is sent when the window is being destroyed.
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+
+		// The WM_MENUCHAR message is sent when a menu is active and the user presses 
+		// a key that does not correspond to any mnemonic or accelerator key. 
+	case WM_MENUCHAR:
+		// Don't beep when we alt-enter.
+		return MAKELRESULT(0, MNC_CLOSE);
+
+		// Catch this message so to prevent the window from becoming too small.
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
+		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		return 0;
+
+	case WM_LBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+	case WM_LBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_RBUTTONUP:
+		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+	case WM_MOUSEMOVE:
+		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+	case WM_KEYUP:
+		if (wParam == VK_ESCAPE)
+		{
+			PostQuitMessage(0);
+		}
+		else if ((int)wParam == VK_F2)
+			Set4xMsaaState(!m4xMsaaState);
+
+		return 0;
 	}
+
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 bool D3DApp::Initialise()
@@ -86,11 +179,15 @@ bool D3DApp::Initialise()
 		return false;
 	}
 
+	mLogger->GetLogger().WriteLine("Successfully initialised the main window. ");
+
 	// Initialise Direct3D, or tell the caller that we failed to init.
 	if (!InitDirect3D())
 	{
 		return false;
 	}
+
+	mLogger->GetLogger().WriteLine("Successfully initialised Direct3D.");
 
 	return true;
 }
@@ -98,12 +195,47 @@ bool D3DApp::Initialise()
 /* Set up the main window which we will use for our application. */
 bool D3DApp::InitMainWindow()
 {
-	// Window class structure which stores all window class attributes.
 	WNDCLASS wc;
-	
-	// Set the attributes for our window class.
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = MainWndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = mhAppInst;
+	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+	wc.lpszMenuName = 0;
+	wc.lpszClassName = L"PrioEngine";
+
+	if (!RegisterClass(&wc))
+	{
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
+		return false;
+	}
+
+	// Compute window rectangle dimensions based on requested client area dimensions.
+	RECT R = { 0, 0, mClientWidth, mClientHeight };
+	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
+	int width = R.right - R.left;
+	int height = R.bottom - R.top;
+
+	mhMainWnd = CreateWindow(L"PrioEngine", mMainWndCaption.c_str(),
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, mhAppInst, 0);
+	if (!mhMainWnd)
+	{
+		// Output a detailed error to the debug logs.
+		mLogger->GetLogger().WriteLine("Failed to create window, last error was:");
+		std::ostringstream errorStream;
+		errorStream << GetLastError();
+		std::string errorString = errorStream.str();
+		mLogger->GetLogger().WriteLine(errorString);
+
+		MessageBox(0, L"CreateWindow Failed.", 0, 0);
+		return false;
+	}
+
+	ShowWindow(mhMainWnd, SW_SHOW);
+	UpdateWindow(mhMainWnd);
 
 	return true;
 }
@@ -234,7 +366,7 @@ void D3DApp::CreateSwapChain()
 
 	DXGI_SWAP_CHAIN_DESC sd;
 	// Buffer desc describes the back buffer we want to create.
-	sd.BufferDesc.Width = mClientHeight;
+	sd.BufferDesc.Width = mClientWidth;
 	sd.BufferDesc.Height = mClientHeight;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -307,6 +439,24 @@ void D3DApp::FlushCommandQueue()
 	}
 }
 
+ID3D12Resource* D3DApp::CurrentBackBuffer()const
+{
+	return mSwapChainBuffer[mCurrBackBuffer].Get();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::CurrentBackBufferView()const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+		mCurrBackBuffer,
+		mRtvDescriptorSize);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3DApp::DepthStencilView()const
+{
+	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
 /* Control what happens when the window is resized. */
 void D3DApp::OnResize()
 {
@@ -340,9 +490,82 @@ void D3DApp::OnResize()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart());
 	for (UINT swapCounter = 0; swapCounter < SwapChainBufferCount; swapCounter++)
 	{
+		// Get the buffer at position swapCounter in the swap chain.
 		ThrowIfFailed(mSwapChain->GetBuffer(swapCounter, IID_PPV_ARGS(&mSwapChainBuffer[swapCounter])));
+
+		// Create a render target view to the buffer we just retrieved.
 		md3dDevice->CreateRenderTargetView(mSwapChainBuffer[swapCounter].Get(), nullptr, rtvHeapHandle);
+
+		// Point to the next entry on the heap.
 		rtvHeapHandle.Offset(1, mRtvDescriptorSize);
+	}
+
+	// Create depth and stencil buffer.
+	// Define a descriptor for the depth & stencil buffer.
+	D3D12_RESOURCE_DESC depthStencilDesc;
+	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthStencilDesc.Alignment = 0;
+	// Set the depth stencil buff to the size of the window
+	depthStencilDesc.Width = mClientWidth;
+	depthStencilDesc.Height = mClientHeight;
+	depthStencilDesc.DepthOrArraySize = 1;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.Format = mDepthStencilFormat;
+	depthStencilDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
+	depthStencilDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
+	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE optClear;
+	optClear.Format = mDepthStencilFormat;
+	optClear.DepthStencil.Depth = 1.0f;
+	optClear.DepthStencil.Stencil = 0;
+	ThrowIfFailed(md3dDevice->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		&depthStencilDesc,
+		D3D12_RESOURCE_STATE_COMMON,
+		&optClear,
+		IID_PPV_ARGS(mDepthStencilBuffer.GetAddressOf())
+	));
+
+	// Create a descriptor of mip level 0 of entire resource using the format of the resource.
+	md3dDevice->CreateDepthStencilView(mDepthStencilBuffer.Get(), nullptr, DepthStencilView());
+
+	// Transition the resource from the initial state to be used as a depth buff.
+	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilBuffer.Get(), 
+		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+	// Execute the resize commands on the window.
+	ThrowIfFailed(mCommandList->Close());
+	ID3D12CommandList* cmdsList[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdsList), cmdsList);
+
+	// Waits for the resize to complete.
+	FlushCommandQueue();
+
+	// Update the viewport transform to cover client area.
+	mScreenViewport.TopLeftX = 0;
+	mScreenViewport.TopLeftY = 0;
+	mScreenViewport.Width = static_cast<float>(mClientWidth);
+	mScreenViewport.Height = static_cast<float>(mClientHeight);
+	mScreenViewport.MinDepth = 0.0f;
+	mScreenViewport.MaxDepth = 1.0f;
+	mCommandList->RSSetViewports(1, &mScreenViewport);
+
+	mScissorRect = { 0, 0, mClientWidth, mClientHeight };
+	mCommandList->RSSetScissorRects(1, &mScissorRect);
+}
+
+void D3DApp::Set4xMsaaState(bool value)
+{
+	if (m4xMsaaState != value)
+	{
+		m4xMsaaState = value;
+
+		// Recreate the swapchain and buffers with new multisample settings.
+		CreateSwapChain();
+		OnResize();
 	}
 }
 

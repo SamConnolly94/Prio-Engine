@@ -9,6 +9,7 @@
 
 #include "D3DUtil.h"
 #include "GameTimer.h"
+#include "Logger.h"
 
 // Link necessary d3d12 libraries.
 #pragma comment(lib,"d3dcompiler.lib")
@@ -19,14 +20,11 @@ class D3DApp
 {
 //D3DSetup
 protected:
+	
 	D3DApp(HINSTANCE hInstance);
 	D3DApp(const D3DApp& rhs) = delete;
 	D3DApp& operator=(const D3DApp&rhs) = delete;
 	virtual ~D3DApp();
-
-// Constructors / Destructors.
-public:
-	D3DApp(HINSTANCE hInstance);
 
 // Game properties.
 private:
@@ -36,6 +34,8 @@ private:
 public:
 	int Run();
 
+	void Set4xMsaaState(bool value);
+
 // Initialisation methods.
 protected:
 	bool InitMainWindow();
@@ -43,6 +43,10 @@ protected:
 	void CreateCommandObjects();
 	void CreateSwapChain();
 	void FlushCommandQueue();
+
+	ID3D12Resource* CurrentBackBuffer()const;
+	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
+	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 public:
 	static D3DApp* GetApp();
 	virtual bool Initialise();
@@ -86,7 +90,7 @@ protected:
 	UINT mCbvSrvUavDescriptorSize = 0;
 
 	// Derived class should set these in derived constructor to customize starting values.
-	std::wstring mMainWndCaption = L"Prio Engine";
+	std::wstring mMainWndCaption = L"PrioEngine";
 	D3D_DRIVER_TYPE md3dDriverType = D3D_DRIVER_TYPE_HARDWARE;
 	DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -97,9 +101,17 @@ private:
 	int mClientHeight = 600;
 	bool mMinimized = false;
 	bool mMaximized = false;
+	bool mResizing = false;   // are the resize bars being dragged?
 protected:
 	virtual void CreateRtvAndDsvDescriptorHeaps();
 	virtual void OnResize();
+
+	// Convenience overrides for handling mouse input.
+	virtual void OnMouseDown(WPARAM btnState, int x, int y) { }
+	virtual void OnMouseUp(WPARAM btnState, int x, int y) { }
+	virtual void OnMouseMove(WPARAM btnState, int x, int y) { }
+private:
+	CLogger* mLogger;
 };
 
 #endif

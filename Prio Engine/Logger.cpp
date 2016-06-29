@@ -1,12 +1,13 @@
 #include "Logger.h"
 
-/** Constructor for singleton logger class. */
 CLogger::CLogger()
 {
 	mLogFile.open(mDebugLogName);
 
 	// Check to see if logging was successfully enabled or not.
 #ifdef _LOGGING_ENABLED
+	mLoggingEnabled = true;
+
 	if (mLogFile.is_open())
 	{
 		// Set our private boolean flag which toggles logging to on.
@@ -27,25 +28,17 @@ CLogger::CLogger()
 		MessageBox(NULL, L"Could not open the debug log to write to it, make sure you haven't left it open. The program will continue to run but without logging.", L"Could not open debug log!", MB_OK);
 
 	}
+
 #endif
+
 }
 
-/** Destructor to free the debug log for others to use. */
-CLogger::~CLogger() 
+CLogger & CLogger::GetLogger()
 {
-	// Check if logging is enabled.
-	if (mLoggingEnabled)
-	{
-		// Check if the log file is open.
-		if (mLogFile.is_open())
-		{
-			// Write one final message to let the user know that the debug log has been closed.
-			Write("Logger destructor has been called, closing log.");
+	// A logging class which can be used to write files to a text document.
+	static CLogger instance;
 
-			// Close the debug log.
-			mLogFile.close();
-		}
-	}
+	return instance;
 }
 
 /**  Write a piece of text to the debug log. */
