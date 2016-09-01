@@ -1,6 +1,4 @@
 #include "Engine.h"
-#include <windows.h>
-
 
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -9,8 +7,28 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 	// Start the game engine.
-	//CEngine* myEngine = new CEngine(hInstance);
-	CEngine* myEngine;
-	myEngine->GetEngine(hInstance);
+	CEngine* PrioEngine;
+	bool result;
+	CLogger* logger;
+
+	// Create the engine object.
+	PrioEngine = new CEngine;
+	if (!PrioEngine)
+	{
+		logger->GetLogger().WriteLine("Could not create the engine object.");
+		return 0;
+	}
+
+	result = PrioEngine->Initialise();
+	if (result)
+	{
+		PrioEngine->Run();
+	}
+
+	// Shutdown and release the engine.
+	PrioEngine->Shutdown();
+	delete PrioEngine;
+	PrioEngine = 0;
+
 	return 0;
 }
