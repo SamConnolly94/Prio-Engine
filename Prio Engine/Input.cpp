@@ -1,7 +1,5 @@
 #include "Input.h"
 
-
-
 CInput::CInput()
 {
 }

@@ -1,15 +1,9 @@
 #include "Engine.h"
 
-
-
 CEngine::CEngine()
 {
 	mInput = 0;
 	mGraphics = 0;
-}
-
-CEngine::CEngine(const CEngine &)
-{
 }
 
 CEngine::~CEngine()
@@ -30,7 +24,7 @@ bool CEngine::Initialise()
 	InitialiseWindows(screenWidth, screenHeight);
 
 	// Initialise the input object. Used to read any input through keyboard or mouse from a user.
-	mInput = new CInput;
+	mInput = new CInput();
 
 	// Check that the input object has been successfully initialised.
 	if (!mInput)
@@ -45,7 +39,7 @@ bool CEngine::Initialise()
 	// Set up the input object for use.
 	mInput->Initialise();
 
-	mGraphics = new CGraphics;
+	mGraphics = new CGraphics();
 	// Check to see if graphics object was created successfully.
 	if (!mGraphics)
 	{
@@ -219,7 +213,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 	// Setup the screen settings for either full screen or windowed.
-	if (mFullScreen)
+	if (FULL_SCREEN)
 	{
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
@@ -237,8 +231,8 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	}
 	else
 	{
-		screenWidth = 800;
-		screenHeight = 600;
+		screenWidth = 1600;
+		screenHeight = 900;
 
 		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
 		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
@@ -248,7 +242,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 
 	// Create the window.
 	mHwnd = CreateWindowEx(WS_EX_APPWINDOW, mApplicationName, mApplicationName,
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		WS_OVERLAPPEDWINDOW, /* other options include: WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP*/
 		posX, posY, screenWidth, screenHeight, NULL, NULL, mHinstance, NULL);
 	
 	// Output message to the log.
@@ -279,7 +273,7 @@ void CEngine::ShutdownWindows()
 	ShowCursor(true);
 
 	// Fix display settings when leaving full screen mode.
-	if (mFullScreen)
+	if (FULL_SCREEN)
 	{
 		ChangeDisplaySettings(NULL, 0);
 		mpLogger->GetLogger().WriteLine("Full screen display settings reset to defaults.");

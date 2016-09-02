@@ -1,5 +1,7 @@
-﻿  Engine.cpp
-  Generating Code...
-  Skipping... (no relevant changes detected)
-  Main.cpp
+﻿  D3D11.cpp
+c:\users\sam\source\repos\prio-engine\prio engine\d3d11.cpp(112): warning C4018: '<': signed/unsigned mismatch
+c:\users\sam\source\repos\prio-engine\prio engine\d3d11.cpp(146): warning C4244: '=': conversion from 'WCHAR' to 'char', possible loss of data
+c:\users\sam\source\repos\prio-engine\prio engine\d3d11.cpp(246): warning C4002: too many actual parameters for macro 'RtlZeroMemory'
+c:\users\sam\source\repos\prio-engine\prio engine\d3d11.cpp(26): warning C4101: 'error': unreferenced local variable
+c:\users\sam\source\repos\prio-engine\prio engine\d3d11.cpp(23): warning C4101: 'stringLength': unreferenced local variable
   Prio Engine.vcxproj -> C:\Users\Sam\Source\Repos\Prio-Engine\Prio Engine\bin\Prio Engine.exe

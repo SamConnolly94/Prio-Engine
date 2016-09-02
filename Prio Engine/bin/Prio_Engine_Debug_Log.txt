@@ -1,9 +1,6 @@
 00001  Successfully opened Prio_Engine_Debug_Log.txt
-00002  Successfully set the settings for fullscreen window.
+00002  Successfully set the settings for windowed mode window.
 00003  Window created.
 00004  Set focus upon the window.
-00005  Full screen display settings reset to defaults.
-00006  Window destroyed.
-00007  Application has been deregistered.
-00008  Application handle has been successfully released.
-00009  Shutdown of window successful.
+00005  Got the name of the graphics card: 'NVIDIA GeForce GTX 970'
+00006  Direct3D was successfully initialised.

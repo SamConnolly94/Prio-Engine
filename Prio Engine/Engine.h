@@ -5,7 +5,6 @@
 
 #include "Graphics.h"
 #include "Input.h"
-#include "Logger.h"
 #include <windows.h>
 
 class CEngine
@@ -13,16 +12,9 @@ class CEngine
 private:
 	// Logger which writes to a default log file. Can be accessed through CLogger->GetInstance()->Write();
 	CLogger* mpLogger;
-	// Will the window run in full screen?
-	bool mFullScreen = false;
-
-	// Will VSYNC be enabled? (Caps at 60fps)
-	bool mVsyncEnabled = true;
 public:
 	// Default constructor.
 	CEngine();
-	// Constructor with current instance passed in as param.
-	CEngine(const CEngine&);
 	// Default destructor.
 	~CEngine();
 

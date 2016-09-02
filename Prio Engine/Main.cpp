@@ -12,7 +12,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CLogger* logger;
 
 	// Create the engine object.
-	PrioEngine = new CEngine;
+	PrioEngine = new CEngine();
 	if (!PrioEngine)
 	{
 		logger->GetLogger().WriteLine("Could not create the engine object.");
