@@ -1,15 +1,18 @@
 #include "Engine.h"
 
+/* Default constructor. */
 CEngine::CEngine()
 {
 	mInput = 0;
 	mGraphics = 0;
 }
 
+/* Default destructor. */
 CEngine::~CEngine()
 {
 }
 
+/* Initialise our engine. */
 bool CEngine::Initialise()
 {
 	// The width we have to work with on our monitor.
@@ -67,6 +70,7 @@ bool CEngine::Initialise()
 	return true;
 }
 
+/* Clean up and free any memory our program has claimed. */
 void CEngine::Shutdown()
 {
 	// Release the graphics object.
@@ -108,22 +112,18 @@ void CEngine::Run()
 	// Loop until there is a quit message from the window or the user.
 	while (!complete)
 	{
-		// Handle any inbound windows messages.
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		CheckWindowsMessages(msg);
 
 		// Control what happens when windows signals to end application.
-		if (msg.message == WM_QUIT)
-		{
-			complete = true;
-		}
+		complete = IsComplete(msg);
+
 		// If we aren't complete yet, and don't need to process any windows messages, process away!
-		else
+		if (!complete)
 		{
+			// Attempt to process the current frame.
 			result = Frame();
+
+			// If we failed to process the current frame then quit, something has gone wrong!
 			if (!result)
 			{
 				complete = true;
@@ -134,6 +134,7 @@ void CEngine::Run()
 	return;
 }
 
+/* Handle messages from the OS. */
 LRESULT CEngine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	switch (umsg)
@@ -155,6 +156,7 @@ LRESULT CEngine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpar
 	}
 }
 
+/* Process anything that we need to this frame. */
 bool CEngine::Frame()
 {
 	bool result;
@@ -176,6 +178,7 @@ bool CEngine::Frame()
 	return true;
 }
 
+/* Initialise the window and engine ready for us to use DirectX. */
 void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 {
 	WNDCLASSEX wc;
@@ -267,6 +270,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	return;
 }
 
+/* Tidy up function for when the engine is closed. */
 void CEngine::ShutdownWindows()
 {
 	// Show the mouse cursor.
@@ -297,6 +301,7 @@ void CEngine::ShutdownWindows()
 	return;
 }
 
+/* Call back for when recieving a message from the OS. */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	switch (umsg)
@@ -316,4 +321,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 			return ApplicationHandle->MessageHandler(hwnd, umsg, wparam, lparam);
 		}
 	}
+}
+
+/* Checks the messages our window has recieved from the OS. */
+void CEngine::CheckWindowsMessages(MSG &msg)
+{
+	// Handle any inbound windows messages.
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+/* Check whether our engine should still be ran or it is time to quit. */
+bool CEngine::IsComplete(MSG msg)
+{
+	// Control what happens when windows signals to end application.
+	if (msg.message == WM_QUIT)
+	{
+		return true;
+	}
+
+	return false;
 }

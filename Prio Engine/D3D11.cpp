@@ -32,8 +32,6 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC rasterDesc;
 	D3D11_VIEWPORT viewport;
-	float fieldOfView;
-	float screenAspect;
 
 	mScreenWidth = screenWidth;
 	mScreenHeight = screenHeight;
@@ -242,37 +240,8 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 
 	/* Create depth stencil buffer. */
 
-	// Initialise the description of the stencil state.
-	ZeroMemory(&depthStencilBufferDesc, NULL, &mpDepthStencilBuffer);
-
-	// Set up the description of the stencil state.
-	depthStencilBufferDesc.DepthEnable = true;
-	depthStencilBufferDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilBufferDesc.DepthFunc = D3D11_COMPARISON_LESS;
-
-	depthStencilBufferDesc.StencilEnable = true;
-	depthStencilBufferDesc.StencilReadMask = 0xFF;
-	depthStencilBufferDesc.StencilWriteMask = 0xFF;
-
-	// Stencil operations when pixel is front-facing.
-	depthStencilBufferDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilBufferDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-	depthStencilBufferDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilBufferDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	// Stencil operations if pixel is back facing.
-	depthStencilBufferDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilBufferDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-	depthStencilBufferDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilBufferDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	
-	// Create the stencil buffer from the descriptor.
-	result = mpDevice->CreateDepthStencilState(&depthStencilBufferDesc, &mpDepthStencilState);
-	if (FAILED(result))
+	if (!CreateDepthStencilBuffer(depthStencilBufferDesc))
 	{
-		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create the depth stencil buffer from the descriptor provided.");
-		// Stop!
 		return false;
 	}
 
@@ -287,55 +256,24 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	}
 
 	/* Direct X Graphics Options. */
-	// Set up the description for the raster which dictates how many polygons are drawn.
-	rasterDesc.AntialiasedLineEnable = false;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.DepthBias = 0;
-	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.DepthClipEnable = true;
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.MultisampleEnable = false;
-	rasterDesc.ScissorEnable = false;
-	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
-	// Create the rasterizer state from the previously defined description.
-	result = mpDevice->CreateRasterizerState(&rasterDesc, &mpRasterizerState);
-	// If we failed to create the rasterizer.
-	if (FAILED(result))
+	if (!InitRasterizer(rasterDesc))
 	{
-		// Log the error message
-		mpLogger->GetLogger().WriteLine("Failed to create the rasterizer from the description provided.");
-		// Stop!
 		return false;
 	}
-
-	// Set the rasterizer state.
-	mpDeviceContext->RSSetState(mpRasterizerState);
 
 	/* Set up the viewport for Direct3D to clip map space coordinates. */
 
 	// Setup the viewport for rendering.
-	viewport.Width = static_cast<float>(screenWidth);
-	viewport.Height = static_cast<float>(screenHeight);
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-	viewport.TopLeftX = 0.0f;
-	viewport.TopLeftY = 0.0f;
-
-	// Create the viewport.
-	mpDeviceContext->RSSetViewports(1, &viewport);
+	InitViewport(viewport);
 
 	/* Create projection matrix. */
 
 	// Setup the projection matrix.
-	fieldOfView = static_cast<float>(D3DX_PI / 4.0f);
-	screenAspect = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
-
-	// Create the projection matrix for 3D rendering.
-	D3DXMatrixPerspectiveFovLH(&mProjectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+	CreateProjectionMatrix(screenDepth, screenNear);
 
 	/* Create world matrix. */
+
 	// Initialise the world matrix to the identity matrix.d
 	D3DXMatrixIdentity(&mWorldMatrix);
 
@@ -497,6 +435,7 @@ void CD3D11::GetOrthogonalMatrix(D3DMATRIX & orthogMatrix)
 	return;
 }
 
+/* Gets information about the graphics card that DirectX is using. */
 void CD3D11::GetGraphicsCardInfo(char * cardName, int & memory)
 {
 	strcpy_s(cardName, STRING_NUMBER_OF_BITS, mGraphicsCardDescription);
@@ -504,6 +443,7 @@ void CD3D11::GetGraphicsCardInfo(char * cardName, int & memory)
 	return;
 }
 
+/* Creates a swaph and chain from the descriptor passed in, this will switch the back and front buffers depending on what is ready to be displayed.*/
 void CD3D11::CreateSwapChainDesc(HWND hwnd, DXGI_SWAP_CHAIN_DESC& swapChainDesc, int refRateNumerator, int refRateDenominator)
 {
 	/* Create swap chain. */
@@ -589,6 +529,7 @@ bool CD3D11::CreateSwapChain(D3D_FEATURE_LEVEL & featureLevel, DXGI_SWAP_CHAIN_D
 	return true;
 }
 
+/* Initialises a depth buffer descriptor which is passed in by reference, and creates the depth buffer from that descriptor. */
 bool CD3D11::CreateDepthBuffer(D3D11_TEXTURE2D_DESC& depthBufferDesc)
 {
 	HRESULT result;
@@ -622,6 +563,7 @@ bool CD3D11::CreateDepthBuffer(D3D11_TEXTURE2D_DESC& depthBufferDesc)
 	return true;
 }
 
+/* Initialises a depth stencil view descriptor which is passed in by reference, and creates it. */
 bool CD3D11::CreateDepthStencilView(D3D11_DEPTH_STENCIL_VIEW_DESC& depthStencilViewDesc)
 {
 	HRESULT result;
@@ -648,4 +590,109 @@ bool CD3D11::CreateDepthStencilView(D3D11_DEPTH_STENCIL_VIEW_DESC& depthStencilV
 	mpDeviceContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
 
 	return true;
+}
+
+/* Initialises a depth stencil buffer descriptor which is passed in as a by reference parameter. */
+bool CD3D11::CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBufferDesc)
+{
+	HRESULT result;
+
+	// Initialise the description of the stencil state.
+	ZeroMemory(&depthStencilBufferDesc, NULL, &mpDepthStencilBuffer);
+
+	// Set up the description of the stencil state.
+	depthStencilBufferDesc.DepthEnable = true;
+	depthStencilBufferDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilBufferDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+	depthStencilBufferDesc.StencilEnable = true;
+	depthStencilBufferDesc.StencilReadMask = 0xFF;
+	depthStencilBufferDesc.StencilWriteMask = 0xFF;
+
+	// Stencil operations when pixel is front-facing.
+	depthStencilBufferDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilBufferDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthStencilBufferDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilBufferDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Stencil operations if pixel is back facing.
+	depthStencilBufferDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilBufferDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthStencilBufferDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilBufferDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Create the stencil buffer from the descriptor.
+	result = mpDevice->CreateDepthStencilState(&depthStencilBufferDesc, &mpDepthStencilState);
+	if (FAILED(result))
+	{
+		// Log the error message.
+		mpLogger->GetLogger().WriteLine("Failed to create the depth stencil buffer from the descriptor provided.");
+		// Stop!
+		return false;
+	}
+
+	return true;
+}
+
+/* Initialises a rasterizer descriptor which is passed in by reference, and attempts to create the rasterizer. */
+bool CD3D11::InitRasterizer(D3D11_RASTERIZER_DESC& rasterDesc)
+{
+	HRESULT result;
+
+	// Set up the description for the raster which dictates how many polygons are drawn.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the previously defined description.
+	result = mpDevice->CreateRasterizerState(&rasterDesc, &mpRasterizerState);
+	// If we failed to create the rasterizer.
+	if (FAILED(result))
+	{
+		// Log the error message
+		mpLogger->GetLogger().WriteLine("Failed to create the rasterizer from the description provided.");
+		// Stop!
+		return false;
+	}
+
+	// Set the rasterizer state.
+	mpDeviceContext->RSSetState(mpRasterizerState);
+
+	return true;
+}
+
+/* Initialises a viewport which is passed in by reference. */
+void CD3D11::InitViewport(D3D11_VIEWPORT& viewport)
+{
+	// Setup the viewport for rendering.
+	viewport.Width = static_cast<float>(mScreenWidth);
+	viewport.Height = static_cast<float>(mScreenHeight);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+
+	// Create the viewport.
+	mpDeviceContext->RSSetViewports(1, &viewport);
+}
+
+/* Creates the projection matrix, this allows us to view in 3D on a 2D monitor by mapping what should be projected onto the screen. */
+void CD3D11::CreateProjectionMatrix(float screenDepth, float screenNear)
+{
+	float fieldOfView;
+	float screenAspect;
+
+	// Setup the projection matrix.
+	fieldOfView = static_cast<float>(D3DX_PI / 4.0f);
+	screenAspect = static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight);
+
+	// Create the projection matrix for 3D rendering.
+	D3DXMatrixPerspectiveFovLH(&mProjectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
 }

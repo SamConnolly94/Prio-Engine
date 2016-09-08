@@ -28,7 +28,10 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Shutdown and release the engine.
 	PrioEngine->Shutdown();
 	delete PrioEngine;
-	PrioEngine = 0;
+	PrioEngine = nullptr;
+
+	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.
+	_CrtDumpMemoryLeaks();
 
 	return 0;
 }

@@ -41,6 +41,9 @@ private:
 
 	CInput* mInput;
 	CGraphics* mGraphics;
+
+	void CheckWindowsMessages(MSG &msg);
+	bool IsComplete(MSG msg);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

@@ -4,3 +4,11 @@
 00004  Set focus upon the window.
 00005  Got the name of the graphics card: 'NVIDIA GeForce GTX 970'
 00006  Direct3D was successfully initialised.
+00007  DirectX Shutdown Function Initialised.
+00008  Set to windowed mode.
+00009  Successfully cleaned up anything related to directX used for this program.
+00010  Direct3D object has been shutdown, deallocated and pointer set to null.
+00011  Window destroyed.
+00012  Application has been deregistered.
+00013  Application handle has been successfully released.
+00014  Shutdown of window successful.

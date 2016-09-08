@@ -61,6 +61,10 @@ private:
 	bool CreateSwapChain(D3D_FEATURE_LEVEL& featureLevel, DXGI_SWAP_CHAIN_DESC& swapChainDesc);
 	bool CreateDepthBuffer(D3D11_TEXTURE2D_DESC& depthBufferDesc);
 	bool CreateDepthStencilView(D3D11_DEPTH_STENCIL_VIEW_DESC& depthStencilViewDesc);
+	bool CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBufferDesc);
+	bool InitRasterizer(D3D11_RASTERIZER_DESC& rasterDesc);
+	void InitViewport(D3D11_VIEWPORT& viewport);
+	void CD3D11::CreateProjectionMatrix(float screenDepth, float screenNear);
 };
 
 #endif
