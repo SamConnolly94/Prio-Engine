@@ -270,7 +270,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	/* Create projection matrix. */
 
 	// Setup the projection matrix.
-	CreateProjectionMatrix(screenDepth, screenNear);
+	CreateProjMatrix(screenDepth, screenNear);
 
 	/* Create world matrix. */
 
@@ -280,7 +280,8 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	/* Create orthographic projection matrix. */
 
 	// Create an orthographic projection matrix for 2D rendering of things like interfaces and sprites.
-	D3DXMatrixOrthoLH(&mOrthographicMatrix, static_cast<float>(screenWidth), static_cast<float>(screenHeight), screenNear, screenDepth);
+	 D3DXMatrixOrthoLH(&mOrthographicMatrix, static_cast<float>(screenWidth), static_cast<float>(screenHeight), screenNear, screenDepth);
+	 
 
 	// Success! We have successfully setup DirectX.
 	return true;
@@ -684,7 +685,7 @@ void CD3D11::InitViewport(D3D11_VIEWPORT& viewport)
 }
 
 /* Creates the projection matrix, this allows us to view in 3D on a 2D monitor by mapping what should be projected onto the screen. */
-void CD3D11::CreateProjectionMatrix(float screenDepth, float screenNear)
+void CD3D11::CreateProjMatrix(float screenDepth, float screenNear)
 {
 	float fieldOfView;
 	float screenAspect;

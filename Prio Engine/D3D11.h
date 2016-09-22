@@ -13,6 +13,7 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 
+
 const int STRING_NUMBER_OF_BITS = 128;
 
 class CD3D11
@@ -64,7 +65,7 @@ private:
 	bool CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBufferDesc);
 	bool InitRasterizer(D3D11_RASTERIZER_DESC& rasterDesc);
 	void InitViewport(D3D11_VIEWPORT& viewport);
-	void CD3D11::CreateProjectionMatrix(float screenDepth, float screenNear);
+	void CreateProjMatrix(float screenDepth, float screenNear);
 };
 
 #endif
