@@ -1,6 +1,0 @@
-00001  Successfully opened Prio_Engine_Debug_Log.txt
-00002  Successfully set the settings for windowed mode window.
-00003  Window created.
-00004  Set focus upon the window.
-00005  Got the name of the graphics card: 'NVIDIA GeForce GTX 960'
-00006  Direct3D was successfully initialised.
