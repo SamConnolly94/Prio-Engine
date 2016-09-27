@@ -16,6 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!PrioEngine)
 	{
 		logger->GetLogger().WriteLine("Could not create the engine object.");
+		// Test comment
 		return 0;
 	}
 

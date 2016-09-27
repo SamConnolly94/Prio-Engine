@@ -10,6 +10,7 @@ CEngine::CEngine()
 /* Default destructor. */
 CEngine::~CEngine()
 {
+	mpLogger->GetLogger().WriteLine("Engine destructor called.");
 }
 
 /* Initialise our engine. */
