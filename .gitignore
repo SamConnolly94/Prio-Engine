@@ -9,4 +9,4 @@
 *.pdb
 *.idb
 *.ilk
-*.user
+*.VC.db
