@@ -1,0 +1,12 @@
+#Exclude Directories
+[Bb]in
+[Xx]64
+
+#Exclude filetypes.
+*.exe
+*.obj
+*.log
+*.pdb
+*.idb
+*.ilk
+*.user
