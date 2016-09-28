@@ -2,6 +2,9 @@
 #define GRAPHICS_H
 
 #include "D3D11.h"
+#include "Camera.h"
+#include "Model.h"
+#include "ColourShader.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -27,7 +30,11 @@ public:
 private:
 	bool Render();
 
-	CD3D11* mD3D;
+	CD3D11* mpD3D;
+
+	CCamera* mpCamera;
+	CModel* mpModel;
+	CColourShader* mpColourShader;
 };
 
 #endif

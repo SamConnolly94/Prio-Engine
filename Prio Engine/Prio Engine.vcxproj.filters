@@ -16,6 +16,12 @@
     <Filter Include="Header Files\Microsoft Default DirectX Headers">
       <UniqueIdentifier>{e329d14a-4a92-480c-afe4-11f7974e4e78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Pixel Shaders">
+      <UniqueIdentifier>{a717d5c0-d338-4456-bd95-661875a3885b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vertex Shaders">
+      <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -39,6 +45,15 @@
     <ClCompile Include="D3D11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColourShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -59,5 +74,22 @@
     <ClInclude Include="D3D11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ColourShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Colour.ps.hlsl">
+      <Filter>Pixel Shaders</Filter>
+    </None>
+    <None Include="Colour.vs.hlsl">
+      <Filter>Vertex Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
