@@ -22,6 +22,9 @@
     <Filter Include="Vertex Shaders">
       <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Textures">
+      <UniqueIdentifier>{e0d84124-9601-4915-a1f5-fb73c6c87d0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -91,5 +94,10 @@
     <None Include="Colour.vs.hlsl">
       <Filter>Vertex Shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\TriangleTex.dds">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

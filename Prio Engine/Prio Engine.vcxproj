@@ -188,6 +188,9 @@
     <None Include="Colour.ps.hlsl" />
     <None Include="Colour.vs.hlsl" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\TriangleTex.dds" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

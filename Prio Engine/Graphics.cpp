@@ -5,7 +5,7 @@ CGraphics::CGraphics()
 	// Initialise the Direct 3D class to null.
 	mpD3D = nullptr;
 	mpCamera = nullptr;
-	mpModel = nullptr;
+	mpTriangle = nullptr;
 	mpColourShader = nullptr;
 }
 
@@ -53,15 +53,15 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpCamera->SetPosition(0.0f, 0.0f, -10.0f);
 	
 	// Create the model.
-	mpModel = new CModel();
-	if (!mpModel)
+	mpTriangle = new CModel();
+	if (!mpTriangle)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
 		return false;
 	}
 
 	// Initialise the model object.
-	successful = mpModel->Initialise(mpD3D->GetDevice());
+	successful = mpTriangle->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
 		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
@@ -100,11 +100,11 @@ void CGraphics::Shutdown()
 		mpColourShader = nullptr;
 	}
 
-	if (mpModel)
+	if (mpTriangle)
 	{
-		mpModel->Shutdown();
-		delete mpModel;
-		mpModel = nullptr;
+		mpTriangle->Shutdown();
+		delete mpTriangle;
+		mpTriangle = nullptr;
 	}
 
 	if (mpCamera)
@@ -164,10 +164,10 @@ bool CGraphics::Render()
 	mpD3D->GetProjectionMatrix(projMatrix);
 
 	// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
-	mpModel->Render(mpD3D->GetDeviceContext());
+	mpTriangle->Render(mpD3D->GetDeviceContext());
 
 	// Render the model using the colour shader.
-	result = mpColourShader->Render(mpD3D->GetDeviceContext(), mpModel->GetIndex(), worldMatrix, viewMatrix, projMatrix);
+	result = mpColourShader->Render(mpD3D->GetDeviceContext(), mpTriangle->GetIndex(), worldMatrix, viewMatrix, projMatrix);
 	if (!result)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to render the model using the colour shader object.");

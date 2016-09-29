@@ -33,7 +33,7 @@ private:
 	CD3D11* mpD3D;
 
 	CCamera* mpCamera;
-	CModel* mpModel;
+	CModel* mpTriangle;
 	CColourShader* mpColourShader;
 };
 
