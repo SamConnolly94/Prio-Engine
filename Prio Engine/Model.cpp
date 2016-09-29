@@ -4,7 +4,7 @@ CModel::CModel()
 {
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
-
+	mpTexture = nullptr;
 }
 
 
@@ -12,19 +12,31 @@ CModel::~CModel()
 {
 }
 
-bool CModel::Initialise(ID3D11Device * device)
+bool CModel::Initialise(ID3D11Device * device, WCHAR* textureFilename)
 {
 	bool result;
 
 	// Initialise the vertex and index buffer that hold geometry for the triangle.
 	result = InitialiseBuffers(device);
-	
+	if (!result)
+		return false;
+
+	// Load the texture for this model.
+	result = LoadTexture(device, textureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
 	// Return our success / failure to init the vertex and index buffer.
-	return result;
+	return true;
 }
 
 void CModel::Shutdown()
 {
+	// Release the model texture.
+	ReleaseTexture();
+
 	// Release vertex and index buffers.
 	ShutdownBuffers();
 }
@@ -39,6 +51,11 @@ void CModel::Render(ID3D11DeviceContext * deviceContext)
 int CModel::GetIndex()
 {
 	return mIndexCount;
+}
+
+ID3D11ShaderResourceView * CModel::GetTexture()
+{
+	return mpTexture->GetTexture();
 }
 
 /* Initialises the vertex and index buffers which hold geometry for a triangle.*/
@@ -76,15 +93,18 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	
 	// Bottom left
 	vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
-	vertices[0].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[0].texture = D3DXVECTOR2(0.0f, 1.0f);
+	//vertices[0].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Top middle
 	vertices[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	vertices[1].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[1].texture = D3DXVECTOR2(0.5f, 0.0f);
+	//vertices[1].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	// Bottom left
 	vertices[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
-	vertices[2].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[2].texture = D3DXVECTOR2(1.0f, 1.0f);
+	//vertices[2].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	/* Load index array with data. */
 	
@@ -184,4 +204,39 @@ void CModel::RenderBuffers(ID3D11DeviceContext * deviceContext)
 
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case we use triangles to draw.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+bool CModel::LoadTexture(ID3D11Device * device, WCHAR * filename)
+{
+	bool result;
+
+	// Create the texture object.
+	mpTexture = new CTexture();
+
+	if (!mpTexture)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the texture object.");
+		return false;
+	}
+
+	// Initialise the texture object.
+	result = mpTexture->Initialise(device, filename);
+
+	if (!result)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to initialise the texture object. ");
+	}
+
+	return true;
+}
+
+void CModel::ReleaseTexture()
+{
+	// Release the texture object.
+	if (mpTexture)
+	{
+		mpTexture->Shutdown();
+		delete mpTexture;
+		mpTexture = nullptr;
+	}
 }

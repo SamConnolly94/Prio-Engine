@@ -57,6 +57,12 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -86,6 +92,12 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Colour.ps.hlsl">
@@ -99,5 +111,13 @@
     <Image Include="Resources\Textures\TriangleTex.dds">
       <Filter>Resource Files\Textures</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Texture.vs.hlsl">
+      <Filter>Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Texture.ps.hlsl">
+      <Filter>Pixel Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
