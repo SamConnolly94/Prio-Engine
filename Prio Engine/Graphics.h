@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include "ColourShader.h"
+#include "TextureShader.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -35,6 +36,7 @@ private:
 	CCamera* mpCamera;
 	CModel* mpTriangle;
 	CColourShader* mpColourShader;
+	CTextureShader* mpTextureShader;
 };
 
 #endif

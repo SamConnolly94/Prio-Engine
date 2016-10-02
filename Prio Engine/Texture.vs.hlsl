@@ -12,7 +12,7 @@ cbuffer MatrixBuffer
 struct VertexInputType
 {
 	float4 position : POSITION;
-	float2 tex : TEXCOORD0
+	float2 tex : TEXCOORD0;
 };
 
 struct PixelInputType
@@ -27,7 +27,7 @@ PixelInputType TextureVertexShader(VertexInputType input)
 	PixelInputType output;
 
 	// Change the position vector to be 4 units so it can be placed in a matrix of length 4.
-	input.position.w = 0.0f;
+	input.position.w = 1.0f;
 
 	// Calculate the position of the vertex within the world, proj and view matrices.
 	output.position = mul(input.position, worldMatrix);

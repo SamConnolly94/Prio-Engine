@@ -251,6 +251,7 @@ bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3D
 	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
+		mpLogger->GetLogger().WriteLine("Failed to the lock the constant buffer so we could write to it in ColourShader.cpp.");
 		return false;
 	}
 

@@ -190,14 +190,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Colour.ps.hlsl" />
-    <None Include="Colour.vs.hlsl" />
+    <None Include="Colour.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Texture.ps.hlsl" />
-    <FxCompile Include="Texture.vs.hlsl" />
+    <None Include="Texture.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Texture.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

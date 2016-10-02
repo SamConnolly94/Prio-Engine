@@ -185,23 +185,149 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
+	
+	if (FAILED(result))
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		return false;
+	}
 
 	return true;
 }
 
 void CTextureShader::ShutdownShader()
 {
+	if (mpSampleState)
+	{
+		mpSampleState->Release();
+		mpSampleState = nullptr;
+	}
+
+	if (mpMatrixBuffer)
+	{
+		mpMatrixBuffer->Release();
+		mpMatrixBuffer = nullptr;
+	}
+
+	if (mpLayout)
+	{
+		mpLayout->Release();
+		mpLayout = nullptr;
+	}
+
+	if (mpPixelShader)
+	{
+		mpPixelShader->Release();
+		mpPixelShader = nullptr;
+	}
+
+	if (mpVertexShader)
+	{
+		mpVertexShader->Release();
+		mpVertexShader = nullptr;
+	}
 }
 
 void CTextureShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, WCHAR * shaderFilename)
 {
+	string errMsg;
+	char* compileErrors;
+	unsigned long bufferSize;
+	ofstream fout;
+
+	// Grab pointer to the compile errors.
+	compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+	// Get the length of the message.
+	bufferSize = errorMessage->GetBufferSize();
+
+	// Reset string to store message in to be empty.
+	errMsg = "";
+
+	// Compile the error message into a string variable.
+	for (int i = 0; i < bufferSize; i++)
+	{
+		errMsg += compileErrors[i];
+	}
+
+	// Write the error string to the logs.
+	mpLogger->GetLogger().WriteLine(errMsg);
+
+	// Clean up the BLOB file used to store the error message.
+	errorMessage->Release();
+	errorMessage = nullptr;
+
+	// Output a message box containing info describing what went wrong. Redirect to the logs.
+	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
 bool CTextureShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture)
 {
-	return false;
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	MatrixBufferType* dataPtr;
+	unsigned int bufferNumber;
+
+	// Transpose the matrices so they are ready for the shader.
+	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
+	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	D3DXMatrixTranspose(&projMatrix, &projMatrix);
+
+	// Lock the constant buffer so it can be written to.
+	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		mpLogger->GetLogger().WriteLine("Failed to the lock the constant buffer so we could write to it in TextureShader.cpp.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr = (MatrixBufferType*)mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.
+	dataPtr->world = worldMatrix;
+	dataPtr->view = viewMatrix;
+	dataPtr->projection = projMatrix;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpMatrixBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the vertex shader with updated values.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
+
+	// Set the shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &texture);
+
+	return true;
 }
 
 void CTextureShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
+	// Set the vertex input layout
+	deviceContext->IASetInputLayout(mpLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
+	
+	// Set sample state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
