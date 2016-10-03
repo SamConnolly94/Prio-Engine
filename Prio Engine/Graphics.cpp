@@ -54,7 +54,13 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpCamera->SetPosition(0.0f, 0.0f, -10.0f);
 	
 	// Create the model.
-	mpTriangle = new CModel();
+	float3 red;
+	red.x = 1.0f;
+	red.y = 0.0f;
+	red.z = 0.0f;
+
+	//mpTriangle = new CModel(L"../Resources/Textures/TriangleTex.dds");
+	mpTriangle = new CModel(red);
 	if (!mpTriangle)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
@@ -62,7 +68,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialise the model object.
-	successful = mpTriangle->Initialise(mpD3D->GetDevice(), L"../Resources/Textures/TriangleTex.dds");
+	successful = mpTriangle->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
 		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
@@ -70,40 +76,44 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 	
-	// Create texture shader.
-	mpTextureShader = new CTextureShader();
-	if (!mpTextureShader)
+	if (mpTriangle->HasTexture())
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the texture shader object in graphics.cpp.");
-		return false;
+		// Create texture shader.
+		mpTextureShader = new CTextureShader();
+		if (!mpTextureShader)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			return false;
+		}
+
+		// Initialise the texture shader object.
+		successful = mpTextureShader->Initialise(mpD3D->GetDevice(), hwnd);
+		if (!successful)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
+			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
+			return false;
+		}
 	}
-
-	// Initialise the texture shader object.
-	successful = mpTextureShader->Initialise(mpD3D->GetDevice(), hwnd);
-	if (!successful)
-	{
-		mpLogger->GetLogger().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
-		MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
-		return false;
+	else if (mpTriangle->HasColour())
+	{	
+		// Create the colour shader object.
+		mpColourShader = new CColourShader();
+		if (!mpColourShader)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to create the colour shader object.");
+			return false;
+		}
+		
+		// Initialise the colour shader object.
+		successful = mpColourShader->Initialise(mpD3D->GetDevice(), hwnd);
+		if (!successful)
+		{
+			mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the colour shader object");
+			MessageBox(hwnd, L"Could not initialise the colour shader object. ", L"Error", MB_OK);
+			return false;
+		}
 	}
-
-
-	// Create the colour shader object.
-	//mpColourShader = new CColourShader();
-	//if (!mpColourShader)
-	//{
-	//	mpLogger->GetLogger().WriteLine("Failed to create the colour shader object.");
-	//	return false;
-	//}
-	//
-	// Initialise the colour shader object.
-	//successful = mpColourShader->Initialise(mpD3D->GetDevice(), hwnd);
-	//if (!successful)
-	//{
-	//	mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the colour shader object");
-	//	MessageBox(hwnd, L"Could not initialise the colour shader object. ", L"Error", MB_OK);
-	//	return false;
-	//}
 
 	// Success!
 	mpLogger->GetLogger().WriteLine("Direct3D was successfully initialised.");
@@ -192,25 +202,55 @@ bool CGraphics::Render()
 	// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
 	mpTriangle->Render(mpD3D->GetDeviceContext());
 
-	// Render the model using the colour shader.
-	//result = mpColourShader->Render(mpD3D->GetDeviceContext(), mpTriangle->GetIndex(), worldMatrix, viewMatrix, projMatrix);
-	//if (!result)
-	//{
-	//	mpLogger->GetLogger().WriteLine("Failed to render the model using the colour shader object.");
-	//	return false;
-	//}
-	
 	// Render model using texture shader.
-	result = mpTextureShader->Render(mpD3D->GetDeviceContext(), mpTriangle->GetIndex(), worldMatrix, viewMatrix, projMatrix, mpTriangle->GetTexture());
-
-	if (!result)
+	if (mpTriangle->HasTexture())
 	{
-		mpLogger->GetLogger().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
-		return false;
+		if (!RenderModelWithTexture(mpTriangle, worldMatrix, viewMatrix, projMatrix))
+		{
+			return false;
+		}
+	}
+	else if (mpTriangle->HasColour())
+	{
+		if (!RenderModelWithColour(mpTriangle, worldMatrix, viewMatrix, projMatrix))
+		{
+			return false;
+		}
 	}
 
 	// Present the rendered scene to the screen.
 	mpD3D->EndScene();
+
+	return true;
+}
+
+bool CGraphics::RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
+{
+	bool success = false;
+
+	// Render the model using the colour shader.
+	success = mpColourShader->Render(mpD3D->GetDeviceContext(), mpTriangle->GetIndex(), worldMatrix, viewMatrix, projMatrix);
+	if (!success)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to render the model using the colour shader object.");
+		return false;
+	}
+	
+	return true;
+}
+
+bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+{
+	bool success = false;
+
+	// Attempt to render the model with the texture specified.
+	success = mpTextureShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture());
+
+	if (!success)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+		return false;
+	}
 
 	return true;
 }

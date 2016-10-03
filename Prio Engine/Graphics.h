@@ -37,6 +37,9 @@ private:
 	CModel* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
+
+	bool RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	bool RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
 };
 
 #endif

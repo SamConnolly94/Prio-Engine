@@ -1,7 +1,5 @@
 #include "TextureShader.h"
 
-
-
 CTextureShader::CTextureShader()
 {
 	mpVertexShader = nullptr;

@@ -1,10 +1,31 @@
 #include "Model.h"
 
-CModel::CModel()
+/*
+* @PARAM filename - The location of the texture and it's file name and extension from the executable file.
+*/
+CModel::CModel(WCHAR* filename)
+{
+	// Initialise all variables to be null.
+	mpVertexBuffer = nullptr;
+	mpIndexBuffer = nullptr;
+	mpTexture = nullptr;
+	mpTextureFilename = nullptr;
+	ResetColour();
+
+	// Store the filename for later use.
+	mpTextureFilename = filename;
+}
+
+CModel::CModel(float3 colour)
 {
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
 	mpTexture = nullptr;
+	mpTextureFilename = nullptr;
+	ResetColour();
+
+	// Store the colour which we have passed in.
+	mColour = colour;
 }
 
 
@@ -12,20 +33,25 @@ CModel::~CModel()
 {
 }
 
-bool CModel::Initialise(ID3D11Device * device, WCHAR* textureFilename)
+bool CModel::Initialise(ID3D11Device * device)
 {
 	bool result;
+	bool applyTexture = mpTextureFilename != nullptr;
 
 	// Initialise the vertex and index buffer that hold geometry for the triangle.
-	result = InitialiseBuffers(device);
+	result = InitialiseBuffers(device, applyTexture);
 	if (!result)
 		return false;
 
 	// Load the texture for this model.
-	result = LoadTexture(device, textureFilename);
-	if (!result)
+
+	if (applyTexture)
 	{
-		return false;
+		result = LoadTexture(device);
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	// Return our success / failure to init the vertex and index buffer.
@@ -59,9 +85,11 @@ ID3D11ShaderResourceView * CModel::GetTexture()
 }
 
 /* Initialises the vertex and index buffers which hold geometry for a triangle.*/
-bool CModel::InitialiseBuffers(ID3D11Device * device)
+bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 {
-	VertexType* vertices;
+	VertexTextureType* verticesTexture = nullptr;
+	VertexColourType* verticesColour = nullptr;
+
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	D3D11_BUFFER_DESC indexBufferDesc;
@@ -76,10 +104,24 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	mIndexCount = 3;
 
 	// Create a vertex array
-	vertices = new VertexType[mVertexCount];
-	if (!vertices)
+	if (HasColour())
 	{
-		return false;
+		verticesColour = new VertexColourType[mVertexCount];
+		
+		if (!verticesColour)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for colour.");
+			return false;
+		}
+	} 
+	else if (applyTexture)
+	{
+		verticesTexture = new VertexTextureType[mVertexCount];
+		if (!verticesTexture)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture.");
+			return false;
+		}
 	}
 
 	// Create the index array.
@@ -90,21 +132,36 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	/* Set the vertex points for the triangle. */
-	
-	// Bottom left
-	vertices[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
-	vertices[0].texture = D3DXVECTOR2(0.0f, 1.0f);
-	//vertices[0].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
+	if (applyTexture)
+	{
+		// Bottom left
+		verticesTexture[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
+		verticesTexture[0].texture = D3DXVECTOR2(0.0f, 1.0f);
+		// Top middle
+		verticesTexture[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		verticesTexture[1].texture = D3DXVECTOR2(0.5f, 0.0f);
+		// Bottom right
+		verticesTexture[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+		verticesTexture[2].texture = D3DXVECTOR2(1.0f, 1.0f);
+	}
+	else if (HasColour())
+	{
+		// Bottom left
+		verticesColour[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
+		verticesColour[0].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+		// Top middle
+		verticesColour[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		verticesColour[1].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+		// Bottom right
+		verticesColour[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+		verticesColour[2].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+	}
+	else
+	{
+		mpLogger->GetLogger().WriteLine("Could not determine what vertex buffer to fill in Model.cpp.");
+		return false;
+	}
 
-	// Top middle
-	vertices[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-	vertices[1].texture = D3DXVECTOR2(0.5f, 0.0f);
-	//vertices[1].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	// Bottom left
-	vertices[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
-	vertices[2].texture = D3DXVECTOR2(1.0f, 1.0f);
-	//vertices[2].colour = D3DXVECTOR4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	/* Load index array with data. */
 	
@@ -120,15 +177,38 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	/* Set up the descriptor for the vertex buffer. */
 
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mVertexCount;
+	if (verticesTexture != nullptr)
+	{
+		vertexBufferDesc.ByteWidth = sizeof(VertexTextureType) * mVertexCount;
+	}
+	else if (verticesColour != nullptr)
+	{
+		vertexBufferDesc.ByteWidth = sizeof(VertexColourType) * mVertexCount;
+	}
+	else
+	{
+		mpLogger->GetLogger().WriteLine("Failed to find a vertex array to use when setting up descriptor for the vertex buffer in Model.cpp.");
+		return false;
+	}
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
 	/* Give the subresource struct a pointer to the vertex data.*/
-
-	vertexData.pSysMem = vertices;
+	if (verticesTexture != nullptr)
+	{
+		vertexData.pSysMem = verticesTexture;
+	}
+	else if (verticesColour != nullptr)
+	{
+		vertexData.pSysMem = verticesColour;
+	}
+	else
+	{
+		mpLogger->GetLogger().WriteLine("Failed to find the struct being used, so impossible to determine what to pass in to the vertexData.");
+		return false;
+	}
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -137,6 +217,7 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
 	if (FAILED(result))
 	{
+		mpLogger->GetLogger().WriteLine("Failed to create the vertex buffer.");
 		return false;
 	}
 
@@ -161,8 +242,17 @@ bool CModel::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	// Release the local arrays for vertex and index buffers.
-	delete[] vertices;
-	vertices = nullptr;
+	if (verticesColour != nullptr)
+	{
+		delete[] verticesColour;
+		verticesColour = nullptr;
+	}
+	
+	if (verticesTexture != nullptr)
+	{
+		delete[] verticesTexture;
+		verticesTexture = nullptr;
+	}
 
 	delete[] indices;
 	indices = nullptr;
@@ -193,7 +283,18 @@ void CModel::RenderBuffers(ID3D11DeviceContext * deviceContext)
 	unsigned int offset;
 
 	// Set the vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+	if (HasTexture())
+	{
+		stride = sizeof(VertexTextureType);
+	}
+	else if (HasColour())
+	{
+		stride = sizeof(VertexColourType);
+	}
+	else
+	{
+		mpLogger->GetLogger().WriteLine("Neither texture nor colour is being used when rendered. You're probably going to crash here when attempting to render.");
+	}
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
@@ -206,7 +307,7 @@ void CModel::RenderBuffers(ID3D11DeviceContext * deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool CModel::LoadTexture(ID3D11Device * device, WCHAR * filename)
+bool CModel::LoadTexture(ID3D11Device * device)
 {
 	bool result;
 
@@ -220,7 +321,7 @@ bool CModel::LoadTexture(ID3D11Device * device, WCHAR * filename)
 	}
 
 	// Initialise the texture object.
-	result = mpTexture->Initialise(device, filename);
+	result = mpTexture->Initialise(device, mpTextureFilename);
 
 	if (!result)
 	{
@@ -239,4 +340,22 @@ void CModel::ReleaseTexture()
 		delete mpTexture;
 		mpTexture = nullptr;
 	}
+}
+
+void CModel::ResetColour()
+{
+	// Initialise everything to more a value which is not the same as null, 0.0f is the same as null and can cause issues.
+	mColour.x = -1.0f;
+	mColour.y = -1.0f;
+	mColour.z = -1.0f;
+}
+
+bool CModel::HasTexture()
+{
+	return mpTexture != nullptr;
+}
+
+bool CModel::HasColour()
+{
+	return mColour.x > -1.0f && mColour.y > -1.0f && mColour.z > -1.0f;
 }

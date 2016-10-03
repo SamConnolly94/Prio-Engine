@@ -22,6 +22,7 @@ bool CTexture::Initialise(ID3D11Device * device, WCHAR * filename)
 
 	if (FAILED(result))
 	{
+		mpLogger->GetLogger().WriteLine("Failed to load the texture in Texture.cpp.");
 		return false;
 	}
 

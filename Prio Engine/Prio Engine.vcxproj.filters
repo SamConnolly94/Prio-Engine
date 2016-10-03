@@ -98,6 +98,9 @@
     <ClInclude Include="TextureShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PrioTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Colour.ps.hlsl">
@@ -106,18 +109,15 @@
     <None Include="Colour.vs.hlsl">
       <Filter>Vertex Shaders</Filter>
     </None>
+    <None Include="Texture.ps.hlsl" />
+    <None Include="Texture.vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Texture.vs.hlsl">
-      <Filter>Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Texture.ps.hlsl">
-      <Filter>Pixel Shaders</Filter>
-    </FxCompile>
+    <Image Include="Resources\Textures\TestTex.dds">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>
