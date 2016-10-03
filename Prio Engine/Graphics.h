@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
+#include <list>
 #include "D3D11.h"
 #include "Camera.h"
 #include "Model.h"
@@ -40,6 +41,11 @@ private:
 
 	bool RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
+
+	std::list<CModel*> mpModels;
+	bool CreateTextureShaderForModel(CModel* &model, HWND hwnd);
+	bool CreateColourShaderForModel(CModel* &model, HWND hwnd);
+	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 };
 
 #endif
