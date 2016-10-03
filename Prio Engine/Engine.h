@@ -3,6 +3,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "GameTimer.h"
 #include "Graphics.h"
 #include "Input.h"
 #include <windows.h>
@@ -39,11 +40,13 @@ private:
 	// The handle to the window of our application.
 	HWND mHwnd;
 
-	CInput* mInput;
-	CGraphics* mGraphics;
+	CInput* mpInput;
+	CGraphics* mpGraphics;
 
 	void CheckWindowsMessages(MSG &msg);
-	bool IsComplete(MSG msg);
+	bool IsRunning(MSG msg);
+
+	CGameTimer* mTimer;
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

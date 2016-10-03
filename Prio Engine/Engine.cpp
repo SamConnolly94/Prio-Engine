@@ -3,8 +3,9 @@
 /* Default constructor. */
 CEngine::CEngine()
 {
-	mInput = 0;
-	mGraphics = 0;
+	mpInput = nullptr;
+	mpGraphics = nullptr;
+	mTimer = new CGameTimer();
 }
 
 /* Default destructor. */
@@ -28,10 +29,10 @@ bool CEngine::Initialise()
 	InitialiseWindows(screenWidth, screenHeight);
 
 	// Initialise the input object. Used to read any input through keyboard or mouse from a user.
-	mInput = new CInput();
+	mpInput = new CInput();
 
 	// Check that the input object has been successfully initialised.
-	if (!mInput)
+	if (!mpInput)
 	{
 		// Output failure message to the log.
 		mpLogger->GetLogger().WriteLine("Failed to create the input object. ");
@@ -41,11 +42,11 @@ bool CEngine::Initialise()
 	}
 	
 	// Set up the input object for use.
-	mInput->Initialise();
+	mpInput->Initialise();
 
-	mGraphics = new CGraphics();
+	mpGraphics = new CGraphics();
 	// Check to see if graphics object was created successfully.
-	if (!mGraphics)
+	if (!mpGraphics)
 	{
 		// Output error message to the log.
 		mpLogger->GetLogger().WriteLine("Failed to create the graphics object. ");
@@ -55,7 +56,7 @@ bool CEngine::Initialise()
 	}
 
 	// Initialise the graphics object
-	result = mGraphics->Initialise(screenWidth, screenHeight, mHwnd);
+	result = mpGraphics->Initialise(screenWidth, screenHeight, mHwnd);
 
 	// Check that the graphics object was successfully initialised for use.
 	if (!result)
@@ -75,23 +76,30 @@ bool CEngine::Initialise()
 void CEngine::Shutdown()
 {
 	// Release the graphics object.
-	if (mGraphics)
+	if (mpGraphics)
 	{
 		// Run the shutdown function for graphics.
-		mGraphics->Shutdown();
+		mpGraphics->Shutdown();
 		// Deallocate the memory given to the graphics object.
-		delete mGraphics;
+		delete mpGraphics;
 		// Reset the pointer to the graphics object to null.
-		mGraphics = 0;
+		mpGraphics = nullptr;
 	}
 
 	// Release the input object.
-	if (mInput)
+	if (mpInput)
 	{
 		// Deallocate the memory given to the input object.
-		delete mInput;
+		delete mpInput;
 		// Reset the input object pointer to null.
-		mInput = 0;
+		mpInput = nullptr;
+	}
+
+	if (mTimer)
+	{
+		// Deallocate the memory give to the timer.
+		delete mTimer;
+		mTimer = nullptr;
 	}
 
 	// Shutdown the window.
@@ -104,22 +112,58 @@ void CEngine::Shutdown()
 void CEngine::Run()
 {
 	MSG msg;
-	bool complete = false;
+	bool isRunning = true;
 	bool result;
+
+	CModel* redTriangle = nullptr;
+	CModel* blueTriangle = nullptr;
+	float3 red;
+	red.x = 1.0f;
+	red.y = 0.0f;
+	red.z = 0.0f;
+
+	float3 blue;
+	blue.x = 0.0f;
+	blue.y = 0.0f;
+	blue.z = 1.0f;
+
+	mpGraphics->CreateModel(redTriangle, red);
+
 
 	// Initialise the message structure.
 	ZeroMemory(&msg, sizeof(MSG));
 
+	mTimer->Reset();
+	mTimer->Start();
+
 	// Loop until there is a quit message from the window or the user.
-	while (!complete)
+	while (isRunning)
 	{
+		mTimer->Tick();
+
+		if (mTimer->TotalTime() > 2.0f)
+		{
+			if (redTriangle != nullptr)
+			{
+				mpGraphics->RemoveModel(redTriangle);
+				mpGraphics->CreateModel(blueTriangle, blue);
+			}
+			else if (blueTriangle != nullptr)
+			{
+				mpGraphics->RemoveModel(blueTriangle);
+				mpGraphics->CreateModel(redTriangle, red);
+
+			}
+			mTimer->Reset();
+		}
+
 		CheckWindowsMessages(msg);
 
 		// Control what happens when windows signals to end application.
-		complete = IsComplete(msg);
+		isRunning = IsRunning(msg);
 
 		// If we aren't complete yet, and don't need to process any windows messages, process away!
-		if (!complete)
+		if (isRunning)
 		{
 			// Attempt to process the current frame.
 			result = Frame();
@@ -127,7 +171,7 @@ void CEngine::Run()
 			// If we failed to process the current frame then quit, something has gone wrong!
 			if (!result)
 			{
-				complete = true;
+				isRunning = false;
 			}
 		}
 	}
@@ -142,12 +186,12 @@ LRESULT CEngine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpar
 	{
 		case WM_KEYDOWN:
 		{
-			mInput->KeyDown((unsigned int) wparam);
+			mpInput->KeyDown((unsigned int) wparam);
 			return 0;
 		}
 		case WM_KEYUP:
 		{
-			mInput->KeyUp((unsigned int) wparam);
+			mpInput->KeyUp((unsigned int) wparam);
 			return 0;
 		}
 		default:
@@ -163,13 +207,13 @@ bool CEngine::Frame()
 	bool result;
 
 	// Check for user pressing escape
-	if (mInput->IsKeyDown(VK_ESCAPE))
+	if (mpInput->IsKeyDown(VK_ESCAPE))
 	{
 		return false;
 	}
 
 	// Process graphics for this frame;
-	result = mGraphics->Frame();
+	result = mpGraphics->Frame();
 	if (!result)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to process the graphics for this frame. ");
@@ -336,13 +380,13 @@ void CEngine::CheckWindowsMessages(MSG &msg)
 }
 
 /* Check whether our engine should still be ran or it is time to quit. */
-bool CEngine::IsComplete(MSG msg)
+bool CEngine::IsRunning(MSG msg)
 {
 	// Control what happens when windows signals to end application.
 	if (msg.message == WM_QUIT)
 	{
-		return true;
+		return false;
 	}
 
-	return false;
+	return true;
 }

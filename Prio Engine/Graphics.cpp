@@ -18,6 +18,8 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool successful;
 
+	mHwnd = hwnd;
+
 	// Create the Direct3D object.
 	mpD3D = new CD3D11;
 	// Check for successful creation of the object.
@@ -53,46 +55,28 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	// Set the initial camera position.
 	mpCamera->SetPosition(0.0f, 0.0f, -10.0f);
 	
-	// Create the model.
-	float3 red;
-	red.x = 1.0f;
-	red.y = 0.0f;
-	red.z = 0.0f;
+	//// Create the model.
+	//float3 red;
+	//red.x = 1.0f;
+	//red.y = 0.0f;
+	//red.z = 0.0f;
 
-	mpTriangle = new CModel(L"../Resources/Textures/TriangleTex.dds");
-	//mpTriangle = new CModel(red);
-	if (!mpTriangle)
-	{
-		mpLogger->GetLogger().WriteLine("Failed to create the model object");
-		return false;
-	}
+	//mpTriangle = new CModel(L"../Resources/Textures/TriangleTex.dds");
+	////mpTriangle = new CModel(red);
+	//if (!mpTriangle)
+	//{
+	//	mpLogger->GetLogger().WriteLine("Failed to create the model object");
+	//	return false;
+	//}
 
-	// Initialise the model object.
-	successful = mpTriangle->Initialise(mpD3D->GetDevice());
-	if (!successful)
-	{
-		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
-		MessageBox(hwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
-		return false;
-	}
-	
-	if (mpTriangle->HasTexture())
-	{
-		if (!CreateTextureShaderForModel(mpTriangle, hwnd))
-			return false;
-	}
-	else if (mpTriangle->HasColour())
-	{	
-		if (!CreateColourShaderForModel(mpTriangle, hwnd))
-			return false;
-	}
-	else
-	{
-		mpLogger->GetLogger().WriteLine("Failed to find if the model has either a colour or texture in graphics.cpp.");
-	}
-	
-	// Place any created models onto the list for the engine to track.
-	mpModels.push_back(mpTriangle);
+	//// Initialise the model object.
+	//successful = mpTriangle->Initialise(mpD3D->GetDevice());
+	//if (!successful)
+	//{
+	//	mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+	//	MessageBox(hwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+	//	return false;
+	//}
 
 	// Success!
 	mpLogger->GetLogger().WriteLine("Direct3D was successfully initialised.");
@@ -115,11 +99,21 @@ void CGraphics::Shutdown()
 		mpColourShader = nullptr;
 	}
 
-	if (mpTriangle)
+	// Deallocate any allocated memory on the models list.
+	std::list<CModel*>::iterator it;
+	it = mpModels.begin();
+
+	while (it != mpModels.end())
 	{
-		mpTriangle->Shutdown();
-		delete mpTriangle;
-		mpTriangle = nullptr;
+		(*it)->Shutdown();
+		delete (*it);
+		(*it) = nullptr;
+		it++;
+	}
+
+	while (!mpModels.empty())
+	{
+		mpModels.pop_back();
 	}
 
 	if (mpCamera)
@@ -178,9 +172,6 @@ bool CGraphics::Render()
 	mpD3D->GetWorldMatrix(worldMatrix);
 	mpD3D->GetProjectionMatrix(projMatrix);
 
-	// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
-	mpTriangle->Render(mpD3D->GetDeviceContext());
-
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
 		return false;
@@ -198,6 +189,9 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	
 	while (it != mpModels.end())
 	{
+		// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
+		(*it)->Render(mpD3D->GetDeviceContext());
+
 		if ((*it)->HasTexture())
 		{
 			if (!RenderModelWithTexture((*it), world, view, proj))
@@ -223,7 +217,7 @@ bool CGraphics::RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DM
 	bool success = false;
 
 	// Render the model using the colour shader.
-	success = mpColourShader->Render(mpD3D->GetDeviceContext(), mpTriangle->GetIndex(), worldMatrix, viewMatrix, projMatrix);
+	success = mpColourShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix);
 	if (!success)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to render the model using the colour shader object.");
@@ -249,6 +243,65 @@ bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3
 	return true;
 }
 
+bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename)
+{
+	bool successful;
+
+	model = new CModel(TextureFilename);
+	if (!model)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the model object");
+		return false;
+	}
+
+	// Initialise the model object.
+	successful = model->Initialise(mpD3D->GetDevice());
+	if (!successful)
+	{
+		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+		return false;
+	}
+
+	if (!CreateTextureShaderForModel(model, mHwnd))
+		return false;
+
+	// Place any created models onto the list for the engine to track.
+	mpModels.push_back(model);
+
+	return true;
+}
+
+bool CGraphics::CreateModel(CModel* &model, float3 colour)
+{
+	bool successful;
+
+	model = new CModel(colour);
+	//mpTriangle = new CModel(red);
+	if (!model)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the model object");
+		return false;
+	}
+
+	// Initialise the model object.
+	successful = model->Initialise(mpD3D->GetDevice());
+	if (!successful)
+	{
+		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+		return false;
+	}
+
+	if (!CreateColourShaderForModel(model, mHwnd))
+		return false;
+
+	// Place any created models onto the list for the engine to track.
+	mpModels.push_back(model);
+
+	return true;
+}
+
 bool CGraphics::CreateTextureShaderForModel(CModel* &model, HWND hwnd)
 {
 	bool successful;
@@ -269,6 +322,7 @@ bool CGraphics::CreateTextureShaderForModel(CModel* &model, HWND hwnd)
 		MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
 		return false;
 	}
+
 
 	return true;
 }
@@ -295,4 +349,28 @@ bool CGraphics::CreateColourShaderForModel(CModel* &model, HWND hwnd)
 	}
 
 	return true;
+}
+
+bool CGraphics::RemoveModel(CModel* &model)
+{
+	std::list<CModel*>::iterator it;
+	it = mpModels.begin();
+
+	while (it != mpModels.end())
+	{
+		if ((*it) == model)
+		{
+			model->Shutdown();
+			delete model;
+			(*it) = nullptr;
+			mpModels.erase(it);
+			model = nullptr;
+			return true;
+		}
+
+		it++;
+	}
+
+	mpLogger->GetLogger().WriteLine("Failed to find model to delete.");
+	return false;
 }
