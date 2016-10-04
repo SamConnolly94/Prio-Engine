@@ -6,6 +6,7 @@ CEngine::CEngine()
 	mpInput = nullptr;
 	mpGraphics = nullptr;
 	mTimer = new CGameTimer();
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mTimer).name());
 }
 
 /* Default destructor. */
@@ -40,6 +41,8 @@ bool CEngine::Initialise()
 		// Prevent function from continuing any further, could not init input log.
 		return false;
 	}
+
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpInput).name());
 	
 	// Set up the input object for use.
 	mpInput->Initialise();
@@ -54,6 +57,8 @@ bool CEngine::Initialise()
 		// Prevent function from continuing any further, could not init input log.
 		return false;
 	}
+
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpGraphics).name());
 
 	// Initialise the graphics object
 	result = mpGraphics->Initialise(screenWidth, screenHeight, mHwnd);
@@ -82,6 +87,7 @@ void CEngine::Shutdown()
 		mpGraphics->Shutdown();
 		// Deallocate the memory given to the graphics object.
 		delete mpGraphics;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpGraphics).name());
 		// Reset the pointer to the graphics object to null.
 		mpGraphics = nullptr;
 	}
@@ -91,6 +97,7 @@ void CEngine::Shutdown()
 	{
 		// Deallocate the memory given to the input object.
 		delete mpInput;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpInput).name());
 		// Reset the input object pointer to null.
 		mpInput = nullptr;
 	}
@@ -99,6 +106,7 @@ void CEngine::Shutdown()
 	{
 		// Deallocate the memory give to the timer.
 		delete mTimer;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mTimer).name());
 		mTimer = nullptr;
 	}
 
@@ -141,7 +149,7 @@ void CEngine::Run()
 	{
 		mTimer->Tick();
 
-		if (mTimer->TotalTime() > 2.0f)
+		if (mTimer->TotalTime() > 0.5f)
 		{
 			if (redTriangle != nullptr)
 			{
@@ -175,7 +183,6 @@ void CEngine::Run()
 			}
 		}
 	}
-
 	return;
 }
 
@@ -343,6 +350,8 @@ void CEngine::ShutdownWindows()
 	mpLogger->GetLogger().WriteLine("Application handle has been successfully released.");
 
 	mpLogger->GetLogger().WriteLine("Shutdown of window successful.");
+	mpLogger->GetLogger().Shutdown();
+
 	return;
 }
 

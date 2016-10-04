@@ -95,6 +95,8 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 		return false;
 	}
 
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(displayModeList).name());
+
 	// Fill the display mode list struct.
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList);
 	// Check if we were successfull populating the display mode list structure.
@@ -186,6 +188,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	// Release the structures and interfaces we used to get monitor refresh rate.
 	delete [] displayModeList;
 	displayModeList = NULL;
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(displayModeList).name());
 
 	// Release the adapter output (monitor).
 	adapterOutput->Release();

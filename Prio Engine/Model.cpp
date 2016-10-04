@@ -107,7 +107,8 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	if (HasColour())
 	{
 		verticesColour = new VertexColourType[mVertexCount];
-		
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(verticesColour).name());
+
 		if (!verticesColour)
 		{
 			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for colour.");
@@ -117,6 +118,7 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	else if (applyTexture)
 	{
 		verticesTexture = new VertexTextureType[mVertexCount];
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(verticesTexture).name());
 		if (!verticesTexture)
 		{
 			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture.");
@@ -126,6 +128,7 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 
 	// Create the index array.
 	indices = new unsigned long[mIndexCount];
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(indices).name());
 	if (!indices)
 	{
 		return false;
@@ -246,16 +249,19 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	{
 		delete[] verticesColour;
 		verticesColour = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(verticesColour).name());
 	}
 	
 	if (verticesTexture != nullptr)
 	{
 		delete[] verticesTexture;
 		verticesTexture = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(verticesTexture).name());
 	}
 
 	delete[] indices;
-	indices = nullptr;
+	indices = nullptr; 
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }
@@ -320,6 +326,8 @@ bool CModel::LoadTexture(ID3D11Device * device)
 		return false;
 	}
 
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTexture).name());
+
 	// Initialise the texture object.
 	result = mpTexture->Initialise(device, mpTextureFilename);
 
@@ -339,6 +347,14 @@ void CModel::ReleaseTexture()
 		mpTexture->Shutdown();
 		delete mpTexture;
 		mpTexture = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTexture).name());
+	}
+
+	if (mpTextureFilename)
+	{
+		delete mpTextureFilename;
+		mpTextureFilename = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureFilename).name());
 	}
 }
 

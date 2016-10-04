@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <typeinfo>
 #include <string>
 #include <windows.h>
 #include <iostream>
@@ -14,6 +15,7 @@
 
 // The line number which will preceed the log line in the text file.
 static int mLineNumber;
+static int mMemoryLogLineNumber;
 
 class CLogger
 {
@@ -35,9 +37,18 @@ private:
 	std::ofstream mLogFile;
 
 	const std::string mDebugLogName = "Prio_Engine_Debug_Log.txt";
+
+	// The log file which we will write memory info to.
+	std::ofstream mMemoryLogFile;
+
+	const std::string mMemoryLogName = "Memory_Log.txt";
 public:
-	void Write(std::string text);
 	void WriteLine(std::string text);
+
+	void MemoryAllocWriteLine(std::string name);
+	void MemoryDeallocWriteLine(std::string name);
+
+	void Shutdown();
 };
 
 #endif
