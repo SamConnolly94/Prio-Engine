@@ -87,7 +87,6 @@ void CEngine::Shutdown()
 		mpGraphics->Shutdown();
 		// Deallocate the memory given to the graphics object.
 		delete mpGraphics;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpGraphics).name());
 		// Reset the pointer to the graphics object to null.
 		mpGraphics = nullptr;
 	}
@@ -124,7 +123,7 @@ void CEngine::Run()
 	bool result;
 	CModel* sampleTriangle;
 
-	mpGraphics->CreateModel(sampleTriangle, L"../Resources/Textures/TriangleTex.dds", false);
+	mpGraphics->CreateModel(sampleTriangle, L"../Resources/Textures/TriangleTex.dds", true);
 
 
 	// Initialise the message structure.
@@ -189,6 +188,10 @@ bool CEngine::Frame()
 	if (mpInput->IsKeyDown(VK_ESCAPE))
 	{
 		return false;
+	}
+	else if (mpInput->IsKeyDown(VK_F12))
+	{
+
 	}
 
 	// Process graphics for this frame;

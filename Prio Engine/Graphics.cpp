@@ -15,6 +15,7 @@ CGraphics::CGraphics()
 
 CGraphics::~CGraphics()
 {
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(this).name());
 }
 
 bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
@@ -72,7 +73,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	// Define the colour to be used as diffuse lighting.
 	float3 purple;
 	purple.x = 1.0f;
-	purple.y = 0.0f;
+	purple.y = 1.0f;
 	purple.z = 1.0f;
 
 	// Define the direction the light is pointed at.
@@ -96,7 +97,6 @@ void CGraphics::Shutdown()
 	{
 		delete mpLight;
 		mpLight = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpLight).name());
 	}
 
 	if (mpDiffuseLightShader)

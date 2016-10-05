@@ -13,7 +13,7 @@ private:
 	{
 		D3DXMATRIX world;
 		D3DXMATRIX view;
-		D3DXMATRIX proj;
+		D3DXMATRIX projection;
 	};
 
 	struct LightBufferType
