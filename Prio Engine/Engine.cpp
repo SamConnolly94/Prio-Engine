@@ -122,20 +122,9 @@ void CEngine::Run()
 	MSG msg;
 	bool isRunning = true;
 	bool result;
+	CModel* sampleTriangle;
 
-	CModel* redTriangle = nullptr;
-	CModel* blueTriangle = nullptr;
-	float3 red;
-	red.x = 1.0f;
-	red.y = 0.0f;
-	red.z = 0.0f;
-
-	float3 blue;
-	blue.x = 0.0f;
-	blue.y = 0.0f;
-	blue.z = 1.0f;
-
-	mpGraphics->CreateModel(redTriangle, red);
+	mpGraphics->CreateModel(sampleTriangle, L"../Resources/Textures/TriangleTex.dds", false);
 
 
 	// Initialise the message structure.
@@ -147,24 +136,6 @@ void CEngine::Run()
 	// Loop until there is a quit message from the window or the user.
 	while (isRunning)
 	{
-		mTimer->Tick();
-
-		if (mTimer->TotalTime() > 0.5f)
-		{
-			if (redTriangle != nullptr)
-			{
-				mpGraphics->RemoveModel(redTriangle);
-				mpGraphics->CreateModel(blueTriangle, blue);
-			}
-			else if (blueTriangle != nullptr)
-			{
-				mpGraphics->RemoveModel(blueTriangle);
-				mpGraphics->CreateModel(redTriangle, red);
-
-			}
-			mTimer->Reset();
-		}
-
 		CheckWindowsMessages(msg);
 
 		// Control what happens when windows signals to end application.
@@ -182,6 +153,7 @@ void CEngine::Run()
 				isRunning = false;
 			}
 		}
+		mTimer->Tick();
 	}
 	return;
 }

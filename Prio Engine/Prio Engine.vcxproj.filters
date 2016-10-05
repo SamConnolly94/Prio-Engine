@@ -25,6 +25,12 @@
     <Filter Include="Resource Files\Textures">
       <UniqueIdentifier>{e0d84124-9601-4915-a1f5-fb73c6c87d0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Shader Class">
+      <UniqueIdentifier>{52b10b1f-9001-4c56-a455-e2800f62a8b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shader Class">
+      <UniqueIdentifier>{9f5c6112-64c1-4e01-8bc0-3b9bc19d4c55}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -51,16 +57,22 @@
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColourShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ColourShader.cpp">
+      <Filter>Source Files\Shader Class</Filter>
+    </ClCompile>
     <ClCompile Include="TextureShader.cpp">
+      <Filter>Source Files\Shader Class</Filter>
+    </ClCompile>
+    <ClCompile Include="DiffuseLightShader.cpp">
+      <Filter>Source Files\Shader Class</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,19 +98,25 @@
     <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ColourShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextureShader.h">
+    <ClInclude Include="PrioTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PrioTypes.h">
+    <ClInclude Include="ColourShader.h">
+      <Filter>Header Files\Shader Class</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Header Files\Shader Class</Filter>
+    </ClInclude>
+    <ClInclude Include="DiffuseLightShader.h">
+      <Filter>Header Files\Shader Class</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -109,8 +127,12 @@
     <None Include="Colour.vs.hlsl">
       <Filter>Vertex Shaders</Filter>
     </None>
-    <None Include="Texture.ps.hlsl" />
-    <None Include="Texture.vs.hlsl" />
+    <None Include="Texture.ps.hlsl">
+      <Filter>Pixel Shaders</Filter>
+    </None>
+    <None Include="Texture.vs.hlsl">
+      <Filter>Vertex Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds">
@@ -119,5 +141,13 @@
     <Image Include="Resources\Textures\TestTex.dds">
       <Filter>Resource Files\Textures</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="DiffuseLight.vs.hlsl">
+      <Filter>Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DiffuseLight.ps.hlsl">
+      <Filter>Pixel Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

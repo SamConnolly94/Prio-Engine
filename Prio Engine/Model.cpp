@@ -11,6 +11,23 @@ CModel::CModel(WCHAR* filename)
 	mpTexture = nullptr;
 	mpTextureFilename = nullptr;
 	ResetColour();
+	mUseDiffuseLighting = false;
+
+	// Store the filename for later use.
+	mpTextureFilename = filename;
+}
+
+CModel::CModel(WCHAR* filename, bool useLighting)
+{
+	// Initialise all variables to be null.
+	mpVertexBuffer = nullptr;
+	mpIndexBuffer = nullptr;
+	mpTexture = nullptr;
+	mpTextureFilename = nullptr;
+	ResetColour();
+
+	// Set the flag to use diffuse lighting on our texture.
+	mUseDiffuseLighting = useLighting;
 
 	// Store the filename for later use.
 	mpTextureFilename = filename;
@@ -22,6 +39,7 @@ CModel::CModel(float3 colour)
 	mpIndexBuffer = nullptr;
 	mpTexture = nullptr;
 	mpTextureFilename = nullptr;
+	mUseDiffuseLighting = false;
 	ResetColour();
 
 	// Store the colour which we have passed in.
@@ -89,6 +107,7 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 {
 	VertexTextureType* verticesTexture = nullptr;
 	VertexColourType* verticesColour = nullptr;
+	VertexDiffuseLightingType* verticesDiffuse = nullptr;
 
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc;
@@ -115,13 +134,23 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 			return false;
 		}
 	} 
-	else if (applyTexture)
+	else if (applyTexture && !mUseDiffuseLighting)
 	{
 		verticesTexture = new VertexTextureType[mVertexCount];
 		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(verticesTexture).name());
 		if (!verticesTexture)
 		{
 			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture.");
+			return false;
+		}
+	}
+	else if (applyTexture && mUseDiffuseLighting)
+	{
+		verticesDiffuse = new VertexDiffuseLightingType[mVertexCount];
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(verticesDiffuse).name());
+		if (!verticesDiffuse)
+		{
+			mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
 			return false;
 		}
 	}
@@ -135,7 +164,7 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	}
 
 	/* Set the vertex points for the triangle. */
-	if (applyTexture)
+	if (applyTexture && !mUseDiffuseLighting)
 	{
 		// Bottom left
 		verticesTexture[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
@@ -146,6 +175,23 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 		// Bottom right
 		verticesTexture[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
 		verticesTexture[2].texture = D3DXVECTOR2(1.0f, 1.0f);
+	}
+	else if (applyTexture && mUseDiffuseLighting)
+	{
+		// Bottom left
+		verticesDiffuse[0].position = D3DXVECTOR3(-1.0f, -1.0f, 0.0f);
+		verticesDiffuse[0].texture = D3DXVECTOR2(0.0f, 1.0f);
+		verticesDiffuse[0].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+
+		// Top middle
+		verticesDiffuse[1].position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+		verticesDiffuse[1].texture = D3DXVECTOR2(0.5f, 0.0f);
+		verticesDiffuse[1].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
+
+		// Bottom right
+		verticesDiffuse[2].position = D3DXVECTOR3(1.0f, -1.0f, 0.0f);
+		verticesDiffuse[2].texture = D3DXVECTOR2(1.0f, 1.0f);
+		verticesDiffuse[2].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 	}
 	else if (HasColour())
 	{
@@ -188,6 +234,10 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	{
 		vertexBufferDesc.ByteWidth = sizeof(VertexColourType) * mVertexCount;
 	}
+	else if (verticesDiffuse != nullptr)
+	{
+		vertexBufferDesc.ByteWidth = sizeof(VertexDiffuseLightingType) * mVertexCount;
+	}
 	else
 	{
 		mpLogger->GetLogger().WriteLine("Failed to find a vertex array to use when setting up descriptor for the vertex buffer in Model.cpp.");
@@ -206,6 +256,10 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	else if (verticesColour != nullptr)
 	{
 		vertexData.pSysMem = verticesColour;
+	}
+	else if (verticesDiffuse != nullptr)
+	{
+		vertexData.pSysMem = verticesDiffuse;
 	}
 	else
 	{
@@ -259,6 +313,13 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(verticesTexture).name());
 	}
 
+	if (verticesDiffuse != nullptr)
+	{
+		delete[] verticesDiffuse;
+		verticesDiffuse = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(verticesDiffuse).name());
+	}
+
 	delete[] indices;
 	indices = nullptr; 
 	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(indices).name());
@@ -289,9 +350,13 @@ void CModel::RenderBuffers(ID3D11DeviceContext * deviceContext)
 	unsigned int offset;
 
 	// Set the vertex buffer stride and offset.
-	if (HasTexture())
+	if (HasTexture() && !UseDiffuseLight())
 	{
 		stride = sizeof(VertexTextureType);
+	}
+	else if (HasTexture() && UseDiffuseLight())
+	{
+		stride = sizeof(VertexDiffuseLightingType);
 	}
 	else if (HasColour())
 	{
@@ -309,7 +374,7 @@ void CModel::RenderBuffers(ID3D11DeviceContext * deviceContext)
 	// Set the index buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Set the type of primitive that should be rendered from this vertex buffer, in this case we use triangles to draw.
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -352,9 +417,7 @@ void CModel::ReleaseTexture()
 
 	if (mpTextureFilename)
 	{
-		delete mpTextureFilename;
 		mpTextureFilename = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureFilename).name());
 	}
 }
 
@@ -375,3 +438,9 @@ bool CModel::HasColour()
 {
 	return mColour.x > -1.0f && mColour.y > -1.0f && mColour.z > -1.0f;
 }
+
+bool CModel::UseDiffuseLight()
+{
+	return mUseDiffuseLighting;
+}
+

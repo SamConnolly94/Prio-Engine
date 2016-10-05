@@ -65,11 +65,11 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Convert the vs & ps filename to string for logging purposes.
-	wstring wsVs(vsFilename);
-	string vsFilenameStr(wsVs.begin(), wsVs.end());
+	std::wstring wsVs(vsFilename);
+	std::string vsFilenameStr(wsVs.begin(), wsVs.end());
 
-	wstring wsPs(psFilename);
-	string psFilenameStr(wsPs.begin(), wsPs.end());
+	std::wstring wsPs(psFilename);
+	std::string psFilenameStr(wsPs.begin(), wsPs.end());
 
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
@@ -174,7 +174,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
+		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -240,10 +240,9 @@ void CTextureShader::ShutdownShader()
 
 void CTextureShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, WCHAR * shaderFilename)
 {
-	string errMsg;
+	std::string errMsg;
 	char* compileErrors;
 	unsigned long bufferSize;
-	ofstream fout;
 
 	// Grab pointer to the compile errors.
 	compileErrors = (char*)(errorMessage->GetBufferPointer());

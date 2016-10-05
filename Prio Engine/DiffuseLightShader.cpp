@@ -1,25 +1,27 @@
-#include "ColourShader.h"
+#include "DiffuseLightShader.h"
 
 
-
-CColourShader::CColourShader()
+CDiffuseLightShader::CDiffuseLightShader()
 {
 	mpVertexShader = nullptr;
 	mpPixelShader = nullptr;
 	mpLayout = nullptr;
 	mpMatrixBuffer = nullptr;
+	mpSampleState = nullptr;
+	mpLightBuffer = nullptr;
 }
 
-CColourShader::~CColourShader()
+CDiffuseLightShader::~CDiffuseLightShader()
 {
 }
 
-bool CColourShader::Initialise(ID3D11Device * device, HWND hwnd)
+bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 {
 	bool result;
 
-	// Initialise the vertex and pixel shaders.
-	result = InitialiseShader(device, hwnd, L"../Colour.vs.hlsl", L"../Colour.ps.hlsl");
+	// Initialise the vertex pixel shaders.
+	result = InitialiseShader(device, hwnd, L"../DiffuseLight.vs.hlsl", L"../DiffuseLight.ps.hlsl");
+
 	if (!result)
 	{
 		return false;
@@ -28,17 +30,20 @@ bool CColourShader::Initialise(ID3D11Device * device, HWND hwnd)
 	return true;
 }
 
-void CColourShader::Shutdown()
+void CDiffuseLightShader::Shutdown()
 {
+	// Shutodwn the vertex and pixel shaders as well as all related objects.
 	ShutdownShader();
 }
 
-bool CColourShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
 {
 	bool result;
 
-	// Set the parameters which will be used for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix);
+
+	// Set the shader parameters that it will use for rendering.
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour);
 	if (!result)
 	{
 		return false;
@@ -50,15 +55,17 @@ bool CColourShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, 
 	return true;
 }
 
-bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
+bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_SAMPLER_DESC samplerDesc;
+	D3D11_BUFFER_DESC lightBufferDesc;
 
 	// Convert the vs & ps filename to string for logging purposes.
 	std::wstring wsVs(vsFilename);
@@ -71,9 +78,9 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	errorMessage = nullptr;
 	vertexShaderBuffer = nullptr;
 	pixelShaderBuffer = nullptr;
-	
+
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "ColourVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -90,7 +97,7 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ColourPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -131,13 +138,21 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
 
-	polygonLayout[1].SemanticName = "COLOR";
+	polygonLayout[1].SemanticName = "TEXCOORD";
 	polygonLayout[1].SemanticIndex = 0;
 	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	polygonLayout[1].InputSlot = 0;
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
+
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -157,6 +172,30 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	pixelShaderBuffer->Release();
 	pixelShaderBuffer = nullptr;
 
+	// Set up the sampler state descriptor.
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
+
+	if (FAILED(result))
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		return false;
+	}
+
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -170,16 +209,41 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
+		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		return false;
+	}
+
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
+	if (FAILED(result))
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
 		return false;
 	}
 
 	return true;
 }
 
-void CColourShader::ShutdownShader()
+void CDiffuseLightShader::ShutdownShader()
 {
-	// Release the matrix constant buffer.
+	if (mpLightBuffer)
+	{
+		mpLightBuffer->Release();
+		mpLightBuffer = nullptr;
+	}
+
+	if (mpSampleState)
+	{
+		mpSampleState->Release();
+		mpSampleState = nullptr;
+	}
+
 	if (mpMatrixBuffer)
 	{
 		mpMatrixBuffer->Release();
@@ -205,43 +269,48 @@ void CColourShader::ShutdownShader()
 	}
 }
 
-void CColourShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, WCHAR * shaderFilename)
+void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, WCHAR * shaderFilename)
 {
+	std::string errMsg;
 	char* compileErrors;
 	unsigned long bufferSize;
-	
-	// Get pointer to the error message text buffer.
+
+	// Grab pointer to the compile errors.
 	compileErrors = (char*)(errorMessage->GetBufferPointer());
 
 	// Get the length of the message.
 	bufferSize = errorMessage->GetBufferSize();
-	
-	std::string errStr;
 
+	// Reset string to store message in to be empty.
+	errMsg = "";
+
+	// Compile the error message into a string variable.
 	for (int i = 0; i < bufferSize; i++)
 	{
-		errStr += compileErrors[i];
+		errMsg += compileErrors[i];
 	}
 
-	mpLogger->GetLogger().WriteLine("*** SHADER ERROR ***");
-	mpLogger->GetLogger().WriteLine(errStr);
+	// Write the error string to the logs.
+	mpLogger->GetLogger().WriteLine(errMsg);
 
-	// Release the blob used to store error message data.
+	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();
-	errorMessage = 0;
+	errorMessage = nullptr;
 
-	// Output error in message box.
-	MessageBox(hwnd, L"Error compiling shader. Check logs for a detailed error message.", shaderFilename, MB_OK);
+	// Output a message box containing info describing what went wrong. Redirect to the logs.
+	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
+	MatrixBufferType* dataPtr;
+	LightBufferType* dataPtr2;
 
-	// Transpose the matrices so they are ready for the shader.
+
+	// Transpose the matrices to prepare them for the shader.
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
 	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
 	D3DXMatrixTranspose(&projMatrix, &projMatrix);
@@ -250,7 +319,6 @@ bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3D
 	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to the lock the constant buffer so we could write to it in ColourShader.cpp.");
 		return false;
 	}
 
@@ -260,7 +328,7 @@ bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3D
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;
 	dataPtr->view = viewMatrix;
-	dataPtr->projection = projMatrix;
+	dataPtr->proj = projMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpMatrixBuffer, 0);
@@ -268,21 +336,53 @@ bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3D
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	// Set the constant buffer in the vertex shader with updated values.
+	// Now set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
+
+	// Set shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &texture);
+
+	// Lock the light constant buffer so it can be written to.
+	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr2 = (LightBufferType*)mappedResource.pData;
+
+	// Copy the lighting variables into the constant buffer.
+	dataPtr2->diffuseColour = diffuseColour;
+	dataPtr2->lightDirection = lightDirection;
+	dataPtr2->padding = 0.0f;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpLightBuffer, 0);
+
+	// Set the position of the light constant buffer in the pixel shader.
+	bufferNumber = 0;
+
+	// Finally set the light constant buffer in the pixel shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
 
 	return true;
 }
 
-void CColourShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
-	// Set the vertex input layout
+	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
-	
+
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
 	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
 
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
+
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+	return;
 }

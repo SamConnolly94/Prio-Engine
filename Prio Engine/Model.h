@@ -12,6 +12,7 @@
 class CModel
 {
 private:
+	// Structure types, should reflect the vertex / pixel shader.
 	struct VertexColourType
 	{
 		D3DXVECTOR3 position;
@@ -22,8 +23,22 @@ private:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 texture;
 	};
+	//struct VertexDiffuseLightingType
+	//{
+	//	D3DXVECTOR3 position;
+	//	D3DXVECTOR2 texture;
+	//	D3DXVECTOR3 normal;
+	//};
+	struct VertexDiffuseLightingType
+	{
+		D3DXVECTOR3 position;
+		D3DXVECTOR2 texture;
+		D3DXVECTOR3 normal;
+	};
+
 public:
 	CModel(WCHAR* textureFilename);
+	CModel(WCHAR* textureFilename, bool useLighting);
 	CModel(float3 colour);
 	~CModel();
 public:
@@ -52,9 +67,12 @@ private:
 
 	float3 mColour;
 	void ResetColour();
+
+	bool mUseDiffuseLighting;
 public:
 	bool HasTexture();
 	bool HasColour();
+	bool UseDiffuseLight();
 };
 
 #endif
