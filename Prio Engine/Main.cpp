@@ -1,5 +1,8 @@
 #include "Engine.h"
 
+// Declaration of functions used to run game itself.
+void GameLoop(CEngine* &engine);
+
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	// Enable run time memory check while running in debug.
@@ -23,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	result = PrioEngine->Initialise();
 	if (result)
 	{
-		PrioEngine->Run();
+		GameLoop(PrioEngine);
 	}
 
 	// Shutdown and release the engine.
@@ -35,4 +38,23 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	_CrtDumpMemoryLeaks();
 
 	return 0;
+}
+
+void GameLoop(CEngine* &engine)
+{
+	// Process any initialisation to be done before the gameloop here.
+	CModel* triangle = engine->CreateModel(L"../Resources/Textures/TriangleTex.dds", true);
+
+	engine->StartTimer();
+	// Process anything which should happen in the game here.
+	while (engine->IsRunning())
+	{
+		//triangle->RotateY(static_cast<float>(D3DX_PI) * 0.01f);
+		//if (triangle->GetRotationY() > 360.0f)
+		//{
+		//	triangle->SetRotationY(0.0f);
+		//}
+		triangle->MoveY(0.01f);
+
+	}
 }

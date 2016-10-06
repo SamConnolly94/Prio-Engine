@@ -10,7 +10,7 @@ CGraphics::CGraphics()
 	mpTextureShader = nullptr;
 	mpLight = nullptr;
 	mpDiffuseLightShader = nullptr;
-	mLightRotation = 0.0f;
+	mRotation = 0.0f;
 }
 
 CGraphics::~CGraphics()
@@ -167,12 +167,6 @@ bool CGraphics::Frame()
 {
 	bool success;
 
-	mLightRotation += static_cast<float>(D3DX_PI) * 0.01f;
-	if (mLightRotation > 360.0f)
-	{
-		mLightRotation = 0.0f;
-	}
-
 	// Render the graphics scene.
 	success = Render();
 
@@ -206,7 +200,7 @@ bool CGraphics::Render()
 	mpD3D->GetProjectionMatrix(projMatrix);
 
 	// Ritate the world by rotation value so the triangle spins.
-	D3DXMatrixRotationY(&worldMatrix, mLightRotation);
+	D3DXMatrixRotationY(&worldMatrix, mRotation);
 
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
@@ -305,8 +299,9 @@ bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3
 	return true;
 }
 
-bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename)
+CModel* CGraphics::CreateModel(WCHAR* TextureFilename)
 {
+	CModel* model;
 	bool successful;
 
 	model = new CModel(TextureFilename);
@@ -314,7 +309,7 @@ bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename)
 	if (!model)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
-		return false;
+		return nullptr;
 	}
 
 	// Initialise the model object.
@@ -323,27 +318,28 @@ bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename)
 	{
 		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
-		return false;
+		return nullptr;
 	}
 
 	if (model->HasTexture() && model->UseDiffuseLight())
 	{
 		if (!CreateTextureAndDiffuseLightShaderFromModel(model, mHwnd))
-			return false;
+			return nullptr;
 	}
 	else if (model->HasTexture())
 	{
 		if (!CreateTextureShaderForModel(model, mHwnd))
-			return false;
+			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
 	mpModels.push_back(model);
 
-	return true;
+	return model;
 }
 
-bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename, bool useLighting)
+CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting)
 {
+	CModel* model;
 	bool successful;
 
 	model = new CModel(TextureFilename, useLighting);
@@ -351,7 +347,7 @@ bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename, bool useLigh
 	if (!model)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
-		return false;
+		return nullptr;
 	}
 
 	// Initialise the model object.
@@ -360,27 +356,28 @@ bool CGraphics::CreateModel(CModel* &model, WCHAR* TextureFilename, bool useLigh
 	{
 		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
-		return false;
+		return nullptr;
 	}
 
 	if (model->HasTexture() && model->UseDiffuseLight())
 	{
 		if (!CreateTextureAndDiffuseLightShaderFromModel(model, mHwnd))
-			return false;
+			return nullptr;
 	}
 	else if (model->HasTexture())
 	{
 		if (!CreateTextureShaderForModel(model, mHwnd))
-			return false;
+			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
 	mpModels.push_back(model);
 
-	return true;
+	return model;
 }
 
-bool CGraphics::CreateModel(CModel* &model, float3 colour)
+CModel* CGraphics::CreateModel(float3 colour)
 {
+	CModel* model;
 	bool successful;
 
 	model = new CModel(colour);
@@ -389,7 +386,7 @@ bool CGraphics::CreateModel(CModel* &model, float3 colour)
 	if (!model)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
-		return false;
+		return nullptr;
 	}
 
 	// Initialise the model object.
@@ -398,16 +395,16 @@ bool CGraphics::CreateModel(CModel* &model, float3 colour)
 	{
 		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
-		return false;
+		return nullptr;
 	}
 
 	if (!CreateColourShaderForModel(model, mHwnd))
-		return false;
+		return nullptr;
 
 	// Place any created models onto the list for the engine to track.
 	mpModels.push_back(model);
 
-	return true;
+	return model;
 }
 
 bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CModel* &model, HWND hwnd)

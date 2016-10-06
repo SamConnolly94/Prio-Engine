@@ -73,6 +73,12 @@ bool CEngine::Initialise()
 		return false;
 	}
 
+	// Initialise the message structure.
+	ZeroMemory(&mMsg, sizeof(MSG));
+
+	// Reset the timer so we are starting from 0.
+	mTimer->Reset();
+
 	// Success! Initialised all essentials for our system.
 	return true;
 }
@@ -116,45 +122,38 @@ void CEngine::Shutdown()
 }
 
 /* Run our engine until we quit. */
-void CEngine::Run()
+bool CEngine::IsRunning()
 {
-	MSG msg;
-	bool isRunning = true;
-	bool result;
-	CModel* sampleTriangle;
-
-	mpGraphics->CreateModel(sampleTriangle, L"../Resources/Textures/TriangleTex.dds", true);
-
-
-	// Initialise the message structure.
-	ZeroMemory(&msg, sizeof(MSG));
-
-	mTimer->Reset();
-	mTimer->Start();
-
 	// Loop until there is a quit message from the window or the user.
-	while (isRunning)
+
+	CheckWindowsMessages(mMsg);
+
+	// Control what happens when windows signals to end application.
+	mIsRunning = ProcessWindowsMessages();
+
+	// If we aren't complete yet, and don't need to process any windows messages, process away!
+	if (mIsRunning)
 	{
-		CheckWindowsMessages(msg);
+		// Attempt to process the current frame.
+		result = Frame();
 
-		// Control what happens when windows signals to end application.
-		isRunning = IsRunning(msg);
-
-		// If we aren't complete yet, and don't need to process any windows messages, process away!
-		if (isRunning)
+		// If we failed to process the current frame then quit, something has gone wrong!
+		if (!result)
 		{
-			// Attempt to process the current frame.
-			result = Frame();
-
-			// If we failed to process the current frame then quit, something has gone wrong!
-			if (!result)
-			{
-				isRunning = false;
-			}
+			mIsRunning = false;
+			// Return false here to avoid following through until the code which returns true.
+			return false;
 		}
-		mTimer->Tick();
 	}
-	return;
+	else
+	{
+		// We recieved the quit message from windows, stop!
+		return false;
+	}
+	mTimer->Tick();
+
+
+	return mIsRunning;
 }
 
 /* Handle messages from the OS. */
@@ -364,13 +363,34 @@ void CEngine::CheckWindowsMessages(MSG &msg)
 }
 
 /* Check whether our engine should still be ran or it is time to quit. */
-bool CEngine::IsRunning(MSG msg)
+bool CEngine::ProcessWindowsMessages()
 {
 	// Control what happens when windows signals to end application.
-	if (msg.message == WM_QUIT)
+	if (mMsg.message == WM_QUIT)
 	{
 		return false;
 	}
 
 	return true;
+}
+
+void CEngine::StartTimer()
+{
+	mTimer->Start();
+}
+
+
+CModel* CEngine::CreateModel(WCHAR* textureFilename)
+{
+	return mpGraphics->CreateModel(textureFilename);
+}
+
+CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting)
+{
+	return mpGraphics->CreateModel(textureFilename, useLighting);
+}
+
+CModel* CEngine::CreateModel(float3 colour)
+{
+	return mpGraphics->CreateModel(colour);
 }

@@ -54,14 +54,14 @@ private:
 	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CModel* &model, HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 
-	float mLightRotation;
+	float mRotation;
 
 	HWND mHwnd;
 public:
 
-	bool CreateModel(CModel* &model, WCHAR* TextureFilename);
-	bool CreateModel(CModel* &model, float3 colour);
-	bool CreateModel(CModel* &model, WCHAR* TextureFilename, bool useLighting);
+	CModel* CreateModel(WCHAR* TextureFilename);
+	CModel* CreateModel(float3 colour);
+	CModel* CreateModel(WCHAR* TextureFilename, bool useLighting);
 	bool RemoveModel(CModel* &model);
 };
 

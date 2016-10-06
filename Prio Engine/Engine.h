@@ -24,7 +24,8 @@ public:
 	// Handle what happens when the window is closed and engine is told to stop.
 	void Shutdown();
 	// Runs the engine.
-	void Run();
+	bool IsRunning();
+	void StartTimer();
 
 	// Control what happens when we recieve different messages from the operating system.
 	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
@@ -44,9 +45,18 @@ private:
 	CGraphics* mpGraphics;
 
 	void CheckWindowsMessages(MSG &msg);
-	bool IsRunning(MSG msg);
+	bool ProcessWindowsMessages();
 
 	CGameTimer* mTimer;
+private:
+	MSG mMsg;
+	bool result;
+	bool mIsRunning;
+public:
+	// Model creation functions.
+	CModel* CreateModel(float3 colour);
+	CModel* CreateModel(WCHAR* textureFilename, bool useLighting);
+	CModel* CreateModel(WCHAR* textureFilename);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 
