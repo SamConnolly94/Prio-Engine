@@ -4,8 +4,8 @@
 // Include DirectX libraries.
 #include <d3d11.h>
 #include <D3DX10math.h>
-#include "PrioTypes.h"
 
+#include "PrioTypes.h"
 #include "Logger.h"
 #include "Texture.h"
 
@@ -111,9 +111,6 @@ private:
 	void CommitToMatrix();
 	void CleanVertexBuffers(VertexTextureType* &verticesTexture, VertexColourType* &verticesColour, VertexDiffuseLightingType* &verticesDiffuse);
 	bool CreateVertexBuffer(VertexTextureType* &verticesTexture, VertexColourType* &verticesColour, VertexDiffuseLightingType* &verticesDiffuse);
-
-	// Place rotation into a matrix and passes it to DirectX to draw.
-	void CommitRotate();
 };
 
 #endif

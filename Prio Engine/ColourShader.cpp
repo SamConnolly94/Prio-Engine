@@ -168,6 +168,8 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
+
+	
 	if (FAILED(result))
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");

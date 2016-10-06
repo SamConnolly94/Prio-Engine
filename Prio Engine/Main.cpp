@@ -54,7 +54,8 @@ void GameLoop(CEngine* &engine)
 		//{
 		//	triangle->SetRotationY(0.0f);
 		//}
-		triangle->MoveY(0.01f);
+		//triangle->MoveY(0.01f);
+		triangle->RotateY(0.01f);
 
 	}
 }

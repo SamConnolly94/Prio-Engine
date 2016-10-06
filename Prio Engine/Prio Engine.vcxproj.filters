@@ -133,6 +133,12 @@
     <None Include="Texture.vs.hlsl">
       <Filter>Vertex Shaders</Filter>
     </None>
+    <None Include="DiffuseLight.ps.hlsl">
+      <Filter>Pixel Shaders</Filter>
+    </None>
+    <None Include="DiffuseLight.vs.hlsl">
+      <Filter>Vertex Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds">
@@ -141,13 +147,5 @@
     <Image Include="Resources\Textures\TestTex.dds">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="DiffuseLight.vs.hlsl">
-      <Filter>Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DiffuseLight.ps.hlsl">
-      <Filter>Pixel Shaders</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

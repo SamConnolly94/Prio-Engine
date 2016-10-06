@@ -551,23 +551,6 @@ void CModel::SetRotationZ(float z)
 	mRotationZ = z;
 }
 
-void CModel::CommitRotate()
-{
-	// Define the matrices.
-	D3DXMATRIX rotXMatrix;
-	D3DXMATRIX rotYMatrix;
-	D3DXMATRIX rotZMatrix;
-
-	// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-	D3DXMatrixRotationX(&rotXMatrix, mRotationX);
-	D3DXMatrixRotationX(&rotYMatrix, mRotationY);
-	D3DXMatrixRotationX(&rotZMatrix, mRotationZ);
-
-	// Combine the matrices.
-	D3DXMATRIX rotationMatrix = rotXMatrix * rotYMatrix * rotZMatrix;
-
-}
-
 void CModel::MoveX(float x)
 {
 	mPositionX += x;

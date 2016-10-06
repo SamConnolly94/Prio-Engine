@@ -217,8 +217,20 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	std::list<CModel*>::iterator it;
 	it = mpModels.begin();
 	
+	// Define three matrices to hold x, y and z rotations.
+	D3DXMATRIX rotX;
+	D3DXMATRIX rotY;
+	D3DXMATRIX rotZ;
+
 	while (it != mpModels.end())
 	{
+		
+		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
+		D3DXMatrixRotationX(&rotX, (*it)->GetRotationX());
+		D3DXMatrixRotationY(&rotY, (*it)->GetRotationY());
+		D3DXMatrixRotationZ(&rotZ, (*it)->GetRotationZ());
+		world = rotX * rotY * rotZ;
+
 		// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
 		(*it)->Render(mpD3D->GetDeviceContext());
 
