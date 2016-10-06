@@ -43,18 +43,21 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 void GameLoop(CEngine* &engine)
 {
 	// Process any initialisation to be done before the gameloop here.
-	CModel* triangle = engine->CreateModel(L"../Resources/Textures/TestTex.dds", false, PrioEngine::Primitives::cube);
+	CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+
+	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
+	cube2->SetXPos(-2.0f);
 
 	engine->StartTimer();
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
-		//triangle->RotateY(static_cast<float>(D3DX_PI) * 0.01f);
-		//if (triangle->GetRotationY() > 360.0f)
-		//{
-		//	triangle->SetRotationY(0.0f);
-		//}
-		//triangle->MoveY(0.01f);
+		cube->RotateY(static_cast<float>(D3DX_PI) * 0.01f);
+		if (cube->GetRotationY() > 360.0f)
+		{
+			cube->SetRotationY(0.0f);
+		}
+		cube->MoveY(0.01f);
 		//triangle->RotateY(0.01f);
 
 	}

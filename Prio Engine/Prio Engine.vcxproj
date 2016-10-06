@@ -177,6 +177,7 @@
     <ClCompile Include="PrioTypes.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureShader.cpp" />
+    <ClCompile Include="VertexTypeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="PrioTypes.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureShader.h" />
+    <ClInclude Include="VertexTypeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Colour.ps.hlsl" />

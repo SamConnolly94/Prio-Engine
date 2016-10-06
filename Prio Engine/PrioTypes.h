@@ -111,5 +111,13 @@ namespace PrioEngine
 		const RGBA green = { 0.0f, 1.0f, 0.0f, 1.0f };
 		const RGBA blue = { 0.0f, 0.0f, 1.0f, 1.0f };
 	}
+
+	// Defines the types of vertex arrays we have, these should reflect the structures in the vertex shader.
+	enum VertexType
+	{
+		Colour,
+		Texture,
+		Diffuse
+	};
 }
 #endif
