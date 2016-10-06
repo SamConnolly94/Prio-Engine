@@ -18,6 +18,13 @@ CEngine::~CEngine()
 /* Initialise our engine. */
 bool CEngine::Initialise()
 {
+
+	// Set up the colour variables in the PrioEngine namespace.
+	//PrioEngine::white.r = 1.0f;
+	//PrioEngine::white.g = 1.0f;
+	//PrioEngine::white.b = 1.0f;
+	//PrioEngine::white.a = 1.0f;
+
 	// The width we have to work with on our monitor.
 	int screenWidth = 0;
 	// The height we have to work with on our monitor.
@@ -380,17 +387,17 @@ void CEngine::StartTimer()
 }
 
 
-CModel* CEngine::CreateModel(WCHAR* textureFilename)
+CModel* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape)
 {
-	return mpGraphics->CreateModel(textureFilename);
+	return mpGraphics->CreateModel(textureFilename, shape);
 }
 
-CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting)
+CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
-	return mpGraphics->CreateModel(textureFilename, useLighting);
+	return mpGraphics->CreateModel(textureFilename, useLighting, shape);
 }
 
-CModel* CEngine::CreateModel(float3 colour)
+CModel* CEngine::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
-	return mpGraphics->CreateModel(colour);
+	return mpGraphics->CreateModel(colour, shape);
 }

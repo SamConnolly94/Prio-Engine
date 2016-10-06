@@ -31,9 +31,9 @@ private:
 	};
 
 public:
-	CModel(WCHAR* textureFilename);
-	CModel(WCHAR* textureFilename, bool useLighting);
-	CModel(float3 colour);
+	CModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
+	CModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
+	CModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	~CModel();
 public:
 	bool Initialise(ID3D11Device* device);
@@ -56,17 +56,24 @@ private:
 	int mIndexCount;
 	CTexture* mpTexture;
 	WCHAR* mpTextureFilename;
-
+	PrioEngine::Primitives mShape;
 	CLogger* mpLogger;
 
-	float3 mColour;
+	PrioEngine::RGBA mColour;
 	void ResetColour();
 
 	bool mUseDiffuseLighting;
 	// Set the buffers for the triangle.
+	bool SetBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
+		float x, float y, float z);
+	bool SetCubeBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
+		float x, float y, float z);
 	bool SetTriangleBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
 							float x, float y, float z);
 	bool CreateVertexArray(VertexTextureType* &verticesTexture, VertexColourType* &verticesColour, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture);
+	int GetNumberOfIndices();
+	int GetNumberOfVertices();
+	void LoadIndiceData(unsigned long* &indices);
 public:
 	bool HasTexture();
 	bool HasColour();

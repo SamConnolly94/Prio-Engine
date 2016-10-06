@@ -3,7 +3,7 @@
 /*
 * @PARAM filename - The location of the texture and it's file name and extension from the executable file.
 */
-CModel::CModel(WCHAR* filename)
+CModel::CModel(WCHAR* filename, PrioEngine::Primitives shape)
 {
 	// Initialise all variables to be null.
 	mpVertexBuffer = nullptr;
@@ -23,9 +23,11 @@ CModel::CModel(WCHAR* filename)
 	mPositionX = 0.0f;
 	mPositionY = 0.0f;
 	mPositionZ = 0.0f;
+	
+	mShape = shape;
 }
 
-CModel::CModel(WCHAR* filename, bool useLighting)
+CModel::CModel(WCHAR* filename, bool useLighting, PrioEngine::Primitives shape)
 {
 	// Initialise all variables to be null.
 	mpVertexBuffer = nullptr;
@@ -39,9 +41,11 @@ CModel::CModel(WCHAR* filename, bool useLighting)
 
 	// Store the filename for later use.
 	mpTextureFilename = filename;
+
+	mShape = shape;
 }
 
-CModel::CModel(float3 colour)
+CModel::CModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
@@ -52,6 +56,8 @@ CModel::CModel(float3 colour)
 
 	// Store the colour which we have passed in.
 	mColour = colour;
+
+	mShape = shape;
 }
 
 
@@ -124,16 +130,16 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	HRESULT result;
 
 	// Set the number of vertices in the vertex array.
-	mVertexCount = 3;
+	mVertexCount = GetNumberOfVertices();
 	
 	// Set the number of indices on the index array.
-	mIndexCount = 3;
+	mIndexCount = GetNumberOfIndices();
 
 	// Create a vertex array
 	CreateVertexArray(verticesTexture, verticesColour, verticesDiffuse, applyTexture);
 
 	// Create the points of the triangle.
-	SetTriangleBuffers(verticesColour, verticesTexture, verticesDiffuse, applyTexture, 0.0f, 0.0f, 0.0f);
+	SetBuffers(verticesColour, verticesTexture, verticesDiffuse, applyTexture, 0.0f, 0.0f, 0.0f);
 
 	// Create the index array.
 	indices = new unsigned long[mIndexCount];
@@ -143,18 +149,10 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 		return false;
 	}
 
+	// Load the index array with data according to the predefined indicies defined in the engines namespace.
+	LoadIndiceData(indices);
 
-	/* Load index array with data. */
-	
-	// Bottom left.
-	indices[0] = 0;
-	
-	// Top middle.
-	indices[1] = 1;
-
-	// Bottom right.
-	indices[2] = 2;
-	
+	// Create the vertex buffer.
 	if (!CreateVertexBuffer(verticesTexture, verticesColour, verticesDiffuse))
 	{
 		return false;
@@ -187,6 +185,57 @@ bool CModel::InitialiseBuffers(ID3D11Device * device, bool applyTexture)
 	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
+}
+
+int CModel::GetNumberOfIndices()
+{
+	// Find what shape we're using.
+	switch (mShape)
+	{
+		// Cube
+	case PrioEngine::Primitives::cube:
+		return PrioEngine::Cube::kNumOfIndices;
+		// Triangle
+	case PrioEngine::Primitives::triangle:
+		return PrioEngine::Triangle::kNumOfIndices;
+	};
+
+	return 0;
+}
+
+int CModel::GetNumberOfVertices()
+{
+	// Find what shape we're using.
+	switch (mShape)
+	{
+		// Cube
+	case PrioEngine::Primitives::cube:
+		return PrioEngine::Cube::kNumOfVertices;
+		// Triangle
+	case PrioEngine::Primitives::triangle:
+		return PrioEngine::Triangle::kNumOfVertices;
+	};
+
+	return 0;
+}
+
+void CModel::LoadIndiceData(unsigned long* &indices)
+{
+	switch (mShape)
+	{
+	case PrioEngine::Primitives::cube:
+		for (int i = 0; i < PrioEngine::Cube::kNumOfIndices; i++)
+		{
+			indices[i] = PrioEngine::Cube::indices[i];
+		}
+		return;
+	case PrioEngine::Primitives::triangle:
+		for (int i = 0; i < PrioEngine::Triangle::kNumOfIndices; i++)
+		{
+			indices[i] = PrioEngine::Triangle::indices[i];
+		}
+		return;
+	}
 }
 
 /* Release vertex and index buffers. */
@@ -283,66 +332,176 @@ void CModel::ReleaseTexture()
 	}
 }
 
+bool CModel::SetBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
+	float x, float y, float z)
+{
+	if (mShape == PrioEngine::Primitives::cube)
+	{
+		return SetCubeBuffers(verticesColour, verticesTexture, verticesDiffuse, applyTexture, x, y, z);
+	}
+	else if (mShape == PrioEngine::Primitives::triangle)
+	{
+		return SetTriangleBuffers(verticesColour, verticesTexture, verticesDiffuse, applyTexture, x, y, z);
+	}
+
+	mpLogger->GetLogger().WriteLine("Failed to set any buffers to be drawn.");
+
+	return false;
+}
+
+bool CModel::SetCubeBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
+	float x, float y, float z)
+{
+	float U = 0.0f;
+	float V = 0.0f;
+
+	// Set the positions of vertices first.
+	for (int i = 0; i < PrioEngine::Cube::kNumOfVertices; i++)
+	{
+		if (applyTexture && !mUseDiffuseLighting)
+		{
+			// If we're using a texture without any lighting, place the positions in the texture vertex array.
+			verticesTexture[i].position = D3DXVECTOR3(x + PrioEngine::Cube::kCubeVerticesCoords[i].x, 
+													  y + PrioEngine::Cube::kCubeVerticesCoords[i].y,
+													  z + PrioEngine::Cube::kCubeVerticesCoords[i].z);
+			// Tell the vertices buffer what it should use as UV values.
+			verticesTexture[i].texture = D3DXVECTOR2(U, V);
+			// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
+			if (U == V)
+			{
+				V += 0.5f;
+			}
+			else
+			{
+				U += 0.5f;
+			}
+		}
+		else if (applyTexture && mUseDiffuseLighting)
+		{
+			// If we're using a texture combined with diffuse lighting, place the position of the vertices into the diffuse lighting vertex array.
+			verticesDiffuse[i].position = D3DXVECTOR3(x + PrioEngine::Cube::kCubeVerticesCoords[i].x,
+													  y + PrioEngine::Cube::kCubeVerticesCoords[i].y,
+													  z + PrioEngine::Cube::kCubeVerticesCoords[i].z);
+			// Tell the vertices buffer what it should use as UV values.
+			verticesDiffuse[i].texture = D3DXVECTOR2(U, V);
+			// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
+			if (U == V)
+			{
+				V += 1.0f;
+			}
+			else
+			{
+				U += 1.0f;
+			}
+		}
+		else if (HasColour())
+		{
+			// If we're using a solid colour shader, place the position of the vertices into the colour vertex array.
+			verticesColour[i].position = D3DXVECTOR3(x + PrioEngine::Cube::kCubeVerticesCoords[i].x,
+													  y + PrioEngine::Cube::kCubeVerticesCoords[i].y,
+												      z + PrioEngine::Cube::kCubeVerticesCoords[i].z);
+
+			if (i % 2 == 0)
+			{
+				mColour = PrioEngine::Colours::green;
+			}
+			else
+			{
+				mColour = PrioEngine::Colours::blue;
+			}
+
+			verticesColour[i].colour = D3DXVECTOR4(mColour.r, mColour.g, mColour.b, mColour.a);
+		}
+	}
+	if (verticesColour == nullptr && verticesDiffuse == nullptr && verticesTexture == nullptr)
+	{
+		return false;
+	}
+	return true;
+}
+
 bool CModel::SetTriangleBuffers(VertexColourType* &verticesColour, VertexTextureType* &verticesTexture, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture,
 	float x, float y, float z)
 {
-	/* Set the vertex points for the triangle. */
+	// Set the positions of vertices first.
+	for (int i = 0; i < PrioEngine::Triangle::kNumOfVertices; i++)
+	{
+
+		if (applyTexture && !mUseDiffuseLighting)
+		{
+			/* Set the vertex points for the triangle. */
+			verticesTexture[i].position = D3DXVECTOR3(x + PrioEngine::Triangle::vertices[i].x,
+				y + PrioEngine::Triangle::vertices[i].y,
+				z + PrioEngine::Triangle::vertices[i].z);
+		}
+		else if (applyTexture && mUseDiffuseLighting)
+		{
+			/* Set the vertex points for the triangle. */
+			verticesDiffuse[i].position = D3DXVECTOR3(x + PrioEngine::Triangle::vertices[i].x,
+				y + PrioEngine::Triangle::vertices[i].y,
+				z + PrioEngine::Triangle::vertices[i].z);
+		}
+		else if (HasColour())
+		{
+			/* Set the vertex points for the triangle. */
+			verticesColour[i].position = D3DXVECTOR3(x + PrioEngine::Triangle::vertices[i].x,
+				y + PrioEngine::Triangle::vertices[i].y,
+				z + PrioEngine::Triangle::vertices[i].z);
+		}
+		else
+		{
+			mpLogger->GetLogger().WriteLine("Could not determine what vertex buffer to fill in Model.cpp.");
+			return false;
+		}
+	}
+
 	if (applyTexture && !mUseDiffuseLighting)
 	{
 		// Bottom left
-		verticesTexture[0].position = D3DXVECTOR3(x - 1.0f, y - 1.0f, z);
 		verticesTexture[0].texture = D3DXVECTOR2(0.0f, 1.0f);
 		// Top middle
-		verticesTexture[1].position = D3DXVECTOR3(x, y + 1.0f, z);
 		verticesTexture[1].texture = D3DXVECTOR2(0.5f, 0.0f);
 		// Bottom right
-		verticesTexture[2].position = D3DXVECTOR3(x + 1.0f, y - 1.0f, z);
 		verticesTexture[2].texture = D3DXVECTOR2(1.0f, 1.0f);
 	}
 	else if (applyTexture && mUseDiffuseLighting)
 	{
 		// Bottom left
-		verticesDiffuse[0].position = D3DXVECTOR3(x - 1.0f, y - 1.0f, z);
 		verticesDiffuse[0].texture = D3DXVECTOR2(0.0f, 1.0f);
 		verticesDiffuse[0].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 
 		// Top middle
-		verticesDiffuse[1].position = D3DXVECTOR3(x, y + 1.0f, z);
 		verticesDiffuse[1].texture = D3DXVECTOR2(0.5f, 0.0f);
 		verticesDiffuse[1].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 
 		// Bottom right
-		verticesDiffuse[2].position = D3DXVECTOR3(x + 1.0f, y - 1.0f, z);
 		verticesDiffuse[2].texture = D3DXVECTOR2(1.0f, 1.0f);
 		verticesDiffuse[2].normal = D3DXVECTOR3(0.0f, 0.0f, -1.0f);
 	}
 	else if (HasColour())
 	{
 		// Bottom left
-		verticesColour[0].position = D3DXVECTOR3(x - 1.0f, y - 1.0f, z);
-		verticesColour[0].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+		verticesColour[0].colour = D3DXVECTOR4(mColour.r, mColour.g, mColour.b, mColour.a);
 		// Top middle
-		verticesColour[1].position = D3DXVECTOR3(x, y + 1.0f, z);
-		verticesColour[1].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+		verticesColour[1].colour = D3DXVECTOR4(mColour.r, mColour.g, mColour.b, mColour.a);
 		// Bottom right
-		verticesColour[2].position = D3DXVECTOR3(x + 1.0f, y - 1.0f, z);
-		verticesColour[2].colour = D3DXVECTOR4(mColour.x, mColour.y, mColour.z, 1.0f);
+		verticesColour[2].colour = D3DXVECTOR4(mColour.r, mColour.g, mColour.b, mColour.a);
 	}
 	else
 	{
 		mpLogger->GetLogger().WriteLine("Could not determine what vertex buffer to fill in Model.cpp.");
 		return false;
 	}
-
 	return true;
 }
 
 void CModel::ResetColour()
 {
 	// Initialise everything to more a value which is not the same as null, 0.0f is the same as null and can cause issues.
-	mColour.x = -1.0f;
-	mColour.y = -1.0f;
-	mColour.z = -1.0f;
+	mColour.r = -1.0f;
+	mColour.g = -1.0f;
+	mColour.b = -1.0f;
+	mColour.a = -1.0f;
 }
 
 bool CModel::HasTexture()
@@ -352,7 +511,7 @@ bool CModel::HasTexture()
 
 bool CModel::HasColour()
 {
-	return mColour.x > -1.0f && mColour.y > -1.0f && mColour.z > -1.0f;
+	return mColour.r > -1.0f && mColour.g > -1.0f && mColour.b > -1.0f;
 }
 
 bool CModel::CreateVertexArray(VertexTextureType* &verticesTexture, VertexColourType* &verticesColour, VertexDiffuseLightingType* &verticesDiffuse, bool applyTexture)

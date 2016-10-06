@@ -70,20 +70,14 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpLight).name());
 
-	// Define the colour to be used as diffuse lighting.
-	float3 purple;
-	purple.x = 1.0f;
-	purple.y = 1.0f;
-	purple.z = 1.0f;
-
 	// Define the direction the light is pointed at.
-	float3 direction;
+	PrioEngine::Coords direction;
 	direction.x = 1.0f;
 	direction.y = 1.0f;
 	direction.z = 1.0f;
 
 	// Set the properties of the light.
-	mpLight->SetDiffuseColour(purple, 0.0f);
+	mpLight->SetDiffuseColour(PrioEngine::Colours::green);
 	mpLight->SetDirection(direction);
 
 	// Success!
@@ -311,12 +305,12 @@ bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3
 	return true;
 }
 
-CModel* CGraphics::CreateModel(WCHAR* TextureFilename)
+CModel* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape)
 {
 	CModel* model;
 	bool successful;
 
-	model = new CModel(TextureFilename);
+	model = new CModel(TextureFilename, shape);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
@@ -349,12 +343,12 @@ CModel* CGraphics::CreateModel(WCHAR* TextureFilename)
 	return model;
 }
 
-CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting)
+CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
 	CModel* model;
 	bool successful;
 
-	model = new CModel(TextureFilename, useLighting);
+	model = new CModel(TextureFilename, useLighting, shape);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
@@ -387,12 +381,12 @@ CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting)
 	return model;
 }
 
-CModel* CGraphics::CreateModel(float3 colour)
+CModel* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
 	CModel* model;
 	bool successful;
 
-	model = new CModel(colour);
+	model = new CModel(colour, shape);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	//mpTriangle = new CModel(red);
 	if (!model)

@@ -43,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 void GameLoop(CEngine* &engine)
 {
 	// Process any initialisation to be done before the gameloop here.
-	CModel* triangle = engine->CreateModel(L"../Resources/Textures/TriangleTex.dds", true);
+	CModel* triangle = engine->CreateModel(L"../Resources/Textures/TestTex.dds", false, PrioEngine::Primitives::cube);
 
 	engine->StartTimer();
 	// Process anything which should happen in the game here.
@@ -55,7 +55,7 @@ void GameLoop(CEngine* &engine)
 		//	triangle->SetRotationY(0.0f);
 		//}
 		//triangle->MoveY(0.01f);
-		triangle->RotateY(0.01f);
+		//triangle->RotateY(0.01f);
 
 	}
 }

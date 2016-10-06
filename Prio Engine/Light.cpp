@@ -11,12 +11,12 @@ CLight::~CLight()
 {
 }
 
-void CLight::SetDiffuseColour(float3 colour, float alpha)
+void CLight::SetDiffuseColour(PrioEngine::RGBA colour)
 {
-	mDiffuseColour = D3DXVECTOR4(colour.x, colour.y, colour.z, alpha);
+	mDiffuseColour = D3DXVECTOR4(colour.r, colour.g, colour.b, colour.a);
 }
 
-void CLight::SetDirection(float3 direction)
+void CLight::SetDirection(PrioEngine::Coords direction)
 {
 	mDirection = D3DXVECTOR3(direction.x, direction.y, direction.z);
 }

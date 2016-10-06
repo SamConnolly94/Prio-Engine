@@ -10,8 +10,8 @@ public:
 	CLight();
 	~CLight();
 
-	void SetDiffuseColour(float3 colour, float alpha);
-	void SetDirection(float3 direction);
+	void SetDiffuseColour(PrioEngine::RGBA colour);
+	void SetDirection(PrioEngine::Coords direction);
 
 	D3DXVECTOR4 GetDiffuseColour();
 	D3DXVECTOR3 GetDirection();

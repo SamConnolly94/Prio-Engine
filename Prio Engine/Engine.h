@@ -1,8 +1,9 @@
 #pragma once
 
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
+#include "PrioTypes.h"
 #include "GameTimer.h"
 #include "Graphics.h"
 #include "Input.h"
@@ -54,9 +55,9 @@ private:
 	bool mIsRunning;
 public:
 	// Model creation functions.
-	CModel* CreateModel(float3 colour);
-	CModel* CreateModel(WCHAR* textureFilename, bool useLighting);
-	CModel* CreateModel(WCHAR* textureFilename);
+	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
+	CModel* CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
+	CModel* CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

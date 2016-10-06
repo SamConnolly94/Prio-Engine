@@ -59,9 +59,9 @@ private:
 	HWND mHwnd;
 public:
 
-	CModel* CreateModel(WCHAR* TextureFilename);
-	CModel* CreateModel(float3 colour);
-	CModel* CreateModel(WCHAR* TextureFilename, bool useLighting);
+	CModel* CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape);
+	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
+	CModel* CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
 	bool RemoveModel(CModel* &model);
 };
 
