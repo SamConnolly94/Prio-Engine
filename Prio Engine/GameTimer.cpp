@@ -109,6 +109,7 @@ void CGameTimer::Tick()
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
 
 	// Set the current time data member of this class to the value which we just retrieved.
+	mDeltaTime = mCurrTime - mPrevTime;
 	mCurrTime = currTime;
 
 	// It is important that this time is forced to be positive, as the Direct X SDK notes

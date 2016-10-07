@@ -42,22 +42,30 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void GameLoop(CEngine* &engine)
 {
+	const float kMoveSpeed = 0.001f;
+	const float kRotationSpeed = 0.001f;
+
 	// Process any initialisation to be done before the gameloop here.
 	CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
-	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
+	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-2.0f);
 
 	engine->StartTimer();
+
+	float frameTime;
+
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
-		cube->RotateY(static_cast<float>(D3DX_PI) * 0.01f);
+		frameTime = engine->GetFrameTime();
+
+		cube->RotateY(static_cast<float>(D3DX_PI) * kRotationSpeed * frameTime);
 		if (cube->GetRotationY() > 360.0f)
 		{
 			cube->SetRotationY(0.0f);
 		}
-		cube->MoveY(0.01f);
+		cube->MoveY(kMoveSpeed * frameTime);
 		//triangle->RotateY(0.01f);
 
 	}

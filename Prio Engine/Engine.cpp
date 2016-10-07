@@ -18,13 +18,6 @@ CEngine::~CEngine()
 /* Initialise our engine. */
 bool CEngine::Initialise()
 {
-
-	// Set up the colour variables in the PrioEngine namespace.
-	//PrioEngine::white.r = 1.0f;
-	//PrioEngine::white.g = 1.0f;
-	//PrioEngine::white.b = 1.0f;
-	//PrioEngine::white.a = 1.0f;
-
 	// The width we have to work with on our monitor.
 	int screenWidth = 0;
 	// The height we have to work with on our monitor.
@@ -159,8 +152,14 @@ bool CEngine::IsRunning()
 	}
 	mTimer->Tick();
 
+	mFrameTime = mTimer->DeltaTime();
 
 	return mIsRunning;
+}
+
+float CEngine::GetFrameTime()
+{
+	return mFrameTime;
 }
 
 /* Handle messages from the OS. */

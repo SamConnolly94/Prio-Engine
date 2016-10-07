@@ -409,7 +409,7 @@ void CModel::MoveX(float x)
 	mPositionX += x;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CModel::MoveY(float y)
@@ -417,7 +417,7 @@ void CModel::MoveY(float y)
 	mPositionY += y;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CModel::MoveZ(float z)
@@ -425,7 +425,7 @@ void CModel::MoveZ(float z)
 	mPositionZ += z;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 float CModel::GetPosX()
@@ -448,7 +448,7 @@ void CModel::SetXPos(float x)
 	mPositionX = x;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CModel::SetYPos(float y)
@@ -456,7 +456,7 @@ void CModel::SetYPos(float y)
 	mPositionY = y;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CModel::SetZPos(float z)
@@ -464,6 +464,6 @@ void CModel::SetZPos(float z)
 	mPositionZ = z;
 
 	// Make sure the triangle is redrawn in that new position.
-	mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
+	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 

@@ -193,6 +193,7 @@ bool CGraphics::Render()
 	mpD3D->GetWorldMatrix(worldMatrix);
 	mpD3D->GetProjectionMatrix(projMatrix);
 
+
 	// Ritate the world by rotation value so the triangle spins.
 	D3DXMatrixRotationY(&worldMatrix, mRotation);
 
@@ -211,6 +212,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	std::list<CModel*>::iterator it;
 	it = mpModels.begin();
 	
+	D3DXMATRIX modelWorld;
 	// Define three matrices to hold x, y and z rotations.
 	D3DXMATRIX rotX;
 	D3DXMATRIX rotY;
@@ -218,12 +220,13 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 
 	while (it != mpModels.end())
 	{
-		
+		D3DXMatrixTranslation(&modelWorld, (*it)->GetPosX(), (*it)->GetPosY(), (*it)->GetPosZ());
+
 		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
 		D3DXMatrixRotationX(&rotX, (*it)->GetRotationX());
 		D3DXMatrixRotationY(&rotY, (*it)->GetRotationY());
 		D3DXMatrixRotationZ(&rotZ, (*it)->GetRotationZ());
-		world = rotX * rotY * rotZ;
+		world = modelWorld * rotX * rotY * rotZ;
 
 		// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
 		(*it)->Render(mpD3D->GetDeviceContext());

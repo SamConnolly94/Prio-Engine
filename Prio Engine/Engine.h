@@ -34,6 +34,7 @@ private:
 	bool Frame();
 	void InitialiseWindows(int&, int&);
 	void ShutdownWindows();
+	float mFrameTime;
 private:
 	// The name of our application as it will appear in windows.
 	LPCWSTR mApplicationName;
@@ -58,6 +59,8 @@ public:
 	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CModel* CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
 	CModel* CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
+
+	float GetFrameTime();
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 
