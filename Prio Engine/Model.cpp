@@ -86,7 +86,7 @@ CModel::CModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 
 	mShape = shape;
 
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, shape);
+	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour, shape);
 
 	mpVertexManager->SetColour(colour);
 }
