@@ -77,7 +77,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	direction.z = 1.0f;
 
 	// Set the properties of the light.
-	mpLight->SetDiffuseColour(PrioEngine::Colours::green);
+	mpLight->SetDiffuseColour(PrioEngine::Colours::white);
 	mpLight->SetDirection(direction);
 
 	// Success!

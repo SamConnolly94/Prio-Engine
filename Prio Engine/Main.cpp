@@ -42,13 +42,13 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void GameLoop(CEngine* &engine)
 {
-	const float kMoveSpeed = 0.001f;
-	const float kRotationSpeed = 0.001f;
+	const float kMoveSpeed = 1.0f;
+	const float kRotationSpeed = 1.0f;
 
 	// Process any initialisation to be done before the gameloop here.
-	CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+	//CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
-	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::cube);
+	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-2.0f);
 
 	engine->StartTimer();
@@ -60,12 +60,13 @@ void GameLoop(CEngine* &engine)
 	{
 		frameTime = engine->GetFrameTime();
 
-		cube->RotateY(static_cast<float>(D3DX_PI) * kRotationSpeed * frameTime);
-		if (cube->GetRotationY() > 360.0f)
-		{
-			cube->SetRotationY(0.0f);
-		}
-		cube->MoveY(kMoveSpeed * frameTime);
+		//cube->RotateY(static_cast<float>(D3DX_PI) * kRotationSpeed * frameTime);
+		//if (cube->GetRotationY() > 360.0f)
+		//{
+		//	cube->SetRotationY(0.0f);
+		//}
+		//cube->MoveY(kMoveSpeed * frameTime);
+		cube2->RotateX(kRotationSpeed * frameTime);
 		//triangle->RotateY(0.01f);
 
 	}

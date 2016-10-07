@@ -107,10 +107,11 @@ void CGameTimer::Tick()
 	// Retrieve the current time from the performance counter.
 	__int64 currTime;
 	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
+	mCurrTime = currTime;
 
 	// Set the current time data member of this class to the value which we just retrieved.
-	mDeltaTime = mCurrTime - mPrevTime;
-	mCurrTime = currTime;
+	mDeltaTime = (mCurrTime - mPrevTime) * mSecondsPerCount;
+	mPrevTime = mCurrTime;
 
 	// It is important that this time is forced to be positive, as the Direct X SDK notes
 	// if a processor goes into power save mode, then mDeltaTime can be negative.
