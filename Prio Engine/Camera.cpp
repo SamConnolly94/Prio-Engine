@@ -26,6 +26,51 @@ void CCamera::SetPosition(float x, float y, float z)
 	mPosZ = z;
 }
 
+void CCamera::SetPositionX(float x)
+{
+	mPosX = x;
+}
+
+void CCamera::SetPosizionY(float y)
+{
+	mPosY = y;
+}
+
+void CCamera::SetPositionZ(float z)
+{
+	mPosZ = z;
+}
+
+void CCamera::MoveX(float x)
+{
+	mPosX += x;
+}
+
+void CCamera::MoveY(float y)
+{
+	mPosY += y;
+}
+
+void CCamera::MoveZ(float z)
+{
+	mPosZ += z;
+}
+
+float CCamera::GetX()
+{
+	return mPosX;
+}
+
+float CCamera::GetY()
+{
+	return mPosY;
+}
+
+float CCamera::GetZ()
+{
+	return mPosZ;
+}
+
 void CCamera::SetRotation(float x, float y, float z)
 {
 	mRotX = x;

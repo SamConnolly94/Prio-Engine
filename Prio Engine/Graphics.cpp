@@ -49,18 +49,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	// Create the camera.
-	mpCamera = new CCamera();
-	if (!mpCamera)
-	{
-		mpLogger->GetLogger().WriteLine("Failed to create the camera for DirectX.");
-		return false;
-	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpCamera).name());
-
-	// Set the initial camera position.
-	mpCamera->SetPosition(0.0f, 0.0f, -10.0f);
-
 	// Create the light object.
 	mpLight = new CLight();
 	if (!mpLight)
@@ -523,4 +511,26 @@ bool CGraphics::RemoveModel(CModel* &model)
 
 	mpLogger->GetLogger().WriteLine("Failed to find model to delete.");
 	return false;
+}
+
+CCamera* CGraphics::CreateCamera()
+{
+	// Create the camera.
+	mpCamera = new CCamera();
+	if (!mpCamera)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the camera for DirectX.");
+		return nullptr;
+	}
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpCamera).name());
+
+	// Set the initial camera position.
+	mpCamera->SetPosition(0.0f, 0.0f, 0.0f);
+
+	return mpCamera;
+}
+
+void CGraphics::SetCameraPos(float x, float y, float z)
+{
+	mpCamera->SetPosition(x, y, z);
 }

@@ -45,8 +45,10 @@ void GameLoop(CEngine* &engine)
 	const float kMoveSpeed = 1.0f;
 	const float kRotationSpeed = 1.0f;
 
+	CCamera* myCam = engine->CreateCamera();
+	myCam->SetPositionZ(-20.0f);
 	// Process any initialisation to be done before the gameloop here.
-	//CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+	CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
 	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-2.0f);
@@ -68,6 +70,7 @@ void GameLoop(CEngine* &engine)
 		//cube->MoveY(kMoveSpeed * frameTime);
 		cube2->RotateX(kRotationSpeed * frameTime);
 		//triangle->RotateY(0.01f);
+		myCam->MoveZ(kMoveSpeed * frameTime);
 
 	}
 }

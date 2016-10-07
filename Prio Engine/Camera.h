@@ -9,7 +9,20 @@ public:
 	CCamera();
 	~CCamera();
 
+	// Set the position of the camera in the world.
 	void SetPosition(float x, float y, float z);
+	void SetPositionX(float x);
+	void SetPosizionY(float y);
+	void SetPositionZ(float z);
+
+	void MoveX(float x);
+	void MoveY(float y);
+	void MoveZ(float z);
+
+	float GetX();
+	float GetY();
+	float GetZ();
+
 	void SetRotation(float x, float y, float z);
 
 	D3DXVECTOR3 GetPosition();

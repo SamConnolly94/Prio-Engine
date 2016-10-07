@@ -63,6 +63,8 @@ public:
 	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CModel* CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
 	bool RemoveModel(CModel* &model);
+	CCamera* CreateCamera();
+	void SetCameraPos(float x, float y, float z);
 };
 
 #endif

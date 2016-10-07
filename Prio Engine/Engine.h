@@ -61,6 +61,7 @@ public:
 	CModel* CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
 
 	float GetFrameTime();
+	CCamera* CreateCamera();
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

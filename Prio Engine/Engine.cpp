@@ -391,6 +391,12 @@ CModel* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shap
 	return mpGraphics->CreateModel(textureFilename, shape);
 }
 
+
+CCamera* CEngine::CreateCamera()
+{
+	return mpGraphics->CreateCamera();
+}
+
 CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
 	return mpGraphics->CreateModel(textureFilename, useLighting, shape);
