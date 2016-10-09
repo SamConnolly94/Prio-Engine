@@ -7,6 +7,7 @@ CEngine::CEngine()
 	mpGraphics = nullptr;
 	mTimer = new CGameTimer();
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mTimer).name());
+	mStopped = false;
 }
 
 /* Default destructor. */
@@ -124,8 +125,11 @@ void CEngine::Shutdown()
 /* Run our engine until we quit. */
 bool CEngine::IsRunning()
 {
-	// Loop until there is a quit message from the window or the user.
+	// Check for quit messages from user from last loop.
+	if (mStopped)
+		return false;
 
+	// Loop until there is a quit message from the window or the user.
 	CheckWindowsMessages(mMsg);
 
 	// Control what happens when windows signals to end application.
@@ -189,15 +193,15 @@ bool CEngine::Frame()
 {
 	bool result;
 
-	// Check for user pressing escape
-	if (mpInput->IsKeyDown(VK_ESCAPE))
-	{
-		return false;
-	}
-	else if (mpInput->IsKeyDown(VK_F12))
-	{
+	//// Check for user pressing escape
+	//if (mpInput->IsKeyDown(PrioEngine::Key::kEscape))
+	//{
+	//	return false;
+	//}
+	//else if (mpInput->IsKeyDown(VK_F12))
+	//{
 
-	}
+	//}
 
 	// Process graphics for this frame;
 	result = mpGraphics->Frame();
@@ -395,6 +399,21 @@ CModel* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shap
 CCamera* CEngine::CreateCamera()
 {
 	return mpGraphics->CreateCamera();
+}
+
+bool CEngine::KeyHit(const unsigned int key)
+{
+	return mpInput->KeyHit(key);
+}
+
+bool CEngine::KeyHeld(const unsigned int key)
+{
+	return mpInput->KeyHeld(key);
+}
+
+void CEngine::Stop()
+{
+	mStopped = true;
 }
 
 CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)

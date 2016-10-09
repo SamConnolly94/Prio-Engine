@@ -3,6 +3,8 @@
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
 
+void Control(CEngine* &engine, CCamera* cam);
+
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	// Enable run time memory check while running in debug.
@@ -42,9 +44,6 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void GameLoop(CEngine* &engine)
 {
-	const float kMoveSpeed = 1.0f;
-	const float kRotationSpeed = 1.0f;
-
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 	// Process any initialisation to be done before the gameloop here.
@@ -57,20 +56,46 @@ void GameLoop(CEngine* &engine)
 
 	float frameTime;
 
+	const float kRotationSpeed = 1.0f;
+
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
 		frameTime = engine->GetFrameTime();
-
-		//cube->RotateY(static_cast<float>(D3DX_PI) * kRotationSpeed * frameTime);
-		//if (cube->GetRotationY() > 360.0f)
-		//{
-		//	cube->SetRotationY(0.0f);
-		//}
-		//cube->MoveY(kMoveSpeed * frameTime);
 		cube2->RotateX(kRotationSpeed * frameTime);
-		//triangle->RotateY(0.01f);
-		myCam->MoveZ(kMoveSpeed * frameTime);
 
+		Control(engine, myCam);
+
+	}
+}
+
+void Control(CEngine* &engine, CCamera* cam)
+{
+	const float kMoveSpeed = 10.0f;
+	const float kRotationSpeed = 1.0f;
+	float frameTime = engine->GetFrameTime();
+	
+	// Camera control.
+	if (engine->KeyHeld(PrioEngine::Key::kDown))
+	{
+		cam->MoveZ(-kMoveSpeed * frameTime);
+	}
+	else if (engine->KeyHeld(PrioEngine::Key::kUp))
+	{
+		cam->MoveZ(kMoveSpeed * frameTime);
+	}
+	if (engine->KeyHeld(PrioEngine::Key::kLeft))
+	{
+		cam->MoveX(-kMoveSpeed * frameTime);
+	}
+	else if (engine->KeyHeld(PrioEngine::Key::kRight))
+	{
+		cam->MoveX(kMoveSpeed * frameTime);
+	}
+
+	// If the user hits escape.
+	if (engine->KeyHit(PrioEngine::Key::kEscape))
+	{
+		engine->Stop();
 	}
 }

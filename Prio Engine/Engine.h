@@ -3,7 +3,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "PrioTypes.h"
+#include "PrioEngineVars.h"
 #include "GameTimer.h"
 #include "Graphics.h"
 #include "Input.h"
@@ -54,6 +54,8 @@ private:
 	MSG mMsg;
 	bool result;
 	bool mIsRunning;
+	bool mStopped;
+	
 public:
 	// Model creation functions.
 	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
@@ -62,6 +64,12 @@ public:
 
 	float GetFrameTime();
 	CCamera* CreateCamera();
+
+	// Control user input.
+public:
+	bool KeyHit(const unsigned int key);
+	bool KeyHeld(const unsigned int key);
+	void Stop();
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

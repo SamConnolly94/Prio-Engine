@@ -5,7 +5,7 @@
 #include <d3d11.h>
 #include <D3DX10math.h>
 #include "VertexTypeManager.h"
-#include "PrioTypes.h"
+#include "PrioEngineVars.h"
 #include "Logger.h"
 #include "Texture.h"
 

@@ -2,7 +2,7 @@
 #define LIGHTCLASS_H
 
 #include <D3DX10math.h>
-#include "PrioTypes.h"
+#include "PrioEngineVars.h"
 
 class CLight
 {

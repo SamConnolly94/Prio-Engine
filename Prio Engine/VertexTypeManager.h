@@ -6,7 +6,7 @@
 #include <d3d11.h>
 #include <D3DX10math.h>
 
-#include "PrioTypes.h"
+#include "PrioEngineVars.h"
 #include "Logger.h"
 
 class CVertexManager

@@ -168,7 +168,6 @@ bool CGraphics::Render()
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX worldMatrix;
 	D3DXMATRIX projMatrix;
-	bool result;
 
 	// Clear buffers so we can begin to render the scene.
 	mpD3D->BeginScene(0.5f, 0.0f, 0.0f, 1.0f);
