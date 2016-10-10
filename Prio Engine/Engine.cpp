@@ -161,6 +161,7 @@ bool CEngine::IsRunning()
 	return mIsRunning;
 }
 
+/* Find the time that it has taken to draw this frame. */
 float CEngine::GetFrameTime()
 {
 	return mFrameTime;
@@ -192,16 +193,6 @@ LRESULT CEngine::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpar
 bool CEngine::Frame()
 {
 	bool result;
-
-	//// Check for user pressing escape
-	//if (mpInput->IsKeyDown(PrioEngine::Key::kEscape))
-	//{
-	//	return false;
-	//}
-	//else if (mpInput->IsKeyDown(VK_F12))
-	//{
-
-	//}
 
 	// Process graphics for this frame;
 	result = mpGraphics->Frame();
@@ -384,44 +375,52 @@ bool CEngine::ProcessWindowsMessages()
 	return true;
 }
 
+/* Start the game timer running. */
 void CEngine::StartTimer()
 {
 	mTimer->Start();
 }
 
-
-CPrimitive* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape)
-{
-	return mpGraphics->CreateModel(textureFilename, shape);
-}
-
-
+/* Creates a camera which we will use to view the world from. */
 CCamera* CEngine::CreateCamera()
 {
 	return mpGraphics->CreateCamera();
 }
 
+/* Detects if a key has been pressed once. 
+You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)
 {
 	return mpInput->KeyHit(key);
 }
 
+/* Detects whether a key is being held. 
+You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHeld(const unsigned int key)
 {
 	return mpInput->KeyHeld(key);
 }
 
+/* Prevent the engine from running for any longer. */
 void CEngine::Stop()
 {
 	mStopped = true;
 }
 
-CPrimitive* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
+/* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/
+CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape)
 {
-	return mpGraphics->CreateModel(textureFilename, useLighting, shape);
+	return mpGraphics->CreatePrimitive(textureFilename, shape);
 }
 
-CPrimitive* CEngine::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
+/* Create a primitive shape and place it in our world, may pass in diffuse lighting boolean to indicate wether it should be used. */
+CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
-	return mpGraphics->CreateModel(colour, shape);
+	return mpGraphics->CreatePrimitive(textureFilename, useLighting, shape);
+}
+
+/* Create a primitive shape and apply a solid colour to it. Acces colours through PrioEngine::Colour::*/
+CPrimitive* CEngine::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
+{
+	return mpGraphics->CreatePrimitive(colour, shape);
 }

@@ -14,7 +14,6 @@ CGraphics::CGraphics()
 
 CGraphics::~CGraphics()
 {
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(this).name());
 }
 
 bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
@@ -109,9 +108,9 @@ void CGraphics::Shutdown()
 
 	// Deallocate any allocated memory on the models list.
 	std::list<CPrimitive*>::iterator it;
-	it = mpModels.begin();
+	it = mpPrimitives.begin();
 
-	while (it != mpModels.end())
+	while (it != mpPrimitives.end())
 	{
 		(*it)->Shutdown();
 		delete (*it);
@@ -120,9 +119,9 @@ void CGraphics::Shutdown()
 		it++;
 	}
 
-	while (!mpModels.empty())
+	while (!mpPrimitives.empty())
 	{
-		mpModels.pop_back();
+		mpPrimitives.pop_back();
 	}
 
 	if (mpCamera)
@@ -196,7 +195,7 @@ bool CGraphics::Render()
 bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 {
 	std::list<CPrimitive*>::iterator it;
-	it = mpModels.begin();
+	it = mpPrimitives.begin();
 	
 	D3DXMATRIX modelWorld;
 	// Define three matrices to hold x, y and z rotations.
@@ -204,7 +203,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	D3DXMATRIX rotY;
 	D3DXMATRIX rotZ;
 
-	while (it != mpModels.end())
+	while (it != mpPrimitives.end())
 	{
 		D3DXMatrixTranslation(&modelWorld, (*it)->GetPosX(), (*it)->GetPosY(), (*it)->GetPosZ());
 
@@ -220,7 +219,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		// Render texture with no light.
 		if ((*it)->HasTexture() && !(*it)->UseDiffuseLight())
 		{
-			if (!RenderModelWithTexture((*it), world, view, proj))
+			if (!RenderPrimitiveWithTexture((*it), world, view, proj))
 			{
 				return false;
 			}
@@ -228,7 +227,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		// Render texture with light.
 		else if ((*it)->HasTexture() && (*it)->UseDiffuseLight())
 		{
-			if (!RenderModelsWithTextureAndDiffuseLight((*it), world, view, proj))
+			if (!RenderPrimitiveWithTextureAndDiffuseLight((*it), world, view, proj))
 			{
 				return false;
 			}
@@ -236,7 +235,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		// Render colour.
 		else if ((*it)->HasColour())
 		{
-			if (!RenderModelWithColour((*it), world, view, proj))
+			if (!RenderPrimitiveWithColour((*it), world, view, proj))
 			{
 				return false;
 			}
@@ -247,7 +246,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	return true;
 }
 
-bool CGraphics::RenderModelsWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -263,7 +262,7 @@ bool CGraphics::RenderModelsWithTextureAndDiffuseLight(CPrimitive* model, D3DXMA
 	return true;
 }
 
-bool CGraphics::RenderModelWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
+bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -278,7 +277,7 @@ bool CGraphics::RenderModelWithColour(CPrimitive* model, D3DMATRIX worldMatrix, 
 	return true;
 }
 
-bool CGraphics::RenderModelWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CGraphics::RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -294,7 +293,7 @@ bool CGraphics::RenderModelWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix
 	return true;
 }
 
-CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape)
 {
 	CPrimitive* model;
 	bool successful;
@@ -338,12 +337,12 @@ CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitive
 			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
-	mpModels.push_back(model);
+	mpPrimitives.push_back(model);
 
 	return model;
 }
 
-CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
 	CPrimitive* model;
 	bool successful;
@@ -388,12 +387,12 @@ CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, Pri
 			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
-	mpModels.push_back(model);
+	mpPrimitives.push_back(model);
 
 	return model;
 }
 
-CPrimitive* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
 	CPrimitive* model;
 	bool successful;
@@ -432,7 +431,7 @@ CPrimitive* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitiv
 		return nullptr;
 
 	// Place any created models onto the list for the engine to track.
-	mpModels.push_back(model);
+	mpPrimitives.push_back(model);
 
 	return model;
 }
@@ -524,9 +523,9 @@ bool CGraphics::CreateColourShaderForModel(CPrimitive* &model, HWND hwnd)
 bool CGraphics::RemoveModel(CPrimitive* &model)
 {
 	std::list<CPrimitive*>::iterator it;
-	it = mpModels.begin();
+	it = mpPrimitives.begin();
 
-	while (it != mpModels.end())
+	while (it != mpPrimitives.end())
 	{
 		if ((*it) == model)
 		{
@@ -534,7 +533,7 @@ bool CGraphics::RemoveModel(CPrimitive* &model)
 			delete model;
 			(*it) = nullptr;
 			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
-			mpModels.erase(it);
+			mpPrimitives.erase(it);
 			model = nullptr;
 			return true;
 		}

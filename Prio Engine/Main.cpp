@@ -47,13 +47,14 @@ void GameLoop(CEngine* &engine)
 {
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
-	// Process any initialisation to be done before the gameloop here.
-	CPrimitive* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
-	CPrimitive* cube2 = engine->CreateModel(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
+	// Process any initialisation to be done before the gameloop here.
+	CPrimitive* cube = engine->CreatePrimitive(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+
+	CPrimitive* cube2 = engine->CreatePrimitive(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-2.0f);
 
-	CPrimitive* triangle = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
+	CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
 	triangle->SetXPos(3.0f);
 
 	engine->StartTimer();
@@ -78,7 +79,7 @@ void Control(CEngine* &engine, CCamera* cam)
 {
 	const float kMoveSpeed = 10.0f;
 	const float kRotationSpeed = 10.0f;
-	const float kCamRotationSpeed = 10.0f;
+	const float kCamRotationSpeed = 2.5f;
 	float frameTime = engine->GetFrameTime();
 	
 	/// Camera control.
@@ -108,9 +109,19 @@ void Control(CEngine* &engine, CCamera* cam)
 	{
 		cam->RotateY(-kCamRotationSpeed * frameTime);
 	}
+	// Rotate right.
 	else if (engine->KeyHeld(PrioEngine::Key::kRight))
 	{
 		cam->RotateY(kCamRotationSpeed * frameTime);
+	}
+	// Rotate upwards.
+	if (engine->KeyHeld(PrioEngine::Key::kUp))
+	{
+		cam->RotateX(-kCamRotationSpeed * frameTime);
+	}
+	else if (engine->KeyHeld(PrioEngine::Key::kDown))
+	{
+		cam->RotateX(kCamRotationSpeed * frameTime);
 	}
 
 	// If the user hits escape.

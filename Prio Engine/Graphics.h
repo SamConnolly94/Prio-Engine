@@ -48,11 +48,11 @@ private:
 	CTextureShader* mpTextureShader;
 	CDiffuseLightShader* mpDiffuseLightShader;
 	
-	bool RenderModelWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
-	bool RenderModelWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
-	bool RenderModelsWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
+	bool RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 
-	std::list<CPrimitive*> mpModels;
+	std::list<CPrimitive*> mpPrimitives;
 	bool CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd);
 	bool CreateColourShaderForModel(CPrimitive* &model, HWND hwnd);
 	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd);
@@ -62,11 +62,13 @@ private:
 
 	HWND mHwnd;
 public:
-
-	CPrimitive* CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape);
-	CPrimitive* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	CPrimitive* CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
+	/* Model control from the engine. */
+	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
 	bool RemoveModel(CPrimitive* &model);
+
+	/* Camera control, required by the engine. */
 	CCamera* CreateCamera();
 	void SetCameraPos(float x, float y, float z);
 };
