@@ -6,7 +6,7 @@
 class CCamera
 {
 public:
-	CCamera();
+	CCamera(int screenWidth, int screenHeight, float fov, float nearClip, float farClip);
 	~CCamera();
 
 	// Set the position of the camera in the world.
@@ -18,6 +18,18 @@ public:
 	void MoveX(float x);
 	void MoveY(float y);
 	void MoveZ(float z);
+
+	void MoveLocalX(float x);
+	void MoveLocalY(float y);
+	void MoveLocalZ(float z);
+
+	void RotateX(float x);
+	void RotateY(float y);
+	void RotateZ(float z);
+
+	float GetRotX();
+	float GetRotY();
+	float GetRotZ();
 
 	float GetX();
 	float GetY();
@@ -32,13 +44,22 @@ public:
 	void GetViewMatrix(D3DXMATRIX& viewMatrix);
 
 private:
-	float mPosX;
-	float mPosY;
-	float mPosZ;
-	float mRotX;
-	float mRotY;
-	float mRotZ;
+	int mScreenWidth;
+	int mScreenHeight;
+
+	float mFov;
+	float mNearClip;
+	float mFarClip;
+
+	D3DXVECTOR3 mPosition;
+	D3DXVECTOR3 mRotation;
+
+	D3DXMATRIX mWorldMatrix;
 	D3DXMATRIX mViewMatrix;
+	D3DXMATRIX mProjMatrix;
+	D3DXMATRIX mViewProjMatrix;
+
+	void UpdateMatrices();
 };
 
 #endif

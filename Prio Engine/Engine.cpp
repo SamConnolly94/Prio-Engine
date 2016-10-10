@@ -390,7 +390,7 @@ void CEngine::StartTimer()
 }
 
 
-CModel* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape)
+CPrimitive* CEngine::CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape)
 {
 	return mpGraphics->CreateModel(textureFilename, shape);
 }
@@ -416,12 +416,12 @@ void CEngine::Stop()
 	mStopped = true;
 }
 
-CModel* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
+CPrimitive* CEngine::CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
 	return mpGraphics->CreateModel(textureFilename, useLighting, shape);
 }
 
-CModel* CEngine::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
+CPrimitive* CEngine::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
 	return mpGraphics->CreateModel(colour, shape);
 }

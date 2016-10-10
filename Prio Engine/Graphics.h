@@ -4,7 +4,9 @@
 #include <list>
 #include "D3D11.h"
 #include "Camera.h"
-#include "Model.h"
+#include "Cube.h"
+#include "Triangle.h"
+#include "Primitive.h"
 #include "ColourShader.h"
 #include "TextureShader.h"
 #include "DiffuseLightShader.h"
@@ -24,6 +26,8 @@ class CGraphics
 {
 private:
 	CLogger* mpLogger;
+	int mScreenWidth, mScreenHeight;
+
 public:
 	CGraphics();
 	~CGraphics();
@@ -39,19 +43,19 @@ private:
 	CLight* mpLight;
 
 	CCamera* mpCamera;
-	CModel* mpTriangle;
+	CPrimitive* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
 	CDiffuseLightShader* mpDiffuseLightShader;
 	
-	bool RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
-	bool RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
-	bool RenderModelsWithTextureAndDiffuseLight(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	bool RenderModelWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	bool RenderModelWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
+	bool RenderModelsWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 
-	std::list<CModel*> mpModels;
-	bool CreateTextureShaderForModel(CModel* &model, HWND hwnd);
-	bool CreateColourShaderForModel(CModel* &model, HWND hwnd);
-	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CModel* &model, HWND hwnd);
+	std::list<CPrimitive*> mpModels;
+	bool CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd);
+	bool CreateColourShaderForModel(CPrimitive* &model, HWND hwnd);
+	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 
 	float mRotation;
@@ -59,10 +63,10 @@ private:
 	HWND mHwnd;
 public:
 
-	CModel* CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape);
-	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	CModel* CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
-	bool RemoveModel(CModel* &model);
+	CPrimitive* CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape);
+	CPrimitive* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
+	CPrimitive* CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
+	bool RemoveModel(CPrimitive* &model);
 	CCamera* CreateCamera();
 	void SetCameraPos(float x, float y, float z);
 };

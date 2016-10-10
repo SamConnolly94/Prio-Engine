@@ -10,7 +10,6 @@ CGraphics::CGraphics()
 	mpTextureShader = nullptr;
 	mpLight = nullptr;
 	mpDiffuseLightShader = nullptr;
-	mRotation = 0.0f;
 }
 
 CGraphics::~CGraphics()
@@ -23,6 +22,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	bool successful;
 
 	mHwnd = hwnd;
+
+	mScreenWidth = screenWidth;
+	mScreenHeight = screenHeight;
 
 	// Create the Direct3D object.
 	mpD3D = new CD3D11;
@@ -106,7 +108,7 @@ void CGraphics::Shutdown()
 	}
 
 	// Deallocate any allocated memory on the models list.
-	std::list<CModel*>::iterator it;
+	std::list<CPrimitive*>::iterator it;
 	it = mpModels.begin();
 
 	while (it != mpModels.end())
@@ -181,9 +183,6 @@ bool CGraphics::Render()
 	mpD3D->GetProjectionMatrix(projMatrix);
 
 
-	// Ritate the world by rotation value so the triangle spins.
-	D3DXMatrixRotationY(&worldMatrix, mRotation);
-
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
 		return false;
@@ -196,7 +195,7 @@ bool CGraphics::Render()
 
 bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 {
-	std::list<CModel*>::iterator it;
+	std::list<CPrimitive*>::iterator it;
 	it = mpModels.begin();
 	
 	D3DXMATRIX modelWorld;
@@ -248,7 +247,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	return true;
 }
 
-bool CGraphics::RenderModelsWithTextureAndDiffuseLight(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CGraphics::RenderModelsWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -264,7 +263,7 @@ bool CGraphics::RenderModelsWithTextureAndDiffuseLight(CModel* model, D3DXMATRIX
 	return true;
 }
 
-bool CGraphics::RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
+bool CGraphics::RenderModelWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -279,7 +278,7 @@ bool CGraphics::RenderModelWithColour(CModel* model, D3DMATRIX worldMatrix, D3DM
 	return true;
 }
 
-bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CGraphics::RenderModelWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;
 
@@ -295,12 +294,23 @@ bool CGraphics::RenderModelWithTexture(CModel* model, D3DXMATRIX worldMatrix, D3
 	return true;
 }
 
-CModel* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives shape)
 {
-	CModel* model;
+	CPrimitive* model;
 	bool successful;
 
-	model = new CModel(TextureFilename, shape);
+	switch (shape)
+	{
+	case PrioEngine::Primitives::cube:
+		model = new CCube(TextureFilename);
+		break;
+	case PrioEngine::Primitives::triangle:
+		model = new CTriangle(TextureFilename);
+		break;
+	default:
+		return nullptr;
+	}
+
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
@@ -333,12 +343,24 @@ CModel* CGraphics::CreateModel(WCHAR* TextureFilename, PrioEngine::Primitives sh
 	return model;
 }
 
-CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
-	CModel* model;
+	CPrimitive* model;
 	bool successful;
 
-	model = new CModel(TextureFilename, useLighting, shape);
+	switch (shape)
+	{
+	case PrioEngine::Primitives::cube:
+		model = new CCube(TextureFilename, useLighting);
+		break;
+	case PrioEngine::Primitives::triangle:
+		model = new CTriangle(TextureFilename, useLighting);
+		break;
+	default:
+		return nullptr;
+	}
+
+
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
@@ -371,12 +393,24 @@ CModel* CGraphics::CreateModel(WCHAR* TextureFilename, bool useLighting, PrioEng
 	return model;
 }
 
-CModel* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape)
 {
-	CModel* model;
+	CPrimitive* model;
 	bool successful;
 
-	model = new CModel(colour, shape);
+	switch (shape)
+	{
+	case PrioEngine::Primitives::cube:
+		model = new CCube(colour);
+		break;
+	case PrioEngine::Primitives::triangle:
+		model = new CTriangle(colour);
+		break;
+	default:
+		return nullptr;
+	}
+
+
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	//mpTriangle = new CModel(red);
 	if (!model)
@@ -403,7 +437,7 @@ CModel* CGraphics::CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives s
 	return model;
 }
 
-bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CModel* &model, HWND hwnd)
+bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd)
 {
 	if (mpDiffuseLightShader == nullptr)
 	{
@@ -431,7 +465,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CModel* &model, HWND
 	return true;
 }
 
-bool CGraphics::CreateTextureShaderForModel(CModel* &model, HWND hwnd)
+bool CGraphics::CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd)
 {
 	if (mpTextureShader == nullptr)
 	{
@@ -459,7 +493,7 @@ bool CGraphics::CreateTextureShaderForModel(CModel* &model, HWND hwnd)
 	return true;
 }
 
-bool CGraphics::CreateColourShaderForModel(CModel* &model, HWND hwnd)
+bool CGraphics::CreateColourShaderForModel(CPrimitive* &model, HWND hwnd)
 {
 	if (mpColourShader == nullptr)
 	{
@@ -487,9 +521,9 @@ bool CGraphics::CreateColourShaderForModel(CModel* &model, HWND hwnd)
 	return true;
 }
 
-bool CGraphics::RemoveModel(CModel* &model)
+bool CGraphics::RemoveModel(CPrimitive* &model)
 {
-	std::list<CModel*>::iterator it;
+	std::list<CPrimitive*>::iterator it;
 	it = mpModels.begin();
 
 	while (it != mpModels.end())
@@ -514,8 +548,9 @@ bool CGraphics::RemoveModel(CModel* &model)
 
 CCamera* CGraphics::CreateCamera()
 {
+	float fieldOfView = D3DX_PI / 4;
 	// Create the camera.
-	mpCamera = new CCamera();
+	mpCamera = new CCamera(mScreenWidth, mScreenWidth,fieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 	if (!mpCamera)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the camera for DirectX.");

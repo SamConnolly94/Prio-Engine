@@ -2,17 +2,20 @@
 
 
 
-CCamera::CCamera()
+CCamera::CCamera(int screenWidth, int screenHeight, float fov, float nearClip, float farClip)
 {
-	// Initialise position of camera.
-	mPosX = 0.0f;
-	mPosY = 0.0f;
-	mPosZ = 0.0f;
+	mScreenWidth = screenWidth;
+	mScreenHeight = screenHeight;
 
-	// Initialise rotation of camera.
-	mRotX = 0.0f;
-	mRotY = 0.0f;
-	mRotZ = 0.0f;
+	mFov = fov;
+	mFarClip = farClip;
+	mNearClip = nearClip;
+
+	// Initialise vector 3's
+	mPosition = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	mRotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	UpdateMatrices();
 }
 
 CCamera::~CCamera()
@@ -21,118 +24,164 @@ CCamera::~CCamera()
 
 void CCamera::SetPosition(float x, float y, float z)
 {
-	mPosX = x;
-	mPosY = y;
-	mPosZ = z;
+	mPosition.x = x;
+	mPosition.y = y;
+	mPosition.z = z;
 }
 
 void CCamera::SetPositionX(float x)
 {
-	mPosX = x;
+	mPosition.x = x;
 }
 
 void CCamera::SetPosizionY(float y)
 {
-	mPosY = y;
+	mPosition.y = y;
 }
 
 void CCamera::SetPositionZ(float z)
 {
-	mPosZ = z;
+	mPosition.z = z;
 }
 
 void CCamera::MoveX(float x)
 {
-	mPosX += x;
+	mPosition.x += x;
 }
 
 void CCamera::MoveY(float y)
 {
-	mPosY += y;
+	mPosition.y += y;
 }
 
 void CCamera::MoveZ(float z)
 {
-	mPosZ += z;
+	mPosition.z += z;
+}
+
+void CCamera::MoveLocalX(float speed)
+{
+	mPosition.x += mWorldMatrix._11 * speed;
+	mPosition.y += mWorldMatrix._12 * speed;
+	mPosition.z += mWorldMatrix._13 * speed;
+}
+
+void CCamera::MoveLocalY(float speed)
+{
+	mPosition.x += mWorldMatrix._21 * speed;
+	mPosition.y += mWorldMatrix._22 * speed;
+	mPosition.z += mWorldMatrix._23 * speed;
+}
+
+void CCamera::MoveLocalZ(float speed)
+{
+	mPosition.x += mWorldMatrix._31 * speed;
+	mPosition.y += mWorldMatrix._32 * speed;
+	mPosition.z += mWorldMatrix._33 * speed;
+}
+
+void CCamera::RotateX(float x)
+{
+	mRotation.x += x;
+}
+
+void CCamera::RotateY(float y)
+{
+	mRotation.y += y;
+}
+
+void CCamera::RotateZ(float z)
+{
+	mRotation.z += z;
+}
+
+float CCamera::GetRotX()
+{
+	return mRotation.x;
+}
+
+float CCamera::GetRotY()
+{
+	return mRotation.y;
+}
+
+float CCamera::GetRotZ()
+{
+	return mRotation.z;
 }
 
 float CCamera::GetX()
 {
-	return mPosX;
+	return mPosition.x;
 }
 
 float CCamera::GetY()
 {
-	return mPosY;
+	return mPosition.y;
 }
 
 float CCamera::GetZ()
 {
-	return mPosZ;
+	return mPosition.z;
 }
 
 void CCamera::SetRotation(float x, float y, float z)
 {
-	mRotX = x;
-	mRotY = y;
-	mRotZ = z;
+	mRotation.x = x;
+	mRotation.y = y;
+	mRotation.z = z;
 }
 
 D3DXVECTOR3 CCamera::GetPosition()
 {
-	return D3DXVECTOR3(mPosX, mPosY, mPosZ);
+	return mPosition;
 }
 
 D3DXVECTOR3 CCamera::GetRotation()
 {
-	return D3DXVECTOR3(mRotX, mRotY, mRotZ);
+	return mRotation;
 }
 
 void CCamera::Render()
 {
-	D3DXVECTOR3 up;
-	D3DXVECTOR3 position;
-	D3DXVECTOR3 defaultAngle;
-	float yaw;
-	float pitch;
-	float roll;
-	D3DXMATRIX rotationMatrix;
-
-	// Setup the vector that points upwards.
-	up.x = 0.0f;
-	up.y = 1.0f;
-	up.z = 0.0f;
-
-	// Setup the position of the camera in the world.
-	position.x = mPosX;
-	position.y = mPosY;
-	position.z = mPosZ;
-
-	// Setup where the camera looks by default.
-	defaultAngle.x = 0.0f;
-	defaultAngle.y = 0.0f;
-	defaultAngle.z = 1.0f;
-
-	// Set the yaw (Y) pitch (X) and roll (Z) rotations in radians.
-	pitch = mRotX * 0.0174532925f;
-	yaw = mRotY * 0.0174532925f;
-	roll = mRotZ * 0.0174532925f;
-
-	// Create the rotation matrix from the yaw, pitch and roll values.
-	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll);
-
-	// Transform the defaultAngle and up vector by the rotation matrix so view is rotated at the origin.
-	D3DXVec3TransformCoord(&defaultAngle, &defaultAngle, &rotationMatrix);
-	D3DXVec3TransformCoord(&up, &up, &rotationMatrix);
-
-	// Translate the rotated camera pos to the location of the viewer.
-	defaultAngle = position + defaultAngle;
-
-	// Create the view matrix from the three updated vectors.
-	D3DXMatrixLookAtLH(&mViewMatrix, &position, &defaultAngle, &up);
+	UpdateMatrices();
 }
 
 void CCamera::GetViewMatrix(D3DXMATRIX & viewMatrix)
 {
 	viewMatrix = mViewMatrix;
+}
+
+/* Updates the elements of matrices used before rendering. 
+* Credit to Laurent Noel for this class.
+*/
+void CCamera::UpdateMatrices()
+{
+	// Rotation
+	D3DXMATRIX matrixRotationX;
+	D3DXMATRIX matrixRotationY;
+	D3DXMATRIX matrixRotationZ;
+	// Position
+	D3DXMATRIX matrixTranslation;
+
+	// Calculate the rotation of the camera.
+	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
+	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
+	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
+	
+	// Calculate the translation of the camera.
+	D3DXMatrixTranslation(&matrixTranslation, mPosition.x, mPosition.y, mPosition.z);
+
+	// Calculate the world matrix
+	mWorldMatrix = matrixRotationZ * matrixRotationX * matrixRotationY * matrixTranslation;
+
+	// The rendering pipeline requires the inverse of the camera world matrix, so calculate that (Thanks Laurent!)
+	D3DXMatrixInverse(&mViewMatrix, NULL, &mWorldMatrix);
+
+	// Initialise the projection matrix.
+	float aspectRatio = static_cast<float>(mScreenWidth / mScreenHeight);
+	D3DXMatrixPerspectiveFovLH(&mProjMatrix, mFov, aspectRatio, mNearClip, mFarClip);
+
+	// Combine the view and proj matrix into one matrix. This comes in useful for efficiency, as it gets done in the vertex shader every time it has to draw a vertex shader.
+	mViewProjMatrix = mViewMatrix * mProjMatrix;
 }

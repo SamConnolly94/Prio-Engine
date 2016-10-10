@@ -42,15 +42,19 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return 0;
 }
 
+/* Controls any gameplay and things that should happen when we play the game. */
 void GameLoop(CEngine* &engine)
 {
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 	// Process any initialisation to be done before the gameloop here.
-	CModel* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+	CPrimitive* cube = engine->CreateModel(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
-	CModel* cube2 = engine->CreateModel(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
+	CPrimitive* cube2 = engine->CreateModel(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-2.0f);
+
+	CPrimitive* triangle = engine->CreateModel(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
+	triangle->SetXPos(3.0f);
 
 	engine->StartTimer();
 
@@ -62,35 +66,51 @@ void GameLoop(CEngine* &engine)
 	while (engine->IsRunning())
 	{
 		frameTime = engine->GetFrameTime();
-		cube2->RotateX(kRotationSpeed * frameTime);
+		//cube2->RotateX(kRotationSpeed * frameTime);
 
 		Control(engine, myCam);
 
 	}
 }
 
+/* Control any user input here, must be called in every tick of the game loop. */
 void Control(CEngine* &engine, CCamera* cam)
 {
 	const float kMoveSpeed = 10.0f;
-	const float kRotationSpeed = 1.0f;
+	const float kRotationSpeed = 10.0f;
+	const float kCamRotationSpeed = 10.0f;
 	float frameTime = engine->GetFrameTime();
 	
-	// Camera control.
-	if (engine->KeyHeld(PrioEngine::Key::kDown))
+	/// Camera control.
+	// Move backwards
+	if (engine->KeyHeld(PrioEngine::Key::kS))
 	{
-		cam->MoveZ(-kMoveSpeed * frameTime);
+		cam->MoveLocalZ(-kMoveSpeed * frameTime);
 	}
-	else if (engine->KeyHeld(PrioEngine::Key::kUp))
+	// Move Forwards
+	else if (engine->KeyHeld(PrioEngine::Key::kW))
 	{
-		cam->MoveZ(kMoveSpeed * frameTime);
+		cam->MoveLocalZ(kMoveSpeed * frameTime);
 	}
+	// Move Left
+	if (engine->KeyHeld(PrioEngine::Key::kA))
+	{
+		cam->MoveLocalX(-kMoveSpeed * frameTime);
+	}
+	// Move Right
+	else if (engine->KeyHeld(PrioEngine::Key::kD))
+	{
+		cam->MoveLocalX(kMoveSpeed * frameTime);
+	}
+
+	// Rotate left
 	if (engine->KeyHeld(PrioEngine::Key::kLeft))
 	{
-		cam->MoveX(-kMoveSpeed * frameTime);
+		cam->RotateY(-kCamRotationSpeed * frameTime);
 	}
 	else if (engine->KeyHeld(PrioEngine::Key::kRight))
 	{
-		cam->MoveX(kMoveSpeed * frameTime);
+		cam->RotateY(kCamRotationSpeed * frameTime);
 	}
 
 	// If the user hits escape.
@@ -98,4 +118,6 @@ void Control(CEngine* &engine, CCamera* cam)
 	{
 		engine->Stop();
 	}
+
+
 }

@@ -58,9 +58,9 @@ private:
 	
 public:
 	// Model creation functions.
-	CModel* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	CModel* CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
-	CModel* CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
+	CPrimitive* CreateModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
+	CPrimitive* CreateModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
+	CPrimitive* CreateModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
 
 	float GetFrameTime();
 	CCamera* CreateCamera();

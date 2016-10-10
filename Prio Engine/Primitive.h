@@ -9,45 +9,28 @@
 #include "Logger.h"
 #include "Texture.h"
 
-class CModel
+class CPrimitive
 {
-private:
-	CVertexManager* mpVertexManager;
-
 public:
-	CModel(WCHAR* textureFilename, PrioEngine::Primitives shape);
-	CModel(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
-	CModel(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	~CModel();
+	CPrimitive() {};
+	CPrimitive(WCHAR* textureFilename);
+	CPrimitive(WCHAR* textureFilename, bool useLighting);
+	CPrimitive(PrioEngine::RGBA colour);
+	~CPrimitive();
 public:
-	bool Initialise(ID3D11Device* device);
+	virtual bool Initialise(ID3D11Device* device) = 0;
 	void Shutdown();
 	void Render(ID3D11DeviceContext* deviceContext);
-	ID3D11Device * mpDevice;
 	int GetIndex();
 
 	ID3D11ShaderResourceView* GetTexture();
 private:
-	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
+	virtual bool InitialiseBuffers(ID3D11Device* device) = 0;
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
-	bool LoadTexture(ID3D11Device* device);
 	void ReleaseTexture();
 private:
-	ID3D11Buffer* mpVertexBuffer;
-	ID3D11Buffer* mpIndexBuffer;
-	int mVertexCount;
-	int mIndexCount;
-	CTexture* mpTexture;
-	WCHAR* mpTextureFilename;
-	bool mApplyTexture;
-	PrioEngine::Primitives mShape;
-	CLogger* mpLogger;
 
-	PrioEngine::RGBA mColour;
-	void ResetColour();
-
-	bool mUseDiffuseLighting;
 	int GetNumberOfIndices();
 	int GetNumberOfVertices();
 	void LoadIndiceData(unsigned long* &indices);
@@ -56,7 +39,7 @@ public:
 	bool HasColour();
 	bool UseDiffuseLight();
 
-	// Transformations.
+	// Transformations and translations..
 public:
 	void RotateX(float x);
 	void RotateY(float y);
@@ -81,7 +64,7 @@ public:
 	void SetXPos(float x);
 	void SetYPos(float y);
 	void SetZPos(float z);
-private:
+protected:
 	float mPositionX;
 	float mPositionY;
 	float mPositionZ;
@@ -89,6 +72,26 @@ private:
 	float mRotationX;
 	float mRotationY;
 	float mRotationZ;
+
+protected:
+	ID3D11Device * mpDevice;
+	ID3D11Buffer* mpVertexBuffer;
+	ID3D11Buffer* mpIndexBuffer;
+	int mVertexCount;
+	int mIndexCount;
+	CTexture* mpTexture;
+	WCHAR* mpTextureFilename;
+	bool mApplyTexture;
+	PrioEngine::RGBA mColour;
+	bool mUseDiffuseLighting;
+	PrioEngine::Primitives mShape;
+	CVertexManager* mpVertexManager;
+
+	void ResetColour();
+	bool LoadTexture(ID3D11Device* device);
+
+	// Logger, used in all classes, parent and children.
+	CLogger* mpLogger;
 };
 
 #endif
