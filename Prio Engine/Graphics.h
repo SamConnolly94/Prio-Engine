@@ -7,6 +7,7 @@
 #include "Cube.h"
 #include "Triangle.h"
 #include "Primitive.h"
+#include "Mesh.h"
 #include "ColourShader.h"
 #include "TextureShader.h"
 #include "DiffuseLightShader.h"
@@ -53,6 +54,8 @@ private:
 	bool RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 
 	std::list<CPrimitive*> mpPrimitives;
+	std::list<CMesh*> mpMeshes;
+
 	bool CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd);
 	bool CreateColourShaderForModel(CPrimitive* &model, HWND hwnd);
 	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd);
@@ -66,7 +69,9 @@ public:
 	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
-	bool RemoveModel(CPrimitive* &model);
+	bool RemovePrimitive(CPrimitive* &model);
+	CMesh* LoadMesh(char* filename);
+	bool RemoveMesh(CMesh* &mesh);
 
 	/* Camera control, required by the engine. */
 	CCamera* CreateCamera();

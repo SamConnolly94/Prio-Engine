@@ -61,6 +61,11 @@ public:
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape);
+	bool RemovePrimitive(CPrimitive* model);
+	bool RemoveMesh(CMesh* mesh);
+
+	CMesh* LoadMesh(char* filename);
+	
 
 	float GetFrameTime();
 	CCamera* CreateCamera();

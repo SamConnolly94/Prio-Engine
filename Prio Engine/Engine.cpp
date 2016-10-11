@@ -413,6 +413,22 @@ CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primiti
 	return mpGraphics->CreatePrimitive(textureFilename, shape);
 }
 
+bool CEngine::RemovePrimitive(CPrimitive * model)
+{
+	mpGraphics->RemovePrimitive(model);
+	return mpGraphics->RemovePrimitive(model);
+}
+
+bool CEngine::RemoveMesh(CMesh * mesh)
+{
+	return mpGraphics->RemoveMesh(mesh);
+}
+
+CMesh * CEngine::LoadMesh(char * filename)
+{
+	return mpGraphics->LoadMesh(filename);
+}
+
 /* Create a primitive shape and place it in our world, may pass in diffuse lighting boolean to indicate wether it should be used. */
 CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {

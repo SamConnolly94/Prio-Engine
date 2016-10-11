@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "Mesh.h"
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
@@ -48,16 +49,16 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
+	CMesh* mesh = engine->LoadMesh("lol.exe");
+
 	// Process any initialisation to be done before the gameloop here.
 	CPrimitive* cube = engine->CreatePrimitive(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
-
-	CPrimitive* cube2 = engine->CreatePrimitive(PrioEngine::Colours::white, PrioEngine::Primitives::cube);
-	cube2->SetXPos(-2.0f);
 
 	CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
 	triangle->SetXPos(3.0f);
 
 	engine->StartTimer();
+
 
 	float frameTime;
 
@@ -119,10 +120,13 @@ void Control(CEngine* &engine, CCamera* cam)
 	{
 		cam->RotateX(-kCamRotationSpeed * frameTime);
 	}
+	// Rotate downwards.
 	else if (engine->KeyHeld(PrioEngine::Key::kDown))
 	{
 		cam->RotateX(kCamRotationSpeed * frameTime);
 	}
+
+	/// User controls.
 
 	// If the user hits escape.
 	if (engine->KeyHit(PrioEngine::Key::kEscape))

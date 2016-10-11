@@ -76,7 +76,7 @@ void CLogger::WriteLine(std::string text)
 }
 
 
-/**  Write a piece of text to the debug log and add a new line.. */
+/*  Write a piece of text to the debug log and add a new line. Use typid(var).name() and pass it in as a variable. */
 void CLogger::MemoryAllocWriteLine(std::string name)
 {
 	if (mLoggingEnabled)

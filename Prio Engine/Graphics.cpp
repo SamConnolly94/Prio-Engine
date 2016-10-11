@@ -106,7 +106,7 @@ void CGraphics::Shutdown()
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpColourShader).name());
 	}
 
-	// Deallocate any allocated memory on the models list.
+	// Deallocate any allocated memory on the primitives list.
 	std::list<CPrimitive*>::iterator it;
 	it = mpPrimitives.begin();
 
@@ -122,6 +122,23 @@ void CGraphics::Shutdown()
 	while (!mpPrimitives.empty())
 	{
 		mpPrimitives.pop_back();
+	}
+
+	// Deallocate any allocated memroy on the mesh list.
+	std::list<CMesh*>::iterator meshIt;
+	meshIt = mpMeshes.begin();
+
+	while (meshIt != mpMeshes.end())
+	{
+		delete (*meshIt);
+		(*meshIt) = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(meshIt).name());
+		meshIt++;
+	}
+
+	while (!mpMeshes.empty())
+	{
+		mpMeshes.pop_back();
 	}
 
 	if (mpCamera)
@@ -520,7 +537,7 @@ bool CGraphics::CreateColourShaderForModel(CPrimitive* &model, HWND hwnd)
 	return true;
 }
 
-bool CGraphics::RemoveModel(CPrimitive* &model)
+bool CGraphics::RemovePrimitive(CPrimitive* &model)
 {
 	std::list<CPrimitive*>::iterator it;
 	it = mpPrimitives.begin();
@@ -542,6 +559,65 @@ bool CGraphics::RemoveModel(CPrimitive* &model)
 	}
 
 	mpLogger->GetLogger().WriteLine("Failed to find model to delete.");
+	return false;
+}
+
+CMesh * CGraphics::LoadMesh(char * filename)
+{
+	// Allocate the mesh memory.
+	CMesh* mesh = new CMesh();
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
+
+	// If we failed to load the mesh, then delete the object and return a nullptr.
+	if (!mesh->LoadMesh(filename))
+	{
+		// Deallocate memory.
+		delete mesh;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mesh).name());
+		return nullptr;
+	}
+
+	// Push the pointer onto a member variable list so that we don't lose it.
+	mpMeshes.push_back(mesh);
+
+	return mesh;
+}
+
+/* Deletes any allocated memory to a mesh and removes it from the list. */
+bool CGraphics::RemoveMesh(CMesh *& mesh)
+{
+	// Define an iterator.
+	std::list<CMesh*>::iterator it;
+	// Initialise it to the start of the meshes list.
+	it = mpMeshes.begin();
+
+	// Iterate through the list.
+	while (it != mpMeshes.end())
+	{
+		// If the current position of our list is the same as the mesh parameter passed in.
+		if ((*it) == mesh)
+		{
+			// Deallocate memory.
+			delete mesh;
+			// Reset the pointer to be null.
+			(*it) = nullptr;
+			// Output the memory deallocation message to the memory log.
+			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+			// Erase this element off of the list.
+			mpMeshes.erase(it);
+			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
+			mesh = nullptr;
+			// Complete! Return success.
+			return true;
+		}
+		// Increment the iterator.
+		it++;
+	}
+
+	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
+	mpLogger->GetLogger().WriteLine("Failed to find mesh to delete.");
+
+	// Return failure.
 	return false;
 }
 
