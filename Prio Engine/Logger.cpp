@@ -2,6 +2,7 @@
 
 CLogger::CLogger()
 {
+	mLoggingEnabled = false;
 	mLogFile.open(mDebugLogName);
 
 	mMemoryLogFile.open(mMemoryLogName);

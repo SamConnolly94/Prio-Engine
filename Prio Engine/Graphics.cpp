@@ -565,7 +565,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 CMesh * CGraphics::LoadMesh(char * filename)
 {
 	// Allocate the mesh memory.
-	CMesh* mesh = new CMesh();
+	CMesh* mesh = new CMesh(mpD3D->GetDevice());
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.

@@ -49,13 +49,14 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
-	CMesh* mesh = engine->LoadMesh("lol.exe");
+	CMesh* mesh = engine->LoadMesh("resources/textures/cube.obj");
+	mesh->CreateModel();
 
 	// Process any initialisation to be done before the gameloop here.
-	CPrimitive* cube = engine->CreatePrimitive(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
+	//CPrimitive* cube = engine->CreatePrimitive(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
 
-	CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
-	triangle->SetXPos(3.0f);
+	//CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
+	//triangle->SetXPos(3.0f);
 
 	engine->StartTimer();
 

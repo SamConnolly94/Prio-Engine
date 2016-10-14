@@ -42,6 +42,7 @@ private:
 	PrioEngine::RGBA mColour;
 	
 public:
+	CVertexManager(PrioEngine::VertexType vertexType);
 	CVertexManager(PrioEngine::VertexType vertexType, PrioEngine::Primitives shape);
 	~CVertexManager();
 	void SetDevicePtr(ID3D11Device* device);
@@ -51,7 +52,7 @@ public:
 	void SetNumberOfVertices(int amount);
 
 	void SetVertexArray(float x, float y, float z);
-
+	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR3* texCoords, D3DXVECTOR3 * normals, int numOfVertices, int numOfTextureCoords, int numOfNormals);
 	bool CreateVertexBuffer();
 
 	void RenderBuffers(ID3D11DeviceContext* deviceContext, ID3D11Buffer* indexBuffer);

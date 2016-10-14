@@ -2,6 +2,11 @@
 
 
 
+CVertexManager::CVertexManager(PrioEngine::VertexType vertexType)
+{
+	mVertexType = vertexType;
+}
+
 CVertexManager::CVertexManager(PrioEngine::VertexType vertexType, PrioEngine::Primitives shape)
 {
 	// Set any pointers that are to be used to be null.
@@ -159,6 +164,39 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 
 	mpLogger->GetLogger().WriteLine("Failed to set any buffers to be drawn.");
 }
+
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR3* texCoords, D3DXVECTOR3 * normals, int numOfVertices, int numOfTextureCoords, int numOfNormals)
+{
+	float U = 0.0f;
+	float V = 0.0f;
+
+	// Set the positions of vertices first.
+	for (int i = 0; i < numOfVertices; i++)
+	{
+		// If we're using a texture combined with diffuse lighting, place the position of the vertices into the diffuse lighting vertex array.
+		mpVerticesDiffuse[i].position = D3DXVECTOR3(x + vertices[i].x,
+			y + vertices[i].y,
+			z + vertices[i].z);
+
+		mpVerticesDiffuse[i].texture = D3DXVECTOR2(texCoords[i].x, texCoords[i].y);
+
+		mpVerticesDiffuse[i].normal = D3DXVECTOR3(normals[i].x, normals[i].y, normals[i].z);
+
+	}
+		//// Tell the vertices buffer what it should use as UV values.
+		//mpVerticesDiffuse[i].texture = D3DXVECTOR2(U, V);
+		//// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
+		//if (U == V)
+		//{
+		//	V += 1.0f;
+		//}
+		//else
+		//{
+		//	U += 1.0f;
+		//}
+}
+
+
 
 /* Place the vertex points positions into our array, for when using colour shader. */
 void CVertexManager::SetColourCube(float x, float y, float z)

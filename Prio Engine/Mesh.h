@@ -1,9 +1,14 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <string>
+// My class includes.
 #include "Logger.h"
-#include <D3DX10math.h>
+
+// Windows library includes.
+#include <string>
+#include <list>
+
+#include "Models.h"
 
 class CMesh
 {
@@ -12,6 +17,7 @@ private:
 	std::string mFileExtension;
 	CLogger* mpLogger;
 
+	//std::list<CModels*> mpModels;
 
 	D3DXVECTOR3* mpVertices;
 	D3DXVECTOR3* mpTexCoords;
@@ -25,11 +31,14 @@ private:
 	} FaceType;
 
 	FaceType* mpFaces;
+
+	ID3D11Device* mpDevice;
 public:
-	CMesh();
+	CMesh(ID3D11Device* device);
 	~CMesh();
 
 	// Loads data from file into our mesh object.
+	void CMesh::CreateModel();
 	bool LoadMesh(char* filename);
 
 private:

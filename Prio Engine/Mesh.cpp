@@ -2,12 +2,14 @@
 
 
 
-CMesh::CMesh()
+CMesh::CMesh(ID3D11Device* device)
 {
 	mVertexCount  = 0;
 	mFaceCount    = 0;
 	mNormalCount  = 0;
 	mTextureCount = 0;
+
+	mpDevice = device;
 }
 
 
@@ -40,6 +42,15 @@ CMesh::~CMesh()
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpFaces).name());
 		mpFaces = nullptr;
 	}
+
+	//// If we have pointers to models still.
+	//while (!mpModels.empty())
+	//{
+	//	// Delete allocated memory from the back of our array.
+	//	delete (mpModels.back());
+	//	// Pop the model off of the list.
+	//	mpModels.pop_back();
+	//}
 }
 
 /* Load data from file into our mesh object. */
@@ -66,9 +77,38 @@ bool CMesh::LoadMesh(char* filename)
 	}
 		
 	// Output error message to the log.
-	mpLogger->WriteLine("You have tried to load an unsupported file type as a mesh. The file name was: '" + mFilename + "'.");
+	mpLogger->GetLogger().WriteLine("You have tried to load an unsupported file type as a mesh. The file name was: '" + mFilename + "'.");
 	// Return failure.
 	return false;
+}
+
+void CMesh::CreateModel()
+{
+	// Allocate memory to a model.
+	CModels* model = nullptr;
+	model = new CModels(mpDevice);
+
+	// Write an allocation message to our memory log.
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+
+	// Check the model has had space allocated to it.
+	if (model == nullptr)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to allocate space to model. ");
+		//return false;
+	}
+
+	model->SetNumberOfVertices(mVertexCount);
+	model->SetNumberOfNormals(mNormalCount);
+	model->SetTextureCount(mTextureCount);
+	model->SetNumberOfIndices(mVertexCount);
+
+	model->SetGeometry(mpVertices, mpTexCoords, mpNormal);
+
+	// Stick our models on a list to prevent losing the pointers.
+	//mpModels.push_back(model);
+
+	//return model;
 }
 
 bool CMesh::LoadObj()
