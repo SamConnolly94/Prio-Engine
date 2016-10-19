@@ -427,19 +427,3 @@ void CVertexManager::RenderBuffers(ID3D11DeviceContext * deviceContext, ID3D11Bu
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
-
-/* Commits changes to the vertices by recreating them at the new position of the model, and passing all this data to the buffers again. */
-void CVertexManager::RepositionVertices(float x, float y, float z)
-{
-	// Populate the array with vertices.
-	CreateVertexArray();
-
-	// Set up the buffer data which will be passed to DirectX.
-	SetVertexArray(x, y, z);
-
-	// Write the vertex points to the matrix.
-	CreateVertexBuffer();
-
-	// Delete any allocated memory.
-	CleanArrays();
-}

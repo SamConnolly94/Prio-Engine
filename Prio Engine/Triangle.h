@@ -7,8 +7,6 @@
 
 class CTriangle : public CPrimitive
 {
-
-
 	public:
 		CTriangle(WCHAR* textureFilename);
 		CTriangle(WCHAR* filename, bool useLighting);

@@ -49,35 +49,43 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 /* Controls any gameplay and things that should happen when we play the game. */
 void GameLoop(CEngine* &engine)
 {
-	CCamera* myCam = engine->CreateCamera();
+	// Constants.
+	const float kRotationSpeed = 1.0f;
+
+	// Variables
+	float frameTime;
+	CCamera* myCam;
+	CMesh* triangleMesh;
+	CModels* triangleModel;
+	CPrimitive* cube;
+
+	// Camera init.
+	myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
-	CMesh* mesh = engine->LoadMesh("../Resources/Textures/Cube.sam");
-	CModels* model = mesh->CreateModel();
-	model->SetPosition(0.0f, 0.0f, 0.0f);
+	// Mesh init
+	triangleMesh = engine->LoadMesh("../Resources/Textures/Cube.sam");
 
-	// Process any initialisation to be done before the gameloop here.
-	CPrimitive* cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
+	// Model init.
+	triangleModel = triangleMesh->CreateModel();
+	cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 	cube->SetXPos(-5.0f);
-	//CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
-	//triangle->SetXPos(3.0f);
+	triangleModel->SetPos(0.0f, 0.0f, 0.0f);
 
+	// Start the game timer running.
 	engine->StartTimer();
-
-
-	float frameTime;
-
-	const float kRotationSpeed = 1.0f;
 
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
+		// Get hold of the time it took to draw the last frame.
 		frameTime = engine->GetFrameTime();
-		//cube2->RotateX(kRotationSpeed * frameTime);
 
+		// Process any keys pressed this frame.
 		Control(engine, myCam);
 
-		model->RotateY(0.1f);
+		// Rotate the model which has been logged on.
+		triangleModel->RotateY(0.1f);
 
 	}
 }

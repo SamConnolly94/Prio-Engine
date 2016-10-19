@@ -15,14 +15,6 @@ CTriangle::CTriangle(WCHAR* filename)
 	// Store the filename for later use.
 	mpTextureFilename = filename;
 
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
-
 	mShape = PrioEngine::Primitives::triangle;
 
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::triangle);
@@ -42,14 +34,6 @@ CTriangle::CTriangle(WCHAR * filename, bool useLighting)
 
 	// Store the filename for later use.
 	mpTextureFilename = filename;
-
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
 
 	mShape = PrioEngine::Primitives::triangle;
 
@@ -74,14 +58,6 @@ CTriangle::CTriangle(PrioEngine::RGBA colour)
 
 	// Store the colour which we have passed in.
 	mColour = colour;
-
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
 
 	mShape = PrioEngine::Primitives::triangle;
 

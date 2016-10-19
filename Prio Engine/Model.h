@@ -2,8 +2,9 @@
 #define MODEL_H
 
 #include "VertexTypeManager.h"
+#include "ModelControl.h"
 
-class CModels
+class CModels : public CModelControl
 {
 private:
 	D3DXVECTOR3* mpVertices;
@@ -20,9 +21,6 @@ private:
 	CLogger* mpLogger;
 
 	ID3D11Buffer* mpIndexBuffer;
-
-	D3DXVECTOR3 mPosition;
-	D3DXVECTOR3 mRotation;
 
 	D3DXMATRIX mWorld;
 public:
@@ -41,15 +39,9 @@ public:
 	// Gets the number of indices which form a triangle, for the total number of indices, multiply by three.
 	int GetNumberOfIndices() { return mIndicesCount; };
 
-	void SetPosition(float x, float y, float z) { mPosition.x = x; mPosition.y = y; mPosition.z = z; };
-	void SetPositionX(float x) { mPosition.x = x; };
-	void SetPositionY(float y) { mPosition.y = y; };
-	void SetPositionZ(float z) { mPosition.z = z; };
-
 	void UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 
-	void RotateY(float value);
 };
 
 #endif

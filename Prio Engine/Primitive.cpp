@@ -16,14 +16,6 @@ CPrimitive::CPrimitive(WCHAR* filename)
 	// Store the filename for later use.
 	mpTextureFilename = filename;
 
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
-
 	mpVertexManager = nullptr;
 }
 
@@ -42,14 +34,6 @@ CPrimitive::CPrimitive(WCHAR* filename, bool useLighting)
 	// Store the filename for later use.
 	mpTextureFilename = filename;
 
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
-
 	mpVertexManager = nullptr;
 
 }
@@ -65,14 +49,6 @@ CPrimitive::CPrimitive(PrioEngine::RGBA colour)
 
 	// Store the colour which we have passed in.
 	mColour = colour;
-
-	mRotationX = 0.0f;
-	mRotationY = 0.0f;
-	mRotationZ = 0.0f;
-
-	mPositionX = 0.0f;
-	mPositionY = 0.0f;
-	mPositionZ = 0.0f;
 
 	mpVertexManager = nullptr;
 
@@ -255,93 +231,4 @@ bool CPrimitive::UseDiffuseLight()
 	return mUseDiffuseLighting;
 }
 
-void CPrimitive::RotateX(float x)
-{
-	mRotationX += x;
-}
-
-void CPrimitive::RotateY(float y)
-{
-	mRotationY += y;
-}
-
-void CPrimitive::RotateZ(float z)
-{
-	mRotationZ += z;
-}
-
-float CPrimitive::GetRotationX()
-{
-	return mRotationX;
-}
-
-float CPrimitive::GetRotationY()
-{
-	return mRotationY;
-}
-
-float CPrimitive::GetRotationZ()
-{
-	return mRotationZ;
-}
-
-void CPrimitive::SetRotationX(float x)
-{
-	mRotationX = x;
-}
-
-void CPrimitive::SetRotationY(float y)
-{
-	mRotationY = y;
-}
-
-void CPrimitive::SetRotationZ(float z)
-{
-	mRotationZ = z;
-}
-
-void CPrimitive::MoveX(float x)
-{
-	mPositionX += x;
-}
-
-void CPrimitive::MoveY(float y)
-{
-	mPositionY += y;
-}
-
-void CPrimitive::MoveZ(float z)
-{
-	mPositionZ += z;
-}
-
-float CPrimitive::GetPosX()
-{
-	return mPositionX;
-}
-
-float CPrimitive::GetPosY()
-{
-	return mPositionY;
-}
-
-float CPrimitive::GetPosZ()
-{
-	return mPositionZ;
-}
-
-void CPrimitive::SetXPos(float x)
-{
-	mPositionX = x;
-}
-
-void CPrimitive::SetYPos(float y)
-{
-	mPositionY = y;
-}
-
-void CPrimitive::SetZPos(float z)
-{
-	mPositionZ = z;
-}
 

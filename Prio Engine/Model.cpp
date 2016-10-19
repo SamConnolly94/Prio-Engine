@@ -7,15 +7,6 @@ CModels::CModels(ID3D11Device * device)
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour);
 	mpVertexManager->SetDevicePtr(mpDevice);
 	mpVertexManager->SetColour(PrioEngine::Colours::red);
-
-	mPosition.x = 0.0f;
-	mPosition.y = 0.0f;
-	mPosition.z = 0.0f;
-
-	mRotation.x = 0.0f;
-	mRotation.y = 0.0f;
-	mRotation.z = 0.0f;
-
 }
 
 
@@ -66,11 +57,6 @@ void CModels::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& pr
 void CModels::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
-}
-
-void CModels::RotateY(float value)
-{
-	mRotation.y += value;
 }
 
 bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)

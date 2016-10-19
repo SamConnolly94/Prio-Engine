@@ -8,11 +8,12 @@
 #include "PrioEngineVars.h"
 #include "Logger.h"
 #include "Texture.h"
+#include "ModelControl.h"
 
-class CPrimitive
+class CPrimitive : public CModelControl
 {
 public:
-	CPrimitive() {};
+	CPrimitive(){};
 	CPrimitive(WCHAR* textureFilename);
 	CPrimitive(WCHAR* textureFilename, bool useLighting);
 	CPrimitive(PrioEngine::RGBA colour);
@@ -38,40 +39,6 @@ public:
 	bool HasTexture();
 	bool HasColour();
 	bool UseDiffuseLight();
-
-	// Transformations and translations..
-public:
-	void RotateX(float x);
-	void RotateY(float y);
-	void RotateZ(float z);
-
-	float GetRotationX();
-	float GetRotationY();
-	float GetRotationZ();
-
-	void SetRotationX(float x);
-	void SetRotationY(float y);
-	void SetRotationZ( float z);
-
-	void MoveX(float x);
-	void MoveY(float y);
-	void MoveZ(float z);
-
-	float GetPosX();
-	float GetPosY();
-	float GetPosZ();
-
-	void SetXPos(float x);
-	void SetYPos(float y);
-	void SetZPos(float z);
-protected:
-	float mPositionX;
-	float mPositionY;
-	float mPositionZ;
-
-	float mRotationX;
-	float mRotationY;
-	float mRotationZ;
 
 protected:
 	ID3D11Device * mpDevice;

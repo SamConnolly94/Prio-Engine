@@ -56,7 +56,6 @@ public:
 	bool CreateVertexBuffer();
 
 	void RenderBuffers(ID3D11DeviceContext* deviceContext, ID3D11Buffer* indexBuffer);
-	void RepositionVertices(float x, float y, float z);
 
 	// Set the colour used on this shape.
 	void SetColour(PrioEngine::RGBA colour);
