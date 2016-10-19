@@ -51,6 +51,7 @@ private:
 	bool InitialiseArrays();
 	int mVertexCount;
 	int mIndexCount;
+	const int kNumberOfFloatsInVector3 = 3;
 };
 
 #endif

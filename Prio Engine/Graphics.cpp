@@ -222,6 +222,16 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	D3DXMATRIX rotY;
 	D3DXMATRIX rotZ;
 
+	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
+
+
+	// Render any models which belong to each mesh. Do this in batches to make it faster.
+	while (meshIt != mpMeshes.end())
+	{
+		(*meshIt)->Render(mpD3D->GetDeviceContext(), world, view, proj);
+		meshIt++;
+	}
+
 	while (it != mpPrimitives.end())
 	{
 		D3DXMatrixTranslation(&modelWorld, (*it)->GetPosX(), (*it)->GetPosY(), (*it)->GetPosZ());
@@ -260,16 +270,6 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 			}
 		}
 		it++;
-	}
-
-	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
-
-
-	// Render any models which belong to each mesh. Do this in batches to make it faster.
-	while (meshIt != mpMeshes.end())
-	{
-		(*meshIt)->Render(mpD3D->GetDeviceContext(), world, view, proj);
-		meshIt++;
 	}
 	return true;
 }

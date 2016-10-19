@@ -38,6 +38,7 @@ public:
 	int GetNumberOfVertices() { return mVerticesCount; };
 	int GetTextureCount() { return mTextureCount; }
 	int GetNumberOfNormals() { return mNormalsCount; };
+	// Gets the number of indices which form a triangle, for the total number of indices, multiply by three.
 	int GetNumberOfIndices() { return mIndicesCount; };
 
 	void SetPosition(float x, float y, float z) { mPosition.x = x; mPosition.y = y; mPosition.z = z; };
@@ -47,6 +48,8 @@ public:
 
 	void UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
+
+	void RotateY(float value);
 };
 
 #endif

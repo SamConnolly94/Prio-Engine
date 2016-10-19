@@ -73,6 +73,8 @@ void GameLoop(CEngine* &engine)
 
 		Control(engine, myCam);
 
+		model->RotateY(0.1f);
+
 	}
 }
 

@@ -59,6 +59,8 @@ CMesh::~CMesh()
 		delete mpTexture;
 	}
 
+	delete[] mpIndices;
+	mpIndices = nullptr;
 	
 }
 
@@ -112,7 +114,8 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX vi
 
 		(*it)->RenderBuffers(context);
 
-		mpColourShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj);
+		// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+		mpColourShader->Render(context, (*it)->GetNumberOfIndices() * kNumberOfFloatsInVector3, world, view, proj);
 
 		it++;
 	}

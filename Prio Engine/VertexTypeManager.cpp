@@ -174,19 +174,19 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 	mpLogger->GetLogger().WriteLine("Failed to set any buffers to be drawn.");
 }
 
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour, int numOfVertices)
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour)
 {
 	float U = 0.0f;
 	float V = 0.0f;
 
 	if (!mpVerticesColour)
 	{
-		mpVerticesColour = new VertexColourType[numOfVertices];
+		mpVerticesColour = new VertexColourType[mNumOfVertices];
 	}
 
 	
 	// Set the positions of vertices first.
-	for (int i = 0; i < numOfVertices; i++)
+	for (int i = 0; i < mNumOfVertices; i++)
 	{
 		mpVerticesColour[i].position = vertices[i];
 		mpVerticesColour[i].colour = D3DXVECTOR4(colour.r, colour.g, colour.b, colour.a);

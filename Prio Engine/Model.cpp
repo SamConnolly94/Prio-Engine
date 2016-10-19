@@ -68,13 +68,18 @@ void CModels::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
+void CModels::RotateY(float value)
+{
+	mRotation.y += value;
+}
+
 bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 {
-	const int kNumberOfFloatsInVector3 = 3;
 	unsigned long* indicesArray;
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
 	HRESULT result;
+	const int kNumberOfFloatsInVector3 = 3;
 
 	// Set the number of vertices in the vertex array.
 	mpVertexManager->SetNumberOfVertices(mVerticesCount);
@@ -83,7 +88,7 @@ bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 	mpVertexManager->CreateVertexArray();
 
 	// Create the points of the model.
-	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::green, mVerticesCount);
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::green);
 
 	// Create the index array.
 	indicesArray = new unsigned long[mIndicesCount * kNumberOfFloatsInVector3];
@@ -97,11 +102,11 @@ bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 	int indicesArrayCounter = 0;
 	for (int i = 0; i < mIndicesCount; i++)
 	{
-		indicesArray[indicesArrayCounter] = indices[i].x;
+		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].x);
 		indicesArrayCounter++;
-		indicesArray[indicesArrayCounter] = indices[i].y;
+		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].y);
 		indicesArrayCounter++;
-		indicesArray[indicesArrayCounter] = indices[i].z;
+		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].z);
 		indicesArrayCounter++;
 	}
 
@@ -121,7 +126,6 @@ bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 
 	/* Give the subresource structure a pointer to the index data. */
 	indexData.pSysMem = indicesArray;
-	//indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
