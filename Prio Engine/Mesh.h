@@ -5,7 +5,7 @@
 #include <string>
 #include <list>
 
-#include "Models.h"
+#include "Model.h"
 #include "Texture.h"
 #include "ColourShader.h"
 

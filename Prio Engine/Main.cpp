@@ -14,20 +14,24 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Start the game engine.
 	CEngine* PrioEngine;
 	bool result;
-	CLogger* logger;
 
 	// Create the engine object.
 	PrioEngine = new CEngine();
+	// If failed to create the engine.
 	if (!PrioEngine)
 	{
-		logger->GetLogger().WriteLine("Could not create the engine object.");
-		// Test comment
+		// Write a message to the log to let the user know we couldn't create the engine object.
+		CLogger::GetLogger().WriteLine("Could not create the engine object.");
+		// Return 0, we're saying we're okay, implement error codes in future versions maybe? 
 		return 0;
 	}
 
+	// Set up the engine.
 	result = PrioEngine->Initialise();
+	// If we successfully initialised the game engine
 	if (result)
 	{
+		// Start the game loop.
 		GameLoop(PrioEngine);
 	}
 
@@ -48,7 +52,7 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
-	CMesh* mesh = engine->LoadMesh("../Resources/Textures/Triangle.sam");
+	CMesh* mesh = engine->LoadMesh("../Resources/Textures/Cube.sam");
 	CModels* model = mesh->CreateModel();
 	model->SetPosition(0.0f, 0.0f, 0.0f);
 

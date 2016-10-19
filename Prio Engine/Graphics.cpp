@@ -11,7 +11,7 @@ CGraphics::CGraphics()
 	mpLight = nullptr;
 	mpDiffuseLightShader = nullptr;
 
-	mFieldOfView = D3DX_PI / 4;
+	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 }
 
 CGraphics::~CGraphics()

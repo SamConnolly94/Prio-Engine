@@ -277,7 +277,7 @@ bool CMesh::InitialiseArrays()
 		return false;
 	}
 
-	char ch, ch2;
+	char ch;
 	// Read the first character into our ch var.
 	inFile.get(ch);
 	// Iterate through the rest of the file.

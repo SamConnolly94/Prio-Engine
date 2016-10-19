@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef PRIMITIVE_H
+#define PRIMITIVE_H
 
 // Include DirectX libraries.
 #include <d3d11.h>

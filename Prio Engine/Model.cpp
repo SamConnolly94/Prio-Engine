@@ -1,4 +1,4 @@
-#include "Models.h"
+#include "Model.h"
 
 
 CModels::CModels(ID3D11Device * device)
