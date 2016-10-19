@@ -93,12 +93,16 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "ColourPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
+		// If we recieved an error message.
 		if (errorMessage)
 		{
+			// Output our error message.
 			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
 		}
+		// If we couldn't find the shader file.
 		else
 		{
+			// Output a message to the log and a message box.
 			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}

@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "Mesh.h"
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
@@ -49,12 +48,13 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
-	CMesh* mesh = engine->LoadMesh("resources/textures/cube.obj");
-	mesh->CreateModel();
+	CMesh* mesh = engine->LoadMesh("../Resources/Textures/Triangle.sam");
+	CModels* model = mesh->CreateModel();
+	model->SetPosition(0.0f, 0.0f, 0.0f);
 
 	// Process any initialisation to be done before the gameloop here.
-	//CPrimitive* cube = engine->CreatePrimitive(L"../Resources/Textures/TestTex.dds", true, PrioEngine::Primitives::cube);
-
+	CPrimitive* cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
+	cube->SetXPos(-5.0f);
 	//CPrimitive* triangle = engine->CreatePrimitive(PrioEngine::Colours::green, PrioEngine::Primitives::triangle);
 	//triangle->SetXPos(3.0f);
 

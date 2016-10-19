@@ -51,15 +51,10 @@ namespace PrioEngine
 			{-0.5f, 0.5f, -0.5f},
 			{0.5f, 0.5f, -0.5f},
 			{-0.5f, -0.5f, -0.5f},
-
 			{0.5f, -0.5f, -0.5f},
-
 			{-0.5f, 0.5f, 0.5f},
-
 			{0.5f, 0.5f, 0.5f},
-
 			{-0.5f, -0.5f, 0.5f},
-
 			{0.5f, -0.5f, 0.5f}
 		};
 
@@ -110,6 +105,7 @@ namespace PrioEngine
 		// Define the colour to be used as diffuse lighting.
 		const RGBA white = { 1.0f, 1.0f, 1.0f, 1.0f};
 		const RGBA red = { 1.0f, 0.0f, 0.0f, 1.0f };
+
 		const RGBA green = { 0.0f, 1.0f, 0.0f, 1.0f };
 		const RGBA blue = { 0.0f, 0.0f, 1.0f, 1.0f };
 	}

@@ -214,6 +214,7 @@
     <Image Include="Resources\Textures\TriangleTex.dds" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Textures\Triangle.sam" />
     <None Include="Texture.ps.hlsl">
       <FileType>Document</FileType>
     </None>
@@ -226,11 +227,6 @@
       <FileType>Document</FileType>
     </None>
     <None Include="DiffuseLight.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Textures\cube.obj">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

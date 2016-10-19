@@ -303,25 +303,16 @@ void CPrimitive::SetRotationZ(float z)
 void CPrimitive::MoveX(float x)
 {
 	mPositionX += x;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CPrimitive::MoveY(float y)
 {
 	mPositionY += y;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CPrimitive::MoveZ(float z)
 {
 	mPositionZ += z;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 float CPrimitive::GetPosX()
@@ -342,24 +333,15 @@ float CPrimitive::GetPosZ()
 void CPrimitive::SetXPos(float x)
 {
 	mPositionX = x;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CPrimitive::SetYPos(float y)
 {
 	mPositionY = y;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 
 void CPrimitive::SetZPos(float z)
 {
 	mPositionZ = z;
-
-	// Make sure the triangle is redrawn in that new position.
-	//mpVertexManager->RepositionVertices(mPositionX, mPositionY, mPositionZ);
 }
 

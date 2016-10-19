@@ -1,15 +1,16 @@
 #include "Mesh.h"
 
 
-
-CMesh::CMesh(ID3D11Device* device)
+CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 {
 	mVertexCount  = 0;
-	mFaceCount    = 0;
-	mNormalCount  = 0;
-	mTextureCount = 0;
 
 	mpDevice = device;
+
+	mpColourShader = new CColourShader();
+	mpColourShader->Initialise(mpDevice, hwnd);
+
+	mpTexture = nullptr;
 }
 
 
@@ -22,7 +23,7 @@ CMesh::~CMesh()
 		mpVertices = nullptr;
 	}
 
-	if (mpTexCoords)
+	/*if (mpTexCoords)
 	{
 		delete[] mpTexCoords;
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTexCoords).name());
@@ -41,26 +42,45 @@ CMesh::~CMesh()
 		delete[] mpFaces;
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpFaces).name());
 		mpFaces = nullptr;
+	}*/
+
+	// If we have pointers to models still.
+	while (!mpModels.empty())
+	{
+		// Delete allocated memory from the back of our array.
+		delete (mpModels.back());
+		// Pop the model off of the list.
+		mpModels.pop_back();
 	}
 
-	//// If we have pointers to models still.
-	//while (!mpModels.empty())
-	//{
-	//	// Delete allocated memory from the back of our array.
-	//	delete (mpModels.back());
-	//	// Pop the model off of the list.
-	//	mpModels.pop_back();
-	//}
+	delete mpColourShader;
+	if (mpTexture)
+	{
+		delete mpTexture;
+	}
+
+	
 }
 
 /* Load data from file into our mesh object. */
-bool CMesh::LoadMesh(char* filename)
+bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 {
 	// If no file name was passed in, then output an error into the log and return false.
 	if (filename == NULL || filename == "")
 	{
 		mpLogger->GetLogger().WriteLine("You need to pass in a file name to load a model.");
 		return false;
+	}
+
+	// Check if a texture was passed in.
+	if (textureName == NULL || textureName == L"")
+	{
+		mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
+	}
+	else
+	{
+		mpTexture = new CTexture();
+		mpTexture->Initialise(mpDevice, textureName);
 	}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
@@ -71,9 +91,9 @@ bool CMesh::LoadMesh(char* filename)
 	mFileExtension = mFilename.substr(extensionLocation, mFilename.length());
 
 	// Check what extension we are trying to load.
-	if (mFileExtension == ".obj")
+	if (mFileExtension == ".sam")
 	{
-		return LoadObj();
+		return LoadSam();
 	}
 		
 	// Output error message to the log.
@@ -82,7 +102,23 @@ bool CMesh::LoadMesh(char* filename)
 	return false;
 }
 
-void CMesh::CreateModel()
+void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
+	std::list<CModels*>::iterator it = mpModels.begin();
+
+	while (it != mpModels.end())
+	{
+		(*it)->UpdateMatrices(world, view, proj);
+
+		(*it)->RenderBuffers(context);
+
+		mpColourShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj);
+
+		it++;
+	}
+}
+
+CModels* CMesh::CreateModel()
 {
 	// Allocate memory to a model.
 	CModels* model = nullptr;
@@ -95,26 +131,25 @@ void CMesh::CreateModel()
 	if (model == nullptr)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to allocate space to model. ");
-		//return false;
+		return nullptr;
 	}
 
 	model->SetNumberOfVertices(mVertexCount);
-	model->SetNumberOfNormals(mNormalCount);
-	model->SetTextureCount(mTextureCount);
-	model->SetNumberOfIndices(mVertexCount);
+	model->SetNumberOfIndices(mIndexCount);
 
-	model->SetGeometry(mpVertices, mpTexCoords, mpNormal);
+	model->SetGeometry(mpVertices, mpIndices);
 
 	// Stick our models on a list to prevent losing the pointers.
-	//mpModels.push_back(model);
+	mpModels.push_back(model);
 
 	//return model;
+	return model;
 }
 
-bool CMesh::LoadObj()
+bool CMesh::LoadSam()
 {
 	// Will find the size that our array should be.
-	InitialiseArrays();
+	GetSizes();
 
 	// Define the vertices array.
 	mpVertices = new D3DXVECTOR3[mVertexCount];
@@ -129,45 +164,18 @@ bool CMesh::LoadObj()
 	// Output the message to indicate memory allocation to the logs.
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertices).name());
 
-	// Allocate memory to the texture coords array.
-	mpTexCoords = new D3DXVECTOR3[mTextureCount];
-	
+	// Define the indices array
+	mpIndices = new D3DXVECTOR3[mIndexCount];
 	// Check memory was successfully allocated.
-	if (!mpTexCoords)
-	{
-		// Output failure message to logs.
-		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpTexCoords array.");
-		// Don't continue with this function any further.
-		return false;
-	}
-	// Output allocation message to the memory logs.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTexCoords).name());
-
-	// Allocate memory to the normal array.
-	mpNormal = new D3DXVECTOR3[mNormalCount];
-
-	if (!mpNormal)
+	if (!mpIndices)
 	{
 		// Write failure message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpNormal array.");
+		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpIndices array.");
 		// Don't continue with this function any further.
 		return false;
 	}
 	// Output the message to indicate memory allocation to the logs.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpNormal).name());
-
-	// Allocate memory to the faces array.
-	mpFaces = new FaceType[mFaceCount];
-
-	if (!mpFaces)
-	{
-		// Write failure message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpFaces array.");
-		// Don't continue with this function any further.
-		return false;
-	}
-	// Output the message to indicate memory allocation to the logs.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpFaces).name());
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpIndices).name());
 
 	// Will populate the new arrays we have created.
 	InitialiseArrays();
@@ -175,8 +183,8 @@ bool CMesh::LoadObj()
 	return true;
 }
 
-/* Will populate any arrays or find out the size of how big an array should be depending on the object file. */
-bool CMesh::InitialiseArrays()
+/* Will find how big an array should be depending on the object file. */
+bool CMesh::GetSizes()
 {
 	// Define an input stream to open the mesh file in.
 	std::ifstream inFile;
@@ -198,12 +206,90 @@ bool CMesh::InitialiseArrays()
 		return false;
 	}
 
+	char ch;
+	// Read the first character into our ch var.
+	inFile.get(ch);
+	// Iterate through the rest of the file.
+	while (!inFile.eof())
+	{
+		// Skip any lines with comments on them.
+		while (ch == '#')
+		{
+			while (ch != '\n' && !inFile.eof())
+			{
+				inFile.get(ch);
+			}
+			inFile.get(ch);
+		}
+
+		// If this line represents a vertex.
+		if (ch == 'v')
+		{
+			inFile.get(ch);
+			if (ch == ' ')
+			{
+				mVertexCount++;
+			}
+		}
+		else if (ch == 'i')
+		{
+			inFile.get(ch);
+			if (ch == ' ')
+			{
+				mIndexCount++;
+			}
+		}
+
+		// Read the first character of the next line.
+		inFile.get(ch);
+
+		// Perform a check at the end of a loop, this will raise any boolean flags ready for the loop to do a logic test.
+		inFile.eof();
+	}
+
+	// Finished with the file now, close it.
+	inFile.close();
+
+	return true;
+}
+
+/* Populate buffers with geometry data. */
+bool CMesh::InitialiseArrays()
+{
+	// Define an input stream to open the mesh file in.
+	std::ifstream inFile;
+
+	int vertexIndex = 0;
+	int indiceIndex = 0;
+
+	// Open the mesh file.
+	inFile.open(mFilename);
+
+	// Check if the file has been successfully opened.
+	if (!inFile.is_open())
+	{
+		// Output error message to logs.
+		mpLogger->GetLogger().WriteLine("Failed to find file of name: '" + mFilename + "'.");
+		// Return failure.
+		return false;
+	}
+
 	char ch, ch2;
 	// Read the first character into our ch var.
 	inFile.get(ch);
 	// Iterate through the rest of the file.
 	while (!inFile.eof())
 	{
+		// Skip any lines with comments on them.
+		while (ch == '#')
+		{
+			while (ch != '\n' && !inFile.eof())
+			{
+				inFile.get(ch);
+			}
+			inFile.get(ch);
+		}
+
 		// If this line represents a vertex.
 		if (ch == 'v')
 		{
@@ -217,86 +303,39 @@ bool CMesh::InitialiseArrays()
 					inFile >> mpVertices[vertexIndex].x >> mpVertices[vertexIndex].y >> mpVertices[vertexIndex].z;
 
 					// Invert Z vertex to allow for left hand system.
-					mpVertices[vertexIndex].z = mpVertices[vertexIndex].z * -1.0f;
+					//mpVertices[vertexIndex].z = mpVertices[vertexIndex].z * -1.0f;
 
 					// Increment our index.
 					vertexIndex++;
 				}
-				else
-				{
-					// Just count how many vertex's we found.
-					mVertexCount++;
-				}
 			}
-			if (ch == 't')
-			{
-				// If memory has been allocated to the tex coords array.
-				if (mpTexCoords)
-				{
-					inFile >> mpTexCoords[texcoordIndex].x >> mpTexCoords[texcoordIndex].y;
-
-					// Invert the V axis for LH system.
-					mpTexCoords[texcoordIndex].y = 1.0f - mpTexCoords[texcoordIndex].y;
-					
-					// Increment the index.
-					texcoordIndex++;
-				}
-				else
-				{
-					mTextureCount++;
-				}
-			}
-			if (ch == 'n')
-			{
-				// If memory has been allocated to the normals array.
-				if (mpNormal)
-				{
-					inFile >> mpNormal[normalIndex].x >> mpNormal[normalIndex].y >> mpNormal[normalIndex].z;
-
-					// Invert the Z axis for LH system.
-					mpNormal[normalIndex].y = mpNormal[normalIndex].z * -1.0f;
-
-					// Increment the index.
-					normalIndex++;
-				}
-				else
-				{
-					mNormalCount++;
-				}
-			}
+			
 		}
-
-		// If this line represents a face.
-		if (ch == 'f')
+		else if (ch == 'i')
 		{
 			inFile.get(ch);
 			if (ch == ' ')
 			{
-				if (mpFaces)
+				// If memory has been allocated to the mpMatrices variable.
+				if (mpIndices)
 				{
-					inFile	>> mpFaces[faceIndex].vIndex3 >> ch2 >> mpFaces[faceIndex].nIndex3 >> ch2 >> mpFaces[faceIndex].nIndex3
-							>> mpFaces[faceIndex].vIndex2 >> ch2 >> mpFaces[faceIndex].nIndex2 >> ch2 >> mpFaces[faceIndex].nIndex2
-							>> mpFaces[faceIndex].vIndex1 >> ch2 >> mpFaces[faceIndex].nIndex1 >> ch2 >> mpFaces[faceIndex].nIndex1;
-					faceIndex++;
-				}
-				else
-				{
-					mFaceCount++;
+					// Read in each value.
+					inFile >> mpIndices[indiceIndex].x >> mpIndices[indiceIndex].y >> mpIndices[indiceIndex].z;
+
+					//// Invert Z vertex to allow for left hand system.
+					//mpIndices[indiceIndex].z = mpIndices[indiceIndex].z * -1.0f;
+
+					// Increment our index.
+					indiceIndex++;
 				}
 			}
-		}
-
-		// Skip any blank lines, we don't care about those.
-		while (ch != '\n')
-		{
-			inFile.get(ch);
 		}
 
 		// Read the first character of the next line.
 		inFile.get(ch);
 
 		// Perform a check at the end of a loop, this will raise any boolean flags ready for the loop to do a logic test.
-		inFile.eof();
+
 	}
 
 	// Finished with the file now, close it.

@@ -28,7 +28,7 @@ class CGraphics
 private:
 	CLogger* mpLogger;
 	int mScreenWidth, mScreenHeight;
-
+	float mFieldOfView;
 public:
 	CGraphics();
 	~CGraphics();

@@ -169,8 +169,8 @@
     <None Include="DiffuseLight.vs.hlsl">
       <Filter>Vertex Shaders</Filter>
     </None>
-    <None Include="Resources\Textures\cube.obj">
-      <Filter>Resource Files\Textures</Filter>
+    <None Include="Resources\Textures\Triangle.sam">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

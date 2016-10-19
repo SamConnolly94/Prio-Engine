@@ -10,6 +10,8 @@ CGraphics::CGraphics()
 	mpTextureShader = nullptr;
 	mpLight = nullptr;
 	mpDiffuseLightShader = nullptr;
+
+	mFieldOfView = D3DX_PI / 4;
 }
 
 CGraphics::~CGraphics()
@@ -132,7 +134,7 @@ void CGraphics::Shutdown()
 	{
 		delete (*meshIt);
 		(*meshIt) = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(meshIt).name());
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*meshIt)).name());
 		meshIt++;
 	}
 
@@ -188,7 +190,7 @@ bool CGraphics::Render()
 	D3DXMATRIX projMatrix;
 
 	// Clear buffers so we can begin to render the scene.
-	mpD3D->BeginScene(0.5f, 0.0f, 0.0f, 1.0f);
+	mpD3D->BeginScene(0.6f, 0.9f, 1.0f, 1.0f);
 
 	// Generate view matrix based on cameras current position.
 	mpCamera->Render();
@@ -260,6 +262,15 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		it++;
 	}
 
+	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
+
+
+	// Render any models which belong to each mesh. Do this in batches to make it faster.
+	while (meshIt != mpMeshes.end())
+	{
+		(*meshIt)->Render(mpD3D->GetDeviceContext(), world, view, proj);
+		meshIt++;
+	}
 	return true;
 }
 
@@ -565,11 +576,11 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 CMesh * CGraphics::LoadMesh(char * filename)
 {
 	// Allocate the mesh memory.
-	CMesh* mesh = new CMesh(mpD3D->GetDevice());
+	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename))
+	if (!mesh->LoadMesh(filename, L"../Resources/Textures/TestTex.dds"))
 	{
 		// Deallocate memory.
 		delete mesh;
@@ -623,9 +634,8 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 CCamera* CGraphics::CreateCamera()
 {
-	float fieldOfView = D3DX_PI / 4;
 	// Create the camera.
-	mpCamera = new CCamera(mScreenWidth, mScreenWidth,fieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
+	mpCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 	if (!mpCamera)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the camera for DirectX.");
