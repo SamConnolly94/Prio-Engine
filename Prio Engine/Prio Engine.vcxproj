@@ -162,54 +162,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ColourShader.cpp" />
-    <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="D3D11.cpp" />
-    <ClCompile Include="DiffuseLightShader.cpp" />
-    <ClCompile Include="GameTimer.cpp" />
-    <ClCompile Include="Graphics.cpp" />
-    <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Light.cpp" />
-    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Engine\Camera.cpp" />
+    <ClCompile Include="Engine\ColourShader.cpp" />
+    <ClCompile Include="Engine\Cube.cpp" />
+    <ClCompile Include="Engine\D3D11.cpp" />
+    <ClCompile Include="Engine\DiffuseLightShader.cpp" />
+    <ClCompile Include="Engine\Engine.cpp" />
+    <ClCompile Include="Engine\GameTimer.cpp" />
+    <ClCompile Include="Engine\Graphics.cpp" />
+    <ClCompile Include="Engine\Input.cpp" />
+    <ClCompile Include="Engine\Light.cpp" />
+    <ClCompile Include="Engine\Logger.cpp" />
+    <ClCompile Include="Engine\Main.cpp" />
+    <ClCompile Include="Engine\Mesh.cpp" />
+    <ClCompile Include="Engine\Model.cpp" />
+    <ClCompile Include="Engine\ModelControl.cpp" />
+    <ClCompile Include="Engine\Primitive.cpp" />
+    <ClCompile Include="Engine\Texture.cpp" />
+    <ClCompile Include="Engine\TextureShader.cpp" />
+    <ClCompile Include="Engine\Triangle.cpp" />
+    <ClCompile Include="Engine\VertexTypeManager.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelControl.cpp" />
-    <ClCompile Include="Primitive.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureShader.cpp" />
-    <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="VertexTypeManager.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ColourShader.h" />
-    <ClInclude Include="Cube.h" />
-    <ClInclude Include="D3D11.h" />
-    <ClInclude Include="DiffuseLightShader.h" />
-    <ClInclude Include="GameTimer.h" />
-    <ClInclude Include="Graphics.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="Light.h" />
-    <ClInclude Include="Logger.h" />
-    <ClInclude Include="Engine.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="ModelControl.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="Primitive.h" />
-    <ClInclude Include="PrioEngineVars.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureShader.h" />
-    <ClInclude Include="Triangle.h" />
-    <ClInclude Include="VertexTypeManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Colour.ps.hlsl" />
-    <None Include="Colour.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TestTex.dds" />
@@ -217,18 +190,51 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam" />
-    <None Include="Texture.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Texture.vs.hlsl">
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Textures\cube.obj">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DiffuseLight.ps.hlsl">
+    <ClInclude Include="Engine\Camera.h" />
+    <ClInclude Include="Engine\ColourShader.h" />
+    <ClInclude Include="Engine\Cube.h" />
+    <ClInclude Include="Engine\D3D11.h" />
+    <ClInclude Include="Engine\DiffuseLightShader.h" />
+    <ClInclude Include="Engine\Engine.h" />
+    <ClInclude Include="Engine\GameTimer.h" />
+    <ClInclude Include="Engine\Graphics.h" />
+    <ClInclude Include="Engine\Input.h" />
+    <ClInclude Include="Engine\Light.h" />
+    <ClInclude Include="Engine\Logger.h" />
+    <ClInclude Include="Engine\Mesh.h" />
+    <ClInclude Include="Engine\Model.h" />
+    <ClInclude Include="Engine\ModelControl.h" />
+    <ClInclude Include="Engine\Primitive.h" />
+    <ClInclude Include="Engine\PrioEngineVars.h" />
+    <ClInclude Include="Engine\Texture.h" />
+    <ClInclude Include="Engine\TextureShader.h" />
+    <ClInclude Include="Engine\Triangle.h" />
+    <ClInclude Include="Engine\VertexTypeManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Engine\Pixel Shaders\Colour.ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="DiffuseLight.vs.hlsl">
+    <None Include="Engine\Pixel Shaders\DiffuseLight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Engine\Pixel Shaders\Texture.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Engine\Vertex Shaders\Colour.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Engine\Vertex Shaders\DiffuseLight.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Engine\Vertex Shaders\Texture.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

@@ -19,7 +19,7 @@ bool CColourShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex and pixel shaders.
-	result = InitialiseShader(device, hwnd, L"../Colour.vs.hlsl", L"../Colour.ps.hlsl");
+	result = InitialiseShader(device, hwnd, L"../Engine/Vertex Shaders/Colour.vs.hlsl", L"../Engine/Pixel Shaders/Colour.ps.hlsl");
 	if (!result)
 	{
 		return false;

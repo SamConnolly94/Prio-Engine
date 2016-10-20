@@ -16,17 +16,9 @@ private:
 	std::string mFileExtension;
 	CLogger* mpLogger;
 
+	// Arrays to store data about vertices in.
 	D3DXVECTOR3* mpVertices;
 	D3DXVECTOR3* mpIndices;
-	
-	typedef struct
-	{
-		int vIndex1, vIndex2, vIndex3;
-		int tIndex1, tIndex2, tIndex3;
-		int nIndex1, nIndex2, nIndex3;
-	} FaceType;
-
-	FaceType* mpFaces;
 
 	ID3D11Device* mpDevice;
 
