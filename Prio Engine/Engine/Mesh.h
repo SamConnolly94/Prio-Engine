@@ -45,5 +45,4 @@ private:
 	int mIndexCount;
 	const int kNumberOfFloatsInVector3 = 3;
 };
-
 #endif

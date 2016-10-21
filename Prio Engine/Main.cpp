@@ -65,7 +65,7 @@ void GameLoop(CEngine* &engine)
 	myCam->SetPositionZ(-20.0f);
 
 	// Mesh init
-	triangleMesh = engine->LoadMesh("../Resources/Textures/Cube.sam");
+	triangleMesh = engine->LoadMesh("../Prio Engine/Resources/Textures/Cube.sam");
 
 	// Model init.
 	triangleModel = triangleMesh->CreateModel();

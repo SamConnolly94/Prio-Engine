@@ -1,5 +1,4 @@
 #Exclude Directories
-[Bb]in
 [Xx]64
 
 #Exclude filetypes.
@@ -10,4 +9,4 @@
 *.idb
 *.ilk
 *.VC.db
-/Prio Engine.VC.VC.opendb
+Prio Engine.VC.VC.opendb

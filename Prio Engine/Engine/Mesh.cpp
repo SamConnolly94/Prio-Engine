@@ -1,6 +1,5 @@
 #include "Mesh.h"
 
-
 CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 {
 	mVertexCount  = 0;
