@@ -204,11 +204,6 @@
     <None Include="Resources\Textures\Triangle.sam" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Textures\cube.obj">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Engine\AssimpManager.h" />
     <ClInclude Include="Engine\Camera.h" />
     <ClInclude Include="Engine\ColourShader.h" />

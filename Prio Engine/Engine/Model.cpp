@@ -1,7 +1,7 @@
 #include "Model.h"
 
 
-CModels::CModels(ID3D11Device * device)
+CModel::CModel(ID3D11Device * device)
 {
 	mpDevice = device;
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour);
@@ -10,32 +10,32 @@ CModels::CModels(ID3D11Device * device)
 }
 
 
-CModels::~CModels()
+CModel::~CModel()
 {
 	delete mpVertexManager;
 }
 
-void CModels::SetNumberOfVertices(int size)
+void CModel::SetNumberOfVertices(int size)
 {
 	mVerticesCount = size;
 }
 
-void CModels::SetTextureCount(int size)
+void CModel::SetTextureCount(int size)
 {
 	mTextureCount = size;
 }
 
-void CModels::SetNumberOfNormals(int size)
+void CModel::SetNumberOfNormals(int size)
 {
 	mNormalsCount = size;
 }
 
-void CModels::SetNumberOfIndices(int size)
+void CModel::SetNumberOfIndices(int size)
 {
 	mIndicesCount = size;
 }
 
-void CModels::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj)
+void CModel::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj)
 {
 	// Rotation
 	D3DXMATRIX matrixRotationX;
@@ -54,12 +54,12 @@ void CModels::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& pr
 	world = mWorld * matrixRotationX * matrixRotationY * matrixRotationZ;
 }
 
-void CModels::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
-bool CModels::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
+bool CModel::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 {
 	unsigned long* indicesArray;
 	D3D11_BUFFER_DESC indexBufferDesc;

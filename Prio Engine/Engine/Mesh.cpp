@@ -22,27 +22,6 @@ CMesh::~CMesh()
 		mpVertices = nullptr;
 	}
 
-	/*if (mpTexCoords)
-	{
-		delete[] mpTexCoords;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTexCoords).name());
-		mpTexCoords = nullptr;
-	}
-
-	if (mpNormal)
-	{
-		delete[] mpNormal;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpNormal).name());
-		mpNormal = nullptr;
-	}
-
-	if (mpFaces)
-	{
-		delete[] mpFaces;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpFaces).name());
-		mpFaces = nullptr;
-	}*/
-
 	// If we have pointers to models still.
 	while (!mpModels.empty())
 	{
@@ -74,15 +53,15 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	}
 
 	// Check if a texture was passed in.
-	if (textureName == NULL || textureName == L"")
-	{
-		mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
-	}
-	else
-	{
-		mpTexture = new CTexture();
-		mpTexture->Initialise(mpDevice, textureName);
-	}
+	//if (textureName == NULL || textureName == L"")
+	//{
+	//	mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
+	//}
+	//else
+	//{
+	//	mpTexture = new CTexture();
+	//	mpTexture->Initialise(mpDevice, textureName);
+	//}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
 	mFilename = filename;
@@ -96,6 +75,10 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		return LoadSam();
 	}
+	else
+	{
+		return LoadAssimpModel(filename);
+	}
 		
 	// Output error message to the log.
 	mpLogger->GetLogger().WriteLine("You have tried to load an unsupported file type as a mesh. The file name was: '" + mFilename + "'.");
@@ -105,7 +88,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 
 void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-	std::list<CModels*>::iterator it = mpModels.begin();
+	std::list<CModel*>::iterator it = mpModels.begin();
 
 	while (it != mpModels.end())
 	{
@@ -120,11 +103,11 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX vi
 	}
 }
 
-CModels* CMesh::CreateModel()
+CModel* CMesh::CreateModel()
 {
 	// Allocate memory to a model.
-	CModels* model = nullptr;
-	model = new CModels(mpDevice);
+	CModel* model;
+	model = new CModel(mpDevice);
 
 	// Write an allocation message to our memory log.
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
@@ -146,6 +129,78 @@ CModels* CMesh::CreateModel()
 
 	//return model;
 	return model;
+}
+
+/* Load a model using our assimp vertex manager. */
+bool CMesh::LoadAssimpModel(char* filename)
+{
+	// Allocate memory here.
+	CAssimpManager* assimpManager = new CAssimpManager();
+
+	// Load the mesh into our scene using our manager.
+	assimpManager->LoadModelFromFile(filename);
+
+	// Grab the mesh object for the last mesh we loaded.
+	aiMesh* const mesh = assimpManager->GetLastLoadedMesh();
+	
+	// Allocate memory to the array we will store vertices in.
+	mVertexCount = mesh->mNumVertices;
+	mpVertices = new D3DXVECTOR3[mVertexCount];
+	
+	if (!mpVertices)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the vertices array.");
+		return false;
+	}
+
+	// Copy vertices from the the assimp manager.
+	for (int i = 0; i < mesh->mNumVertices; i++)
+	{
+		mpVertices[i].x = mesh->mVertices[i].x;
+		mpVertices[i].y = mesh->mVertices[i].y;
+		mpVertices[i].z = mesh->mVertices[i].z;
+	}
+
+	int totalNumberOfIndices = 0;
+	// Copy indices over to our array.
+	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
+	{
+		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
+		{
+			totalNumberOfIndices++;
+		}
+	}
+
+	// Allocate memory to the indices array.
+	int indiceCurrIndex = 0;
+	mIndexCount = totalNumberOfIndices / 3;
+	mpIndices = new D3DXVECTOR3[mIndexCount];
+
+	// Copy indices over to our array.
+	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
+	{
+		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
+		{
+			mpIndices[indiceCurrIndex].x = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
+			i++;
+			mpIndices[indiceCurrIndex].y = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
+			i++;
+			mpIndices[indiceCurrIndex].z = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
+
+			indiceCurrIndex++;
+		}
+	}
+
+
+	if (!mpIndices)
+	{
+		mpLogger->GetLogger().WriteLine("Failed to create the indices array.");
+		return false;
+	}
+
+	delete assimpManager;
+
+	return true;
 }
 
 bool CMesh::LoadSam()
@@ -303,9 +358,6 @@ bool CMesh::InitialiseArrays()
 				{
 					// Read in each value.
 					inFile >> mpVertices[vertexIndex].x >> mpVertices[vertexIndex].y >> mpVertices[vertexIndex].z;
-
-					// Invert Z vertex to allow for left hand system.
-					//mpVertices[vertexIndex].z = mpVertices[vertexIndex].z * -1.0f;
 
 					// Increment our index.
 					vertexIndex++;

@@ -56,7 +56,7 @@ void GameLoop(CEngine* &engine)
 	float frameTime;
 	CCamera* myCam;
 	CMesh* triangleMesh;
-	CModels* triangleModel;
+	CModel* triangleModel;
 	CPrimitive* cube;
 	CPrimitive* cube2;
 
@@ -65,15 +65,15 @@ void GameLoop(CEngine* &engine)
 	myCam->SetPositionZ(-20.0f);
 
 	// Mesh init
-	triangleMesh = engine->LoadMesh("../Prio Engine/Resources/Textures/Cube.sam");
+	triangleMesh = engine->LoadMesh("Resources/Models/cube.obj");
 
 	// Model init.
 	triangleModel = triangleMesh->CreateModel();
-	cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
-	cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::triangle);
-	cube->SetXPos(-5.0f);
+	//cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
+	//cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::triangle);
+	//cube->SetXPos(-5.0f);
 
-	cube2->SetXPos(5.0f);
+	//cube2->SetXPos(5.0f);
 	triangleModel->SetPos(0.0f, 0.0f, 0.0f);
 
 	// Start the game timer running.

@@ -9,12 +9,12 @@ CAssimpManager::~CAssimpManager()
 {
 }
 
-bool CAssimpManager::LoadMyModelFromFile(char * filepath)
+bool CAssimpManager::LoadModelFromFile(char * filepath)
 {
 	Assimp::Importer importer;
 
 	// Read in the file, store this mesh in the scene.
-	const aiScene* mpScene = importer.ReadFile(filepath,
+	mpScene = importer.ReadFile(filepath,
 								aiProcess_CalcTangentSpace |
 								aiProcess_Triangulate |
 								aiProcess_JoinIdenticalVertices |
@@ -27,4 +27,21 @@ bool CAssimpManager::LoadMyModelFromFile(char * filepath)
 		mpLogger->GetLogger().WriteLine(importer.GetErrorString());
 		return false;
 	}
+
+	// Store the mesh on a list.
+	for (unsigned int i = 0; i < mpScene->mNumMeshes; i++)
+	{
+		mpMeshes.push_back(mpScene->mMeshes[i]);
+	}
+}
+
+/* Returns a list of all meshes loaded by Assimp. */
+std::list<aiMesh* > CAssimpManager::GetMeshes()
+{
+	return mpMeshes;
+}
+
+aiMesh* CAssimpManager::GetLastLoadedMesh()
+{
+	return mpMeshes.back();
 }

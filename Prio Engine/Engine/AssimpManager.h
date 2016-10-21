@@ -6,6 +6,7 @@
 #include "Dependencies/assimp-3.3.1/include/assimp/postprocess.h"
 
 #include "VertexTypeManager.h"
+#include <list>
 
 	class CAssimpManager
 	{
@@ -13,8 +14,12 @@
 		CAssimpManager();
 		~CAssimpManager();
 
-		bool LoadMyModelFromFile(char* filepath);
+		bool LoadModelFromFile(char* filepath);
+		std::list<aiMesh* > GetMeshes();
+		aiMesh* GetLastLoadedMesh();
 	private:
+		std::list<aiMesh* > mpMeshes;
+		const aiScene* mpScene;
 		CLogger* mpLogger;
 	};
 #endif

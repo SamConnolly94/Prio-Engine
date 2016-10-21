@@ -1,10 +1,10 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef CMODEL_H
+#define CMODEL_H
 
 #include "VertexTypeManager.h"
 #include "ModelControl.h"
 
-class CModels : public CModelControl
+class CModel : public CModelControl
 {
 private:
 	D3DXVECTOR3* mpVertices;
@@ -24,8 +24,8 @@ private:
 
 	D3DXMATRIX mWorld;
 public:
-	CModels(ID3D11Device * device);
-	~CModels();
+	CModel(ID3D11Device * device);
+	~CModel();
 
 	bool SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* Indices);
 	void SetNumberOfVertices(int size);

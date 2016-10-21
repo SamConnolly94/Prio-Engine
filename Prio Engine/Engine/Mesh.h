@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "Texture.h"
 #include "ColourShader.h"
+#include "AssimpManager.h"
 
 class CMesh
 {
@@ -22,7 +23,7 @@ private:
 
 	ID3D11Device* mpDevice;
 
-	std::list<CModels*> mpModels;
+	std::list<CModel*> mpModels;
 
 	// Define the light shaders for rendering.
 	CColourShader* mpColourShader;
@@ -33,11 +34,12 @@ public:
 	~CMesh();
 
 	// Loads data from file into our mesh object.
-	CModels* CreateModel();
+	CModel* CreateModel();
 	bool LoadMesh(char* filename, WCHAR* textureName);
 
 	void Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 private:
+	bool LoadAssimpModel(char* filename);
 	bool LoadSam();
 	bool GetSizes();
 	bool InitialiseArrays();
