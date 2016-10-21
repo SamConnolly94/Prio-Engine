@@ -1,5 +1,6 @@
 #Exclude Directories
-[Xx]64
+"Prio Engine/Debug"
+"Prio Engine/Release"
 
 #Exclude filetypes.
 *.exe
