@@ -1,6 +1,7 @@
 #Exclude Directories
 "Prio Engine/Debug"
 "Prio Engine/Release"
+"Prio Engine/x64"
 
 #Exclude filetypes.
 *.exe
@@ -11,3 +12,4 @@
 *.ilk
 *.VC.db
 Prio Engine.VC.VC.opendb
+*_Log.txt
