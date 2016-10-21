@@ -13,3 +13,6 @@
 *.VC.db
 Prio Engine.VC.VC.opendb
 *_Log.txt
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
