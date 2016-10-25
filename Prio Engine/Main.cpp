@@ -67,7 +67,7 @@ void GameLoop(CEngine* &engine)
 
 	// Mesh init
 	//triangleMesh = engine->LoadMesh("Resources/Models/Cube.x");
-	cubeMesh = engine->LoadMesh("Resources/Models/cube.sam");
+	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj");
 	
 	// Model init.
 	//triangleModel = triangleMesh->CreateModel();
@@ -76,7 +76,7 @@ void GameLoop(CEngine* &engine)
 	//cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 	cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::cube);
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(0.5f);
+	cube->SetXPos(0.0f);
 
 	//cube2->SetXPos(5.0f);
 	//triangleModel->SetPos(0.0f, 0.0f, 0.0f);

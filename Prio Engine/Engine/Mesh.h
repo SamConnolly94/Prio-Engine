@@ -19,6 +19,7 @@ private:
 
 	// Arrays to store data about vertices in.
 	D3DXVECTOR3* mpVertices;
+	
 	unsigned long* mpIndices;
 
 	ID3D11Device* mpDevice;

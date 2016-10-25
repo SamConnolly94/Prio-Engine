@@ -186,7 +186,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	{
 		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
 		{
-			mpIndices[indiceCurrIndex] = static_cast<unsigned int>(mesh->mFaces[faceCount].mIndices[i]);
+			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
 			indiceCurrIndex++;
 		}
 	}
@@ -291,7 +291,7 @@ bool CMesh::GetSizes()
 			inFile.get(ch);
 			if (ch == ' ')
 			{
-				mIndexCount++;
+				mIndexCount += 3;
 			}
 		}
 
