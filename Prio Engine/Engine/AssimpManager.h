@@ -14,7 +14,7 @@
 		CAssimpManager();
 		~CAssimpManager();
 
-		bool LoadModelFromFile(char* filepath);
+		bool LoadModelFromFile(const std::string& pFile);
 		std::list<aiMesh* > GetMeshes();
 		aiMesh* GetLastLoadedMesh();
 	private:

@@ -38,12 +38,14 @@ void CModel::SetNumberOfIndices(int size)
 void CModel::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj)
 {
 	// Rotation
+	D3DXMATRIX modelWorld;
 	D3DXMATRIX matrixRotationX;
 	D3DXMATRIX matrixRotationY;
 	D3DXMATRIX matrixRotationZ;
 
 	// Calculate the translation of the camera.
-	D3DXMatrixTranslation(&mWorld, mPosition.x, mPosition.y, mPosition.z);
+	D3DXMatrixTranslation(&modelWorld, mPosition.x, mPosition.y, mPosition.z);
+
 
 	// Calculate the rotation of the camera.
 	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
@@ -51,7 +53,7 @@ void CModel::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& pro
 	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
 
 	// Calculate the world matrix
-	world = mWorld * matrixRotationX * matrixRotationY * matrixRotationZ;
+	world = modelWorld * matrixRotationX * matrixRotationY * matrixRotationZ;
 }
 
 void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
@@ -59,13 +61,11 @@ void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
+bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices)
 {
-	unsigned long* indicesArray;
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
 	HRESULT result;
-	const int kNumberOfFloatsInVector3 = 3;
 
 	// Set the number of vertices in the vertex array.
 	mpVertexManager->SetNumberOfVertices(mVerticesCount);
@@ -74,27 +74,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 	mpVertexManager->CreateVertexArray();
 
 	// Create the points of the model.
-	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::green);
-
-	// Create the index array.
-	indicesArray = new unsigned long[mIndicesCount * kNumberOfFloatsInVector3];
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(indices).name());
-	if (!indicesArray)
-	{
-		return false;
-	}
-
-	// Load the index array with data according to the predefined indicies defined in the engines namespace.
-	int indicesArrayCounter = 0;
-	for (int i = 0; i < mIndicesCount; i++)
-	{
-		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].x);
-		indicesArrayCounter++;
-		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].y);
-		indicesArrayCounter++;
-		indicesArray[indicesArrayCounter] = static_cast<unsigned long>(indices[i].z);
-		indicesArrayCounter++;
-	}
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::red);
 
 	// Create the vertex buffer.
 	if (!mpVertexManager->CreateVertexBuffer())
@@ -104,14 +84,14 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 
 	/* Set up the descriptor of the index buffer. */
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * (indicesArrayCounter);
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * mIndicesCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
 	/* Give the subresource structure a pointer to the index data. */
-	indexData.pSysMem = indicesArray;
+	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -123,10 +103,6 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, D3DXVECTOR3* indices)
 	}
 
 	mpVertexManager->CleanArrays();
-
-	delete[] indicesArray;
-	indicesArray = nullptr;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(indicesArray).name());
 
 	return true;
 }

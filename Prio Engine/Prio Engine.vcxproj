@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
     <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Debug\x86\</OutDir>
   </PropertyGroup>
@@ -79,7 +79,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Debug\x64\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
     <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

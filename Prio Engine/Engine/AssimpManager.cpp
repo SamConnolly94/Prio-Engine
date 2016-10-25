@@ -9,12 +9,12 @@ CAssimpManager::~CAssimpManager()
 {
 }
 
-bool CAssimpManager::LoadModelFromFile(char * filepath)
+bool CAssimpManager::LoadModelFromFile(const std::string& pFile)
 {
 	Assimp::Importer importer;
 
 	// Read in the file, store this mesh in the scene.
-	mpScene = importer.ReadFile(filepath,
+	mpScene = importer.ReadFile(pFile,
 								aiProcess_CalcTangentSpace |
 								aiProcess_Triangulate |
 								aiProcess_JoinIdenticalVertices |
@@ -23,16 +23,16 @@ bool CAssimpManager::LoadModelFromFile(char * filepath)
 	// If scene hasn't been initialised then something has gone wrong!
 	if (!mpScene)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create scene.");
 		mpLogger->GetLogger().WriteLine(importer.GetErrorString());
+		mpLogger->GetLogger().WriteLine("Failed to create scene.");
 		return false;
 	}
 
 	// Store the mesh on a list.
-	for (unsigned int i = 0; i < mpScene->mNumMeshes; i++)
-	{
-		mpMeshes.push_back(mpScene->mMeshes[i]);
-	}
+	int i = mpScene->mNumMeshes - 1; // Adjust the number of meshes so we can apply to an array.
+	mpMeshes.push_back(mpScene->mMeshes[i]);
+
+	return true;
 }
 
 /* Returns a list of all meshes loaded by Assimp. */

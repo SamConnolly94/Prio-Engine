@@ -19,7 +19,7 @@ private:
 
 	// Arrays to store data about vertices in.
 	D3DXVECTOR3* mpVertices;
-	D3DXVECTOR3* mpIndices;
+	unsigned long* mpIndices;
 
 	ID3D11Device* mpDevice;
 
@@ -29,6 +29,7 @@ private:
 	CColourShader* mpColourShader;
 
 	CTexture* mpTexture;
+	CAssimpManager* mpAssimpManager;
 public:
 	CMesh(ID3D11Device* device, HWND hwnd);
 	~CMesh();
@@ -43,8 +44,7 @@ private:
 	bool LoadSam();
 	bool GetSizes();
 	bool InitialiseArrays();
-	int mVertexCount;
-	int mIndexCount;
-	const int kNumberOfFloatsInVector3 = 3;
+	unsigned int mVertexCount;
+	unsigned int mIndexCount;
 };
 #endif

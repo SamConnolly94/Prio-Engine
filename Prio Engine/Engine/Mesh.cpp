@@ -3,6 +3,7 @@
 CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 {
 	mVertexCount  = 0;
+	mIndexCount = 0;
 
 	mpDevice = device;
 
@@ -10,6 +11,7 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 	mpColourShader->Initialise(mpDevice, hwnd);
 
 	mpTexture = nullptr;
+	mpAssimpManager = new CAssimpManager();
 }
 
 
@@ -36,6 +38,8 @@ CMesh::~CMesh()
 	{
 		delete mpTexture;
 	}
+
+	delete mpAssimpManager;
 
 	delete[] mpIndices;
 	mpIndices = nullptr;
@@ -73,10 +77,12 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	// Check what extension we are trying to load.
 	if (mFileExtension == ".sam")
 	{
+		mpLogger->GetLogger().WriteLine("Loading .sam file using Prio Engines built in model loader.");
 		return LoadSam();
 	}
 	else
 	{
+		mpLogger->GetLogger().WriteLine("Loading " + mFileExtension + " file using assimp model loader.");
 		return LoadAssimpModel(filename);
 	}
 		
@@ -97,7 +103,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX vi
 		(*it)->RenderBuffers(context);
 
 		// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-		mpColourShader->Render(context, (*it)->GetNumberOfIndices() * kNumberOfFloatsInVector3, world, view, proj);
+		mpColourShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj);
 
 		it++;
 	}
@@ -134,14 +140,12 @@ CModel* CMesh::CreateModel()
 /* Load a model using our assimp vertex manager. */
 bool CMesh::LoadAssimpModel(char* filename)
 {
-	// Allocate memory here.
-	CAssimpManager* assimpManager = new CAssimpManager();
 
 	// Load the mesh into our scene using our manager.
-	assimpManager->LoadModelFromFile(filename);
+	mpAssimpManager->LoadModelFromFile(filename);
 
 	// Grab the mesh object for the last mesh we loaded.
-	aiMesh* const mesh = assimpManager->GetLastLoadedMesh();
+	aiMesh* mesh = mpAssimpManager->GetLastLoadedMesh();
 	
 	// Allocate memory to the array we will store vertices in.
 	mVertexCount = mesh->mNumVertices;
@@ -161,44 +165,38 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpVertices[i].z = mesh->mVertices[i].z;
 	}
 
-	int totalNumberOfIndices = 0;
 	// Copy indices over to our array.
 	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
 		{
-			totalNumberOfIndices++;
+			mIndexCount++;
 		}
 	}
 
+	/* Multiply by 3 for number of triangles in this mesh. */
+	//mIndexCount = mesh->mNumFaces * 3;
+
 	// Allocate memory to the indices array.
 	int indiceCurrIndex = 0;
-	mIndexCount = totalNumberOfIndices / 3;
-	mpIndices = new D3DXVECTOR3[mIndexCount];
+	mpIndices = new unsigned long[mIndexCount];
 
 	// Copy indices over to our array.
 	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
 		{
-			mpIndices[indiceCurrIndex].x = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
-			i++;
-			mpIndices[indiceCurrIndex].y = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
-			i++;
-			mpIndices[indiceCurrIndex].z = static_cast<float>(mesh->mFaces[faceCount].mIndices[i]);
-
+			mpIndices[indiceCurrIndex] = static_cast<unsigned int>(mesh->mFaces[faceCount].mIndices[i]);
 			indiceCurrIndex++;
 		}
 	}
 
-
+	
 	if (!mpIndices)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the indices array.");
 		return false;
 	}
-
-	delete assimpManager;
 
 	return true;
 }
@@ -222,7 +220,7 @@ bool CMesh::LoadSam()
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertices).name());
 
 	// Define the indices array
-	mpIndices = new D3DXVECTOR3[mIndexCount];
+	mpIndices = new unsigned long[mIndexCount];
 	// Check memory was successfully allocated.
 	if (!mpIndices)
 	{
@@ -373,13 +371,15 @@ bool CMesh::InitialiseArrays()
 				// If memory has been allocated to the mpMatrices variable.
 				if (mpIndices)
 				{
+					D3DXVECTOR3	indices;
 					// Read in each value.
-					inFile >> mpIndices[indiceIndex].x >> mpIndices[indiceIndex].y >> mpIndices[indiceIndex].z;
+					inFile >> indices.x >> indices.y >> indices.z;
 
-					//// Invert Z vertex to allow for left hand system.
-					//mpIndices[indiceIndex].z = mpIndices[indiceIndex].z * -1.0f;
-
-					// Increment our index.
+					mpIndices[indiceIndex] = indices.x;
+					indiceIndex++;
+					mpIndices[indiceIndex] = indices.y;
+					indiceIndex++;
+					mpIndices[indiceIndex] = indices.z;
 					indiceIndex++;
 				}
 			}

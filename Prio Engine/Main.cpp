@@ -56,8 +56,9 @@ void GameLoop(CEngine* &engine)
 	float frameTime;
 	CCamera* myCam;
 	CMesh* triangleMesh;
+	CMesh* cubeMesh;
 	CModel* triangleModel;
-	CPrimitive* cube;
+	CModel* cube;
 	CPrimitive* cube2;
 
 	// Camera init.
@@ -65,16 +66,20 @@ void GameLoop(CEngine* &engine)
 	myCam->SetPositionZ(-20.0f);
 
 	// Mesh init
-	triangleMesh = engine->LoadMesh("Resources/Models/cube.obj");
-
+	//triangleMesh = engine->LoadMesh("Resources/Models/Cube.x");
+	cubeMesh = engine->LoadMesh("Resources/Models/cube.sam");
+	
 	// Model init.
-	triangleModel = triangleMesh->CreateModel();
+	//triangleModel = triangleMesh->CreateModel();
+	cube = cubeMesh->CreateModel();
+
 	//cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
-	//cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::triangle);
-	//cube->SetXPos(-5.0f);
+	cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::cube);
+	cube2->SetXPos(-5.0f);
+	cube->SetXPos(0.5f);
 
 	//cube2->SetXPos(5.0f);
-	triangleModel->SetPos(0.0f, 0.0f, 0.0f);
+	//triangleModel->SetPos(0.0f, 0.0f, 0.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();
@@ -89,8 +94,9 @@ void GameLoop(CEngine* &engine)
 		Control(engine, myCam);
 
 		// Rotate the model which has been logged on.
-		triangleModel->RotateY(kRotationSpeed * frameTime);
+		cube->RotateY(kRotationSpeed * frameTime);
 
+		cube2->RotateX(kRotationSpeed * frameTime);
 	}
 }
 
