@@ -36,6 +36,8 @@ private:
 
 	CTexture* mpTexture;
 	CAssimpManager* mpAssimpManager;
+
+	const int kCuttoffSize = 300000;
 public:
 	CMesh(ID3D11Device* device, HWND hwnd);
 	~CMesh();
@@ -44,7 +46,7 @@ public:
 	CModel* CreateModel();
 	bool LoadMesh(char* filename, WCHAR* textureName);
 
-	void Render(ID3D11DeviceContext* context, D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj);
+	void Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj);
 private:
 	bool LoadAssimpModel(char* filename);
 	bool LoadSam();

@@ -6,8 +6,6 @@ CModel::CModel(ID3D11Device * device)
 	mpDevice = device;
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture);
 	mpVertexManager->SetDevicePtr(mpDevice);
-	//mpVertexManager->SetColour(PrioEngine::Colours::red);
-	
 }
 
 
@@ -36,25 +34,24 @@ void CModel::SetNumberOfIndices(int size)
 	mIndicesCount = size;
 }
 
-void CModel::UpdateMatrices(D3DXMATRIX &world)
+void CModel::UpdateMatrices()
 {
-	D3DXMATRIX modelWorld;
-
-	// Calculate the translation of the camera.
-	D3DXMatrixTranslation(&modelWorld, mPosition.x, mPosition.y, mPosition.z);
-
 	// Rotation
+	D3DXMATRIX translation;
 	D3DXMATRIX matrixRotationX;
 	D3DXMATRIX matrixRotationY;
 	D3DXMATRIX matrixRotationZ;
 
-	// Calculate the rotation of the camera.
+	// Calculate the rotation of the model.
 	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
 	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
 	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
 
+	// Calculate the translation of the model.
+	D3DXMatrixTranslation(&translation, mPosition.x, mPosition.y, mPosition.z);
+
 	// Calculate the world matrix
-	world = modelWorld * matrixRotationX * matrixRotationY * matrixRotationZ;
+	mWorldMatrix = matrixRotationX * matrixRotationY * matrixRotationZ * translation;
 }
 
 void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)

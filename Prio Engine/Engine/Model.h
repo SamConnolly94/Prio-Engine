@@ -22,6 +22,7 @@ private:
 
 	ID3D11Buffer* mpIndexBuffer;
 
+	D3DXMATRIX mWorldMatrix;
 public:
 	CModel(ID3D11Device * device);
 	~CModel();
@@ -38,8 +39,9 @@ public:
 	// Gets the number of indices which form a triangle, for the total number of indices, multiply by three.
 	int GetNumberOfIndices() { return mIndicesCount; };
 
-	void UpdateMatrices(D3DXMATRIX& world);
+	void UpdateMatrices();
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
+	D3DXMATRIX GetWorldMatrix() { return mWorldMatrix; };
 
 };
 

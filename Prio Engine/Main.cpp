@@ -95,7 +95,7 @@ void GameLoop(CEngine* &engine)
 		Control(engine, myCam);
 
 		// Rotate the model which has been logged on.
-		//cube->RotateX(kRotationSpeed * frameTime);
+		cube->RotateY(kRotationSpeed * frameTime);
 
 		cube2->RotateX(-kRotationSpeed * frameTime);
 	}

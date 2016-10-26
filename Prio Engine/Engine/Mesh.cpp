@@ -106,18 +106,18 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	return false;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj)
+void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj)
 {
 	std::list<CModel*>::iterator it = mpModels.begin();
 
 	while (it != mpModels.end())
 	{
-		(*it)->UpdateMatrices(world);
+		(*it)->UpdateMatrices();
 
 		(*it)->RenderBuffers(context);
 
 		// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-		if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj, mpTexture->GetTexture()))
+		if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture()))
 		{
 			mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
 		}
@@ -169,6 +169,12 @@ bool CMesh::LoadAssimpModel(char* filename)
 	
 	// Allocate memory to the array we will store vertices in.
 	mVertexCount = mesh->mNumVertices;
+	if (mVertexCount > kCuttoffSize)
+	{
+		mpLogger->GetLogger().WriteLine("You have either tried to load a very large model or assimp has failed to load correct details for whatever reason, refusing to load a model this large.");
+		return false;
+	}
+
 	mpVertices = new D3DXVECTOR3[mVertexCount];
 	
 	if (!mpVertices)

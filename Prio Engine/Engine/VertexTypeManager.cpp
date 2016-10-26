@@ -217,6 +217,8 @@ void CVertexManager::SetTextureCube(float x, float y, float z)
 	float U = 0.0f;
 	float V = 0.0f;
 
+	const float additionAmmount = 1.0f;
+
 	// Set the positions of vertices first.
 	for (int i = 0; i < PrioEngine::Cube::kNumOfVertices; i++)
 	{
@@ -229,11 +231,11 @@ void CVertexManager::SetTextureCube(float x, float y, float z)
 		// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
 		if (U == V)
 		{
-			V += 0.5f;
+			V += additionAmmount;
 		}
 		else
 		{
-			U += 0.5f;
+			U += additionAmmount;
 		}
 	}
 }

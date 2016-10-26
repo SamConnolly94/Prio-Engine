@@ -268,7 +268,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
 	while (meshIt != mpMeshes.end())
 	{
-		(*meshIt)->Render(mpD3D->GetDeviceContext(), world, view, proj);
+		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj);
 		meshIt++;
 	}
 
