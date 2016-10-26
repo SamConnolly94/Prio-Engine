@@ -190,16 +190,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * ver
 	for (int i = 0; i < mNumOfVertices; i++)
 	{
 		mpVerticesTexture[i].position = vertices[i];
-		mpVerticesTexture[i].texture = D3DXVECTOR2(U, V);
-		// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
-		if (U == V)
-		{
-			V += 0.5f;
-		}
-		else
-		{
-			U += 0.5f;
-		}
+		mpVerticesTexture[i].texture = UV[i];
 	}
 }
 

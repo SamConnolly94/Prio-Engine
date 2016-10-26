@@ -177,12 +177,18 @@ bool CMesh::LoadAssimpModel(char* filename)
 		return false;
 	}
 
+	mpUV = new D3DXVECTOR2[mVertexCount];
+
 	// Copy vertices from the the assimp manager.
 	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
 		mpVertices[i].x = mesh->mVertices[i].x;
 		mpVertices[i].y = mesh->mVertices[i].y;
 		mpVertices[i].z = mesh->mVertices[i].z;
+
+		// Parse the UV data while we're in the loop anyway.
+		mpUV[i].x = mesh->mTextureCoords[0][i].x;
+		mpUV[i].y = mesh->mTextureCoords[0][i].y;
 	}
 
 	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
@@ -207,11 +213,12 @@ bool CMesh::LoadAssimpModel(char* filename)
 		{
 			// Copy the index from the face into our indices array.
 			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
-			// Point to the next available memory block in our indices array.
+
 			indiceCurrIndex++;
 		}
 	}
-	
+
+
 	// Success!
 	return true;
 }
