@@ -74,9 +74,10 @@ void GameLoop(CEngine* &engine)
 	cube = cubeMesh->CreateModel();
 
 	//cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
-	cube2 = engine->CreatePrimitive(PrioEngine::Colours::blue, PrioEngine::Primitives::cube);
+	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", PrioEngine::Primitives::cube);
+	
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(0.0f);
+	cube->SetXPos(5.0f);
 
 	//cube2->SetXPos(5.0f);
 	//triangleModel->SetPos(0.0f, 0.0f, 0.0f);
@@ -94,9 +95,9 @@ void GameLoop(CEngine* &engine)
 		Control(engine, myCam);
 
 		// Rotate the model which has been logged on.
-		cube->RotateY(kRotationSpeed * frameTime);
+		//cube->RotateX(kRotationSpeed * frameTime);
 
-		cube2->RotateX(kRotationSpeed * frameTime);
+		cube2->RotateX(-kRotationSpeed * frameTime);
 	}
 }
 

@@ -22,12 +22,11 @@ private:
 
 	ID3D11Buffer* mpIndexBuffer;
 
-	D3DXMATRIX mWorld;
 public:
 	CModel(ID3D11Device * device);
 	~CModel();
 
-	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices);
+	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);
 	void SetNumberOfNormals(int size);
@@ -39,7 +38,7 @@ public:
 	// Gets the number of indices which form a triangle, for the total number of indices, multiply by three.
 	int GetNumberOfIndices() { return mIndicesCount; };
 
-	void UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj);
+	void UpdateMatrices(D3DXMATRIX& world);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 
 };

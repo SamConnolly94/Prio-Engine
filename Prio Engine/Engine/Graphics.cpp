@@ -222,8 +222,6 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	D3DXMATRIX rotY;
 	D3DXMATRIX rotZ;
 
-	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
-
 	while (it != mpPrimitives.end())
 	{
 		D3DXMatrixTranslation(&modelWorld, (*it)->GetPosX(), (*it)->GetPosY(), (*it)->GetPosZ());
@@ -264,6 +262,8 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		it++;
 	}
 
+
+	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
 
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
 	while (meshIt != mpMeshes.end())
@@ -581,7 +581,7 @@ CMesh * CGraphics::LoadMesh(char * filename)
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename, L"../Resources/Textures/TestTex.dds"))
+	if (!mesh->LoadMesh(filename, L"Resources/Textures/seafloor.dds"))
 	{
 		// Deallocate memory.
 		delete mesh;

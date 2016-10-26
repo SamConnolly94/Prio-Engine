@@ -174,23 +174,32 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 	mpLogger->GetLogger().WriteLine("Failed to set any buffers to be drawn.");
 }
 
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour)
+/* Sets the vertex array of a mesh which has been loaded in. */
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV)
 {
 	float U = 0.0f;
 	float V = 0.0f;
 
-	if (!mpVerticesColour)
+	if (!mpVerticesTexture)
 	{
-		mpVerticesColour = new VertexColourType[mNumOfVertices];
+		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
 	}
 
 	
 	// Set the positions of vertices first.
 	for (int i = 0; i < mNumOfVertices; i++)
 	{
-		mpVerticesColour[i].position = vertices[i];
-		mpVerticesColour[i].colour = D3DXVECTOR4(colour.r, colour.g, colour.b, colour.a);
-
+		mpVerticesTexture[i].position = vertices[i];
+		mpVerticesTexture[i].texture = D3DXVECTOR2(U, V);
+		// Cube has been written so it goes across, this will only work if wrap mode is used as the texture address mode.
+		if (U == V)
+		{
+			V += 0.5f;
+		}
+		else
+		{
+			U += 0.5f;
+		}
 	}
 }
 

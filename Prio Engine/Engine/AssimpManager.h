@@ -17,6 +17,7 @@
 		bool LoadModelFromFile(const std::string& pFile);
 		std::list<aiMesh* > GetMeshes();
 		aiMesh* GetLastLoadedMesh();
+		const aiScene* GetScene() { return mpScene;};
 	private:
 		std::list<aiMesh* > mpMeshes;
 		const aiScene* mpScene;

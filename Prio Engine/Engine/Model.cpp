@@ -4,9 +4,10 @@
 CModel::CModel(ID3D11Device * device)
 {
 	mpDevice = device;
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour);
+	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture);
 	mpVertexManager->SetDevicePtr(mpDevice);
-	mpVertexManager->SetColour(PrioEngine::Colours::red);
+	//mpVertexManager->SetColour(PrioEngine::Colours::red);
+	
 }
 
 
@@ -35,22 +36,22 @@ void CModel::SetNumberOfIndices(int size)
 	mIndicesCount = size;
 }
 
-void CModel::UpdateMatrices(D3DXMATRIX& world, D3DXMATRIX& view, D3DXMATRIX& proj)
+void CModel::UpdateMatrices(D3DXMATRIX &world)
 {
-	// Rotation
 	D3DXMATRIX modelWorld;
-	D3DXMATRIX matrixRotationX;
-	D3DXMATRIX matrixRotationY;
-	D3DXMATRIX matrixRotationZ;
 
 	// Calculate the translation of the camera.
 	D3DXMatrixTranslation(&modelWorld, mPosition.x, mPosition.y, mPosition.z);
 
+	// Rotation
+	D3DXMATRIX matrixRotationX;
+	D3DXMATRIX matrixRotationY;
+	D3DXMATRIX matrixRotationZ;
 
 	// Calculate the rotation of the camera.
 	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
-	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
 	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
+	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
 
 	// Calculate the world matrix
 	world = modelWorld * matrixRotationX * matrixRotationY * matrixRotationZ;
@@ -61,7 +62,7 @@ void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices)
+bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -74,7 +75,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices)
 	mpVertexManager->CreateVertexArray();
 
 	// Create the points of the model.
-	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::red);
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, UV);
 
 	// Create the vertex buffer.
 	if (!mpVertexManager->CreateVertexBuffer())

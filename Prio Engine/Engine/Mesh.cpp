@@ -7,8 +7,11 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 
 	mpDevice = device;
 
-	mpColourShader = new CColourShader();
-	mpColourShader->Initialise(mpDevice, hwnd);
+	mpTextureShader = new CTextureShader();
+	if (!mpTextureShader->Initialise(mpDevice, hwnd))
+	{
+		mpLogger->GetLogger().WriteLine("Failed to initialise texture shader in mesh object.");
+	}
 
 	mpTexture = nullptr;
 	mpAssimpManager = new CAssimpManager();
@@ -33,15 +36,26 @@ CMesh::~CMesh()
 		mpModels.pop_back();
 	}
 
-	delete mpColourShader;
+	delete mpTextureShader;
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+
 	if (mpTexture)
 	{
 		delete mpTexture;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTexture).name());
+	}
+
+	if (mpUV)
+	{
+		delete[] mpUV;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpUV).name());
 	}
 
 	delete mpAssimpManager;
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpAssimpManager).name());
 
 	delete[] mpIndices;
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
 	mpIndices = nullptr;
 	
 }
@@ -57,15 +71,15 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	}
 
 	// Check if a texture was passed in.
-	//if (textureName == NULL || textureName == L"")
-	//{
-	//	mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
-	//}
-	//else
-	//{
-	//	mpTexture = new CTexture();
-	//	mpTexture->Initialise(mpDevice, textureName);
-	//}
+	if (textureName == NULL || textureName == L"")
+	{
+		mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
+	}
+	else
+	{
+		mpTexture = new CTexture();
+		mpTexture->Initialise(mpDevice, textureName);
+	}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
 	mFilename = filename;
@@ -92,23 +106,29 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	return false;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj)
 {
 	std::list<CModel*>::iterator it = mpModels.begin();
 
 	while (it != mpModels.end())
 	{
-		(*it)->UpdateMatrices(world, view, proj);
+		(*it)->UpdateMatrices(world);
 
 		(*it)->RenderBuffers(context);
 
 		// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-		mpColourShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj);
+		if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), world, view, proj, mpTexture->GetTexture()))
+		{
+			mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+		}
 
 		it++;
 	}
 }
 
+/* Create an instance of this mesh. 
+@Returns CModel* ptr
+ */
 CModel* CMesh::CreateModel()
 {
 	// Allocate memory to a model.
@@ -128,7 +148,7 @@ CModel* CMesh::CreateModel()
 	model->SetNumberOfVertices(mVertexCount);
 	model->SetNumberOfIndices(mIndexCount);
 
-	model->SetGeometry(mpVertices, mpIndices);
+	model->SetGeometry(mpVertices, mpIndices, mpUV);
 
 	// Stick our models on a list to prevent losing the pointers.
 	mpModels.push_back(model);
@@ -165,39 +185,34 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpVertices[i].z = mesh->mVertices[i].z;
 	}
 
-	// Copy indices over to our array.
-	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
-	{
-		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
-		{
-			mIndexCount++;
-		}
-	}
-
-	/* Multiply by 3 for number of triangles in this mesh. */
-	//mIndexCount = mesh->mNumFaces * 3;
+	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
+	mIndexCount = mesh->mNumFaces * kNumIndicesInFace;
 
 	// Allocate memory to the indices array.
 	int indiceCurrIndex = 0;
 	mpIndices = new unsigned long[mIndexCount];
 
-	// Copy indices over to our array.
-	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
-	{
-		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
-		{
-			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
-			indiceCurrIndex++;
-		}
-	}
-
-	
+	// Check our indices array was successfully initialised.
 	if (!mpIndices)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the indices array.");
 		return false;
 	}
-
+	
+	// Copy indices over to our array.
+	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
+	{
+		// Iterate through each index contained in this face.
+		for (int i = 0; i < kNumIndicesInFace; i++)
+		{
+			// Copy the index from the face into our indices array.
+			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
+			// Point to the next available memory block in our indices array.
+			indiceCurrIndex++;
+		}
+	}
+	
+	// Success!
 	return true;
 }
 
