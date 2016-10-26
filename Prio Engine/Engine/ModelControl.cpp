@@ -11,6 +11,10 @@ CModelControl::CModelControl()
 	mRotation.x = 0.0f;
 	mRotation.y = 0.0f;
 	mRotation.z = 0.0f;
+
+	mScale.x = 1.0f;
+	mScale.y = 1.0f;
+	mScale.z = 1.0f;
 }
 
 
@@ -130,4 +134,68 @@ void CModelControl::SetPos(float x, float y, float z)
 	mPosition.x = x;
 	mPosition.y = y;
 	mPosition.z = z;
+}
+
+void CModelControl::ScaleX(float x)
+{
+	mScale.x += x;
+}
+
+void CModelControl::ScaleY(float y)
+{
+	mScale.y += y;
+}
+
+void CModelControl::ScaleZ(float z)
+{
+	mScale.z += z;
+}
+
+void CModelControl::Scale(float value)
+{
+	mScale.x += value;
+	mScale.y += value;
+	mScale.z += value;
+}
+
+float CModelControl::GetScaleX()
+{
+	return mScale.x;
+}
+
+float CModelControl::GetScaleY()
+{
+	return mScale.y;
+}
+
+float CModelControl::GetScaleZ()
+{
+	return mScale.z;
+}
+
+D3DXVECTOR3 CModelControl::GetScale()
+{
+	return mScale;
+}
+
+void CModelControl::SetScaleX(float x)
+{
+	mScale.x = x;
+}
+
+void CModelControl::SetScaleY(float y)
+{
+	mScale.y = y;
+}
+
+void CModelControl::SetScaleZ(float z)
+{
+	mScale.z = z;
+}
+
+void CModelControl::SetScale(float x, float y, float z)
+{
+	mScale.x = x;
+	mScale.y = y;
+	mScale.z = z;
 }

@@ -38,6 +38,7 @@ void CModel::UpdateMatrices()
 {
 	// Rotation
 	D3DXMATRIX translation;
+	D3DXMATRIX scale;
 	D3DXMATRIX matrixRotationX;
 	D3DXMATRIX matrixRotationY;
 	D3DXMATRIX matrixRotationZ;
@@ -47,11 +48,14 @@ void CModel::UpdateMatrices()
 	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
 	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
 
+	// Calculate scaling.
+	D3DXMatrixScaling(&scale, mScale.x, mScale.y, mScale.z);
+
 	// Calculate the translation of the model.
 	D3DXMatrixTranslation(&translation, mPosition.x, mPosition.y, mPosition.z);
 
 	// Calculate the world matrix
-	mWorldMatrix = matrixRotationX * matrixRotationY * matrixRotationZ * translation;
+	mWorldMatrix = scale * matrixRotationX * matrixRotationY * matrixRotationZ * translation;
 }
 
 void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
