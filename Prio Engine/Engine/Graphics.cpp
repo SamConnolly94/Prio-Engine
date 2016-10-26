@@ -8,7 +8,6 @@ CGraphics::CGraphics()
 	mpTriangle = nullptr;
 	mpColourShader = nullptr;
 	mpTextureShader = nullptr;
-	mpLight = nullptr;
 	mpDiffuseLightShader = nullptr;
 
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
@@ -52,25 +51,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	// Create the light object.
-	mpLight = new CLight();
-	if (!mpLight)
-	{
-		mpLogger->GetLogger().WriteLine("Failed to create the diffuse light object.");
-		return false;
-	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpLight).name());
-
-	// Define the direction the light is pointed at.
-	PrioEngine::Coords direction;
-	direction.x = 1.0f;
-	direction.y = 1.0f;
-	direction.z = 1.0f;
-
-	// Set the properties of the light.
-	mpLight->SetDiffuseColour(PrioEngine::Colours::white);
-	mpLight->SetDirection(direction);
-
 	// Success!
 	mpLogger->GetLogger().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -78,11 +58,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
-	if (mpLight)
-	{
-		delete mpLight;
-		mpLight = nullptr;
-	}
 
 	if (mpDiffuseLightShader)
 	{
@@ -142,6 +117,25 @@ void CGraphics::Shutdown()
 	{
 		mpMeshes.pop_back();
 	}
+
+	// Deallocate any memory on the lights list.
+	std::list<CLight*>::iterator lightIt;
+	lightIt = mpLights.begin();
+
+	while (lightIt != mpLights.end())
+	{
+		delete (*lightIt);
+		(*lightIt) = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(*lightIt).name());
+		lightIt++;
+	}
+
+	while (!mpLights.empty())
+	{
+		mpLights.pop_back();
+	}
+
+	// Remove camera.
 
 	if (mpCamera)
 	{
@@ -268,7 +262,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
 	while (meshIt != mpMeshes.end())
 	{
-		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj);
+		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj, mpLights);
 		meshIt++;
 	}
 
@@ -280,8 +274,17 @@ bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3D
 	bool success = false;
 
 	// Attempt to render the model with the texture specified.
-	success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(), mpLight->GetDirection(), mpLight->GetDiffuseColour());
+	std::list<CLight*>::iterator it;
+	it = mpLights.begin();
 
+	// Render each diffuse light in the list.
+	do
+	{
+		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(),(*it)->GetDirection(), (*it)->GetDiffuseColour());
+		it++;
+	} while (it != mpLights.end());
+
+	// If we did not successfully render.
 	if (!success)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
@@ -357,12 +360,12 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 
 	if (model->HasTexture() && model->UseDiffuseLight())
 	{
-		if (!CreateTextureAndDiffuseLightShaderFromModel(model, mHwnd))
+		if (!CreateTextureAndDiffuseLightShaderFromModel(mHwnd))
 			return nullptr;
 	}
 	else if (model->HasTexture())
 	{
-		if (!CreateTextureShaderForModel(model, mHwnd))
+		if (!CreateTextureShaderForModel(mHwnd))
 			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
@@ -407,12 +410,12 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 
 	if (model->HasTexture() && model->UseDiffuseLight())
 	{
-		if (!CreateTextureAndDiffuseLightShaderFromModel(model, mHwnd))
+		if (!CreateTextureAndDiffuseLightShaderFromModel(mHwnd))
 			return nullptr;
 	}
 	else if (model->HasTexture())
 	{
-		if (!CreateTextureShaderForModel(model, mHwnd))
+		if (!CreateTextureShaderForModel(mHwnd))
 			return nullptr;
 	}
 	// Place any created models onto the list for the engine to track.
@@ -456,7 +459,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 		return nullptr;
 	}
 
-	if (!CreateColourShaderForModel(model, mHwnd))
+	if (!CreateColourShaderForModel(mHwnd))
 		return nullptr;
 
 	// Place any created models onto the list for the engine to track.
@@ -465,14 +468,14 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	return model;
 }
 
-bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd)
+bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 {
 	if (mpDiffuseLightShader == nullptr)
 	{
 		bool successful;
 
 		// Create texture shader.
-		mpDiffuseLightShader = new CDiffuseLightShader();
+		mpDiffuseLightShader = new CDirectionalLightShader();
 		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{
@@ -493,7 +496,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, 
 	return true;
 }
 
-bool CGraphics::CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd)
+bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 {
 	if (mpTextureShader == nullptr)
 	{
@@ -521,7 +524,7 @@ bool CGraphics::CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd)
 	return true;
 }
 
-bool CGraphics::CreateColourShaderForModel(CPrimitive* &model, HWND hwnd)
+bool CGraphics::CreateColourShaderForModel(HWND hwnd)
 {
 	if (mpColourShader == nullptr)
 	{
@@ -628,6 +631,71 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
 	mpLogger->GetLogger().WriteLine("Failed to find mesh to delete.");
+
+	// Return failure.
+	return false;
+}
+
+/* Create an instance of a light and return a pointer to it. */
+CLight * CGraphics::CreateLight(D3DXVECTOR4 colour)
+{
+	CLight* light = new CLight();
+	if (!light)
+	{
+		// Output error string to the message log.
+		mpLogger->GetLogger().WriteLine("Failed to create the light object. ");
+		return nullptr;
+	}
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(light).name());
+
+	// Set the colour to our colour variable passed in.
+	light->SetDiffuseColour({ colour.x, colour.y, colour.z, colour.z });
+	light->SetDirection({ 1.0f, 1.0f, 1.0f });
+	
+	// Stick the new instance on a list so we can track it, we can then ensure there are no memory leaks.
+	mpLights.push_back(light);
+
+	// Output success message.
+	mpLogger->GetLogger().WriteLine("Light successfully created.");
+
+	// Returns a pointer to the light.
+	return light;
+}
+
+/* Searches for the light pointer which has been created by the engine, and attempts to remove it.
+@Return Successfully removed light (Bool) */
+bool CGraphics::RemoveLight(CLight *& light)
+{
+	// Define an iterator.
+	std::list<CLight*>::iterator it;
+	// Initialise it to the start of the lights list.
+	it = mpLights.begin();
+
+	// Iterate through the list.
+	while (it != mpLights.end())
+	{
+		// If the current position of our list is the same as the light parameter passed in.
+		if ((*it) == light)
+		{
+			// Deallocate memory.
+			delete light;
+			// Reset the pointer to be null.
+			(*it) = nullptr;
+			// Output the memory deallocation message to the memory log.
+			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+			// Erase this element off of the list.
+			mpLights.erase(it);
+			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
+			light = nullptr;
+			// Complete! Return success.
+			return true;
+		}
+		// Increment the iterator.
+		it++;
+	}
+
+	// If we got to this point, the light that was passed in was not found on the list. Output failure message to the log.
+	mpLogger->GetLogger().WriteLine("Failed to find light to delete.");
 
 	// Return failure.
 	return false;

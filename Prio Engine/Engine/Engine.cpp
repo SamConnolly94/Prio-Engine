@@ -413,6 +413,18 @@ CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primiti
 	return mpGraphics->CreatePrimitive(textureFilename, shape);
 }
 
+/* Creates an instance of a light object which is managed by the engine.
+@Returns CLight* */
+CLight * CEngine::CreateLight(D3DXVECTOR4 colour)
+{
+	return mpGraphics->CreateLight(colour);
+}
+
+bool CEngine::RemoveLight(CLight *& light)
+{
+	return mpGraphics->RemoveLight(light);
+}
+
 bool CEngine::RemovePrimitive(CPrimitive * model)
 {
 	mpGraphics->RemovePrimitive(model);

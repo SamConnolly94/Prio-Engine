@@ -3,15 +3,16 @@
 
 #include <D3DX10math.h>
 #include "PrioEngineVars.h"
+#include "ModelControl.h"
 
-class CLight
+class CLight : CModelControl
 {
 public:
 	CLight();
 	~CLight();
 
 	void SetDiffuseColour(PrioEngine::RGBA colour);
-	void SetDirection(PrioEngine::Coords direction);
+	void SetDirection(D3DXVECTOR3 direction);
 
 	D3DXVECTOR4 GetDiffuseColour();
 	D3DXVECTOR3 GetDirection();

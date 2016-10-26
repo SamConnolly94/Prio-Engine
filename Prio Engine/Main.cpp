@@ -51,6 +51,7 @@ void GameLoop(CEngine* &engine)
 {
 	// Constants.
 	const float kRotationSpeed = 1.0f;
+	const float kMovementSpeed = 1.0f;
 
 	// Variables
 	float frameTime;
@@ -60,27 +61,27 @@ void GameLoop(CEngine* &engine)
 	CModel* triangleModel;
 	CModel* cube;
 	CPrimitive* cube2;
+	CLight* diffuseLight;
 
 	// Camera init.
 	myCam = engine->CreateCamera();
 	myCam->SetPositionZ(-20.0f);
 
+	// Light init
+	diffuseLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	diffuseLight->SetDirection({ 0.5f, -0.5f, 0.5f });
+
 	// Mesh init
-	//triangleMesh = engine->LoadMesh("Resources/Models/Cube.x");
 	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj");
-	
+
 	// Model init.
-	//triangleModel = triangleMesh->CreateModel();
 	cube = cubeMesh->CreateModel();
+	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", true ,PrioEngine::Primitives::cube);
 
-	//cube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
-	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", PrioEngine::Primitives::cube);
-	
+	cube->AttatchToParent(cube2);
+
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(5.0f);
-
-	//cube2->SetXPos(5.0f);
-	//triangleModel->SetPos(0.0f, 0.0f, 0.0f);
+	cube->SetXPos(50.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();
@@ -96,8 +97,10 @@ void GameLoop(CEngine* &engine)
 
 		// Rotate the model which has been logged on.
 		cube->RotateY(kRotationSpeed * frameTime);
-		cube->Scale(kRotationSpeed * frameTime);
-		cube2->RotateX(-kRotationSpeed * frameTime);
+		//cube->Scale(kRotationSpeed * frameTime);
+		//cube2->MoveX(kMovementSpeed * frameTime);
+
+		//cube2->RotateX(-kRotationSpeed * frameTime);
 	}
 }
 

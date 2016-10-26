@@ -4,6 +4,8 @@
 
 CModelControl::CModelControl()
 {
+	mpParent = nullptr;
+
 	mPosition.x = 0.0f;
 	mPosition.y = 0.0f;
 	mPosition.z = 0.0f;
@@ -96,21 +98,37 @@ void CModelControl::MoveZ(float z)
 
 float CModelControl::GetPosX()
 {
+	if (mpParent != nullptr)
+	{
+		return (mPosition.x + mpParent->GetPosX());
+	}
 	return mPosition.x;
 }
 
 float CModelControl::GetPosY()
 {
+	if (mpParent != nullptr)
+	{
+		return (mPosition.y + mpParent->GetPosY());
+	}
 	return mPosition.y;
 }
 
 float CModelControl::GetPosZ()
 {
+	if (mpParent != nullptr)
+	{
+		return (mPosition.z + mpParent->GetPosZ());
+	}
 	return mPosition.z;
 }
 
 D3DXVECTOR3 CModelControl::GetPos()
 {
+	if (mpParent != nullptr)
+	{
+		return (mPosition + mpParent->GetPos());
+	}
 	return mPosition;
 }
 
@@ -198,4 +216,14 @@ void CModelControl::SetScale(float x, float y, float z)
 	mScale.x = x;
 	mScale.y = y;
 	mScale.z = z;
+}
+
+void CModelControl::AttatchToParent(CModelControl * parent)
+{
+	mpParent = parent;
+}
+
+void CModelControl::SeperateFromParent()
+{
+	mpParent = nullptr;
 }

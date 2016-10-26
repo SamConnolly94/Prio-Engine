@@ -41,13 +41,11 @@ private:
 
 	CD3D11* mpD3D;
 
-	CLight* mpLight;
-
 	CCamera* mpCamera;
 	CPrimitive* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
-	CDiffuseLightShader* mpDiffuseLightShader;
+	CDirectionalLightShader* mpDiffuseLightShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -55,10 +53,11 @@ private:
 
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
+	std::list<CLight*> mpLights;
 
-	bool CreateTextureShaderForModel(CPrimitive* &model, HWND hwnd);
-	bool CreateColourShaderForModel(CPrimitive* &model, HWND hwnd);
-	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(CPrimitive* &model, HWND hwnd);
+	bool CreateTextureShaderForModel(HWND hwnd);
+	bool CreateColourShaderForModel(HWND hwnd);
+	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 
 	float mRotation;
@@ -66,13 +65,18 @@ private:
 	HWND mHwnd;
 public:
 	/* Model control from the engine. */
+	// Primitive creation / deletion.
 	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
 	bool RemovePrimitive(CPrimitive* &model);
+
+	// Model creation / deletion.
 	CMesh* LoadMesh(char* filename);
 	bool RemoveMesh(CMesh* &mesh);
 
+	CLight* CreateLight(D3DXVECTOR4 colour);
+	bool RemoveLight(CLight* &light);
 	/* Camera control, required by the engine. */
 	CCamera* CreateCamera();
 	void SetCameraPos(float x, float y, float z);

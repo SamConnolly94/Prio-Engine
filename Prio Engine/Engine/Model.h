@@ -27,7 +27,7 @@ public:
 	CModel(ID3D11Device * device);
 	~CModel();
 
-	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV);
+	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);
 	void SetNumberOfNormals(int size);

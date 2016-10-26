@@ -175,22 +175,24 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV)
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV, D3DXVECTOR3* normals)
 {
 	float U = 0.0f;
 	float V = 0.0f;
 
-	if (!mpVerticesTexture)
+	if (!mpVerticesDiffuse)
 	{
-		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
+		mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
 	}
 
 	
 	// Set the positions of vertices first.
 	for (int i = 0; i < mNumOfVertices; i++)
 	{
-		mpVerticesTexture[i].position = vertices[i];
-		mpVerticesTexture[i].texture = UV[i];
+		mpVerticesDiffuse[i].position = vertices[i];
+		mpVerticesDiffuse[i].texture = UV[i];
+		mpVerticesDiffuse[i].normal = normals[i];
+		
 	}
 }
 

@@ -8,7 +8,7 @@ protected:
 	D3DXVECTOR3 mPosition;
 	D3DXVECTOR3 mRotation;
 	D3DXVECTOR3 mScale;
-
+	CModelControl* mpParent;
 public:
 	/* Rotation. */
 	void RotateX(float x);
@@ -55,6 +55,10 @@ public:
 	void SetScaleY(float y);
 	void SetScaleZ(float z);
 	void SetScale(float x, float y, float z);
+
+	void AttatchToParent(CModelControl* parent);
+	void SeperateFromParent();
+
 public:
 	CModelControl();
 	~CModelControl();

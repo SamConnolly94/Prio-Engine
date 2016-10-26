@@ -6,7 +6,7 @@
 #include <D3DX11async.h>
 #include "Logger.h"
 
-class CDiffuseLightShader
+class CDirectionalLightShader
 {
 private:
 	struct MatrixBufferType
@@ -24,8 +24,8 @@ private:
 	};
 
 public:
-	CDiffuseLightShader();
-	~CDiffuseLightShader();
+	CDirectionalLightShader();
+	~CDirectionalLightShader();
 
 	bool Initialise(ID3D11Device* device, HWND hwnd);
 	void Shutdown();

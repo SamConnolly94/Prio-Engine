@@ -1,7 +1,7 @@
 #include "DiffuseLightShader.h"
 
 
-CDiffuseLightShader::CDiffuseLightShader()
+CDirectionalLightShader::CDirectionalLightShader()
 {
 	mpVertexShader = nullptr;
 	mpPixelShader = nullptr;
@@ -11,11 +11,11 @@ CDiffuseLightShader::CDiffuseLightShader()
 	mpLightBuffer = nullptr;
 }
 
-CDiffuseLightShader::~CDiffuseLightShader()
+CDirectionalLightShader::~CDirectionalLightShader()
 {
 }
 
-bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
+bool CDirectionalLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 {
 	bool result;
 
@@ -30,17 +30,16 @@ bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 	return true;
 }
 
-void CDiffuseLightShader::Shutdown()
+void CDirectionalLightShader::Shutdown()
 {
 	// Shutodwn the vertex and pixel shaders as well as all related objects.
 	ShutdownShader();
 }
 
-bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+bool CDirectionalLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
 {
 	bool result;
-
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour);
@@ -55,7 +54,7 @@ bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCo
 	return true;
 }
 
-bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
+bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -235,7 +234,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	return true;
 }
 
-void CDiffuseLightShader::ShutdownShader()
+void CDirectionalLightShader::ShutdownShader()
 {
 	if (mpLightBuffer)
 	{
@@ -274,7 +273,7 @@ void CDiffuseLightShader::ShutdownShader()
 	}
 }
 
-void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, WCHAR * shaderFilename)
+void CDirectionalLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, WCHAR * shaderFilename)
 {
 	std::string errMsg;
 	char* compileErrors;
@@ -306,7 +305,7 @@ void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWN
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
+bool CDirectionalLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -374,7 +373,7 @@ bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContex
 	return true;
 }
 
-void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CDirectionalLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);

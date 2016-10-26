@@ -4,7 +4,7 @@
 CModel::CModel(ID3D11Device * device)
 {
 	mpDevice = device;
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture);
+	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Diffuse);
 	mpVertexManager->SetDevicePtr(mpDevice);
 }
 
@@ -44,15 +44,15 @@ void CModel::UpdateMatrices()
 	D3DXMATRIX matrixRotationZ;
 
 	// Calculate the rotation of the model.
-	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
-	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
-	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
+	D3DXMatrixRotationX(&matrixRotationX, GetRotationX());
+	D3DXMatrixRotationY(&matrixRotationY, GetRotationY());
+	D3DXMatrixRotationZ(&matrixRotationZ, GetRotationZ());
 
 	// Calculate scaling.
-	D3DXMatrixScaling(&scale, mScale.x, mScale.y, mScale.z);
+	D3DXMatrixScaling(&scale, GetScaleX(), GetScaleY(), GetScaleZ());
 
 	// Calculate the translation of the model.
-	D3DXMatrixTranslation(&translation, mPosition.x, mPosition.y, mPosition.z);
+	D3DXMatrixTranslation(&translation, GetPosX(), GetPosY(), GetPosZ());
 
 	// Calculate the world matrix
 	mWorldMatrix = scale * matrixRotationX * matrixRotationY * matrixRotationZ * translation;
@@ -63,7 +63,7 @@ void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV)
+bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -76,7 +76,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	mpVertexManager->CreateVertexArray();
 
 	// Create the points of the model.
-	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, UV);
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, UV, normals);
 
 	// Create the vertex buffer.
 	if (!mpVertexManager->CreateVertexBuffer())

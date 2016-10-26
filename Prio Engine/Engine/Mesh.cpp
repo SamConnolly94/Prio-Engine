@@ -6,12 +6,12 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 	mIndexCount = 0;
 
 	mpDevice = device;
-
-	mpTextureShader = new CTextureShader();
-	if (!mpTextureShader->Initialise(mpDevice, hwnd))
+	mpDirectionalLightShader = new CDirectionalLightShader();
+	if (!mpDirectionalLightShader->Initialise(mpDevice, hwnd))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to initialise texture shader in mesh object.");
+		mpLogger->GetLogger().WriteLine("Failed to initialise the directional light shader in mesh object.");
 	}
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 
 	mpTexture = nullptr;
 	mpAssimpManager = new CAssimpManager();
@@ -36,8 +36,8 @@ CMesh::~CMesh()
 		mpModels.pop_back();
 	}
 
-	delete mpTextureShader;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+	delete mpDirectionalLightShader;
+	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpDirectionalLightShader).name());
 
 	if (mpTexture)
 	{
@@ -106,9 +106,10 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	return false;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj)
+void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights)
 {
 	std::list<CModel*>::iterator it = mpModels.begin();
+	std::list<CLight*>::iterator lightIt = lights.begin();
 
 	while (it != mpModels.end())
 	{
@@ -116,10 +117,14 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 
 		(*it)->RenderBuffers(context);
 
-		// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-		if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture()))
+		while (lightIt != lights.end())
 		{
-			mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+			// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+			if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour()))
+			{
+				mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+			}
+			lightIt++;
 		}
 
 		it++;
@@ -148,7 +153,7 @@ CModel* CMesh::CreateModel()
 	model->SetNumberOfVertices(mVertexCount);
 	model->SetNumberOfIndices(mIndexCount);
 
-	model->SetGeometry(mpVertices, mpIndices, mpUV);
+	model->SetGeometry(mpVertices, mpIndices, mpUV, mpNormals);
 
 	// Stick our models on a list to prevent losing the pointers.
 	mpModels.push_back(model);
@@ -157,32 +162,40 @@ CModel* CMesh::CreateModel()
 	return model;
 }
 
-/* Load a model using our assimp vertex manager. */
+/* Load a model using our assimp vertex manager. 
+@Returns bool Success*/
 bool CMesh::LoadAssimpModel(char* filename)
 {
-
 	// Load the mesh into our scene using our manager.
 	mpAssimpManager->LoadModelFromFile(filename);
 
 	// Grab the mesh object for the last mesh we loaded.
 	aiMesh* mesh = mpAssimpManager->GetLastLoadedMesh();
 	
-	// Allocate memory to the array we will store vertices in.
+	// Acquire the number of vertices we will store.
 	mVertexCount = mesh->mNumVertices;
+	
+	// Check that the mesh has a valid number of vertices, sometimes inconsistencies in loading will cause it not to.
 	if (mVertexCount > kCuttoffSize)
 	{
 		mpLogger->GetLogger().WriteLine("You have either tried to load a very large model or assimp has failed to load correct details for whatever reason, refusing to load a model this large.");
 		return false;
 	}
 
+	// Allocate memory to the array we will store vertices in.
 	mpVertices = new D3DXVECTOR3[mVertexCount];
 	
+	// If we failed to allocate memory to the array.
 	if (!mpVertices)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the vertices array.");
 		return false;
 	}
 
+	// Allocate memory to the normals array.
+	mpNormals = new D3DXVECTOR3[mVertexCount];
+
+	// Allocate memory to the UV
 	mpUV = new D3DXVECTOR2[mVertexCount];
 
 	// Copy vertices from the the assimp manager.
@@ -195,6 +208,11 @@ bool CMesh::LoadAssimpModel(char* filename)
 		// Parse the UV data while we're in the loop anyway.
 		mpUV[i].x = mesh->mTextureCoords[0][i].x;
 		mpUV[i].y = mesh->mTextureCoords[0][i].y;
+
+		// Parse the normals too!
+		mpNormals[i].x = mesh->mNormals[i].x;
+		mpNormals[i].y = mesh->mNormals[i].y;
+		mpNormals[i].z = mesh->mNormals[i].z;
 	}
 
 	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
