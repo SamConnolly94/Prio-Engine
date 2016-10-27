@@ -436,9 +436,9 @@ bool CEngine::RemoveMesh(CMesh * mesh)
 	return mpGraphics->RemoveMesh(mesh);
 }
 
-CMesh * CEngine::LoadMesh(char * filename)
+CMesh * CEngine::LoadMesh(char * filename, WCHAR * textureFilename)
 {
-	return mpGraphics->LoadMesh(filename);
+	return mpGraphics->LoadMesh(filename, textureFilename);
 }
 
 /* Create a primitive shape and place it in our world, may pass in diffuse lighting boolean to indicate wether it should be used. */

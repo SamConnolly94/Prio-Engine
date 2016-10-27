@@ -2,32 +2,42 @@
 
 CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 {
+	// Initialise our counter variables to the default values.
 	mVertexCount  = 0;
 	mIndexCount = 0;
 
+	// Store the handle to our main window.
+	mHwnd = hwnd;
+
+	// Stash away a pointer to our device.
 	mpDevice = device;
-	mpDirectionalLightShader = new CDirectionalLightShader();
-	if (!mpDirectionalLightShader->Initialise(mpDevice, hwnd))
-	{
-		mpLogger->GetLogger().WriteLine("Failed to initialise the directional light shader in mesh object.");
-	}
+
+	// If we were successful, write to the memory allocation log.
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 
+	// Set the pointer to our texture to be null, we can use this for checks to see if we're using a texture or not later.
 	mpTexture = nullptr;
+	
+	// Allocate memory to the manager of our assimp loader.
 	mpAssimpManager = new CAssimpManager();
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpAssimpManager).name());
 }
 
 
 CMesh::~CMesh()
 {
+	// If the vertices array has been allocated memory.
 	if (mpVertices)
 	{
+		// Delete allocated memory from the back of our array.
 		delete[] mpVertices;
+		// Write the deallocation message to the memory log.
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVertices).name());
+		// Set the pointer to the vertices array to be a default value.
 		mpVertices = nullptr;
 	}
 
-	// If we have pointers to models still.
+	// If we still have pointers to models.
 	while (!mpModels.empty())
 	{
 		// Delete allocated memory from the back of our array.
@@ -36,28 +46,68 @@ CMesh::~CMesh()
 		mpModels.pop_back();
 	}
 
-	delete mpDirectionalLightShader;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpDirectionalLightShader).name());
+	// If the directional light shader has been allocated memory.
+	if (mpDirectionalLightShader)
+	{
+		// Deallocate memory.
+		delete mpDirectionalLightShader;
+		// Write the deallocation message to the memory log.
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpDirectionalLightShader).name());
+		// Set the directional light shader pointer to be default value.
+		mpDirectionalLightShader = nullptr;
+	}
 
+	// If the texture has been allocated memory.
 	if (mpTexture)
 	{
+		// Deallocate memory.
 		delete mpTexture;
+		// Output the deallocation message to the log.
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTexture).name());
+		// Set the texture pointer to be a default value.
+		mpTexture = nullptr;
 	}
 
+	// If the UV array has been allocated memory.
 	if (mpUV)
 	{
+		// Deallocate any memory given to this array.
 		delete[] mpUV;
+		// Output the deallocation message to the log.
 		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpUV).name());
+		// Set the pointer to the UV's array to be a default value.
+		mpUV = nullptr;
 	}
 
-	delete mpAssimpManager;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpAssimpManager).name());
+	// If the normals array has been allocated memory.
+	if (mpNormals)
+	{
+		delete[] mpNormals;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpNormals).name());
+		mpNormals = nullptr;
+	}
 
-	delete[] mpIndices;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
-	mpIndices = nullptr;
-	
+	// If our assimp manager has been allocated memory.
+	if (mpAssimpManager)
+	{
+		// Deallocate any memory given to this manager.
+		delete mpAssimpManager;
+		// Output the deallocation message to the log.
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpAssimpManager).name());
+		// Set the assimp manager pointer to be a default value.
+		mpAssimpManager = nullptr;
+	}
+
+	// If the indices array has been allocated memory.
+	if (mpIndices)
+	{
+		// Deallocate memory given to the indices array.
+		delete[] mpIndices;
+		// Output the deallocation message to the log.
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
+		// Set the pointer to the indices array to be a default value.
+		mpIndices = nullptr;
+	}
 }
 
 /* Load data from file into our mesh object. */
@@ -73,7 +123,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	// Check if a texture was passed in.
 	if (textureName == NULL || textureName == L"")
 	{
-		mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh, this might struggle a bit.");
+		mpLogger->GetLogger().WriteLine("You did not pass in a texture file name with a mesh named " + static_cast<std::string>(filename) + ", will load with solid black colour.");
 	}
 	else
 	{
@@ -87,6 +137,30 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	// Extract the file extension.
 	std::size_t extensionLocation = mFilename.find_last_of(".");
 	mFileExtension = mFilename.substr(extensionLocation, mFilename.length());
+
+	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
+	if (mpTexture)
+	{
+		// Initialise our directional light shader.
+		mpDirectionalLightShader = new CDirectionalLightShader();
+		// If the directional light shader is not successfully initialised.
+		if (!mpDirectionalLightShader->Initialise(mpDevice, mHwnd))
+		{
+			// Output failure message to the log.
+			mpLogger->GetLogger().WriteLine("Failed to initialise the directional light shader in mesh object.");
+		}
+	}
+	else
+	{
+		// Allocate memory to the colour shader.
+		mpColourShader = new CColourShader();
+		// If the colour shader is not successfully initialised.
+		if (!mpColourShader->Initialise(mpDevice, mHwnd))
+		{
+			// output failure message to the log.
+			mpLogger->GetLogger().WriteLine("Failed to initialise the colour shader in mesh object.");
+		}
+	}
 
 	// Check what extension we are trying to load.
 	if (mFileExtension == ".sam")
@@ -119,12 +193,28 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 
 		while (lightIt != lights.end())
 		{
-			// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-			if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour()))
+			if (mpDirectionalLightShader)
 			{
-				mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour()))
+				{
+					mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+				}
+				lightIt++;
 			}
-			lightIt++;
+			else if (mpColourShader)
+			{
+				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+				if (!mpColourShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj))
+				{
+					mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+				}
+				lightIt++;
+			}
+			else
+			{
+				mpLogger->GetLogger().WriteLine("Failed to find any available shader to render the instance of mesh in mesh.cpp Render function.");
+			}
 		}
 
 		it++;
@@ -138,7 +228,23 @@ CModel* CMesh::CreateModel()
 {
 	// Allocate memory to a model.
 	CModel* model;
-	model = new CModel(mpDevice);
+	// Create a variable equal to a vertex type.
+	PrioEngine::VertexType vt;
+	// Initialise the vertex type.
+	if (mpDirectionalLightShader)
+	{
+		vt = PrioEngine::VertexType::Diffuse;
+	}
+	else if (mpColourShader)
+	{
+		vt = PrioEngine::VertexType::Colour;
+	}
+	else
+	{
+		// Failed to discover what vertex type should be used, return a nullptr
+		return nullptr;
+	}
+	model = new CModel(mpDevice, vt);
 
 	// Write an allocation message to our memory log.
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
@@ -153,8 +259,20 @@ CModel* CMesh::CreateModel()
 	model->SetNumberOfVertices(mVertexCount);
 	model->SetNumberOfIndices(mIndexCount);
 
-	model->SetGeometry(mpVertices, mpIndices, mpUV, mpNormals);
-
+	// If we're using diffuse light.
+	if (mpDirectionalLightShader)
+	{
+		model->SetGeometry(mpVertices, mpIndices, mpUV, mpNormals);
+	}
+	else if (mpColourShader)
+	{
+		model->SetGeometry(mpVertices, mpIndices);
+	}
+	else
+	{
+		mpLogger->GetLogger().WriteLine("Failed to find a valid shader being used when creating instance of mesh. ");
+		return nullptr;
+	}
 	// Stick our models on a list to prevent losing the pointers.
 	mpModels.push_back(model);
 
@@ -206,13 +324,30 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpVertices[i].z = mesh->mVertices[i].z;
 
 		// Parse the UV data while we're in the loop anyway.
-		mpUV[i].x = mesh->mTextureCoords[0][i].x;
-		mpUV[i].y = mesh->mTextureCoords[0][i].y;
+		if (mesh->mTextureCoords[0])
+		{
+			mpUV[i].x = mesh->mTextureCoords[0][i].x;
+			mpUV[i].y = mesh->mTextureCoords[0][i].y;
+		}
+		else
+		{
+			mpUV[i].x = NULL;
+			mpUV[i].y = NULL;
+		}
 
 		// Parse the normals too!
-		mpNormals[i].x = mesh->mNormals[i].x;
-		mpNormals[i].y = mesh->mNormals[i].y;
-		mpNormals[i].z = mesh->mNormals[i].z;
+		if (mesh->HasNormals())
+		{
+			mpNormals[i].x = mesh->mNormals[i].x;
+			mpNormals[i].y = mesh->mNormals[i].y;
+			mpNormals[i].z = mesh->mNormals[i].z;
+		}
+		else
+		{
+			mpNormals[i].x = NULL;
+			mpNormals[i].y = NULL;
+			mpNormals[i].z = NULL;
+		}
 	}
 
 	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
@@ -233,7 +368,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		// Iterate through each index contained in this face.
-		for (int i = 0; i < kNumIndicesInFace; i++)
+		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
 		{
 			// Copy the index from the face into our indices array.
 			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];

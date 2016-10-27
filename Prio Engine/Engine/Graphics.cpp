@@ -577,14 +577,14 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 	return false;
 }
 
-CMesh * CGraphics::LoadMesh(char * filename)
+CMesh * CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename, L"Resources/Textures/seafloor.dds"))
+	if (!mesh->LoadMesh(filename, textureFilename))
 	{
 		// Deallocate memory.
 		delete mesh;

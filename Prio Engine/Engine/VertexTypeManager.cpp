@@ -196,6 +196,24 @@ void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * ver
 	}
 }
 
+/* Sets the vertex array of a mesh which has been loaded in. */
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour)
+{
+	if (!mpVerticesColour)
+	{
+		mpVerticesColour = new VertexColourType[mNumOfVertices];
+	}
+
+
+	// Set the positions of vertices first.
+	for (int i = 0; i < mNumOfVertices; i++)
+	{
+		mpVerticesColour[i].position = vertices[i];
+		mpVerticesColour[i].colour = D3DXVECTOR4{ colour.r, colour.g, colour.b, colour.a };
+
+	}
+}
+
 
 /* Place the vertex points positions into our array, for when using colour shader. */
 void CVertexManager::SetColourCube(float x, float y, float z)

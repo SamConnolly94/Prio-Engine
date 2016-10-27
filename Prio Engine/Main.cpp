@@ -62,6 +62,8 @@ void GameLoop(CEngine* &engine)
 	CModel* cube;
 	CPrimitive* cube2;
 	CLight* diffuseLight;
+	CMesh* coneMesh;
+	CModel* cone;
 
 	// Camera init.
 	myCam = engine->CreateCamera();
@@ -72,16 +74,19 @@ void GameLoop(CEngine* &engine)
 	diffuseLight->SetDirection({ 0.5f, -0.5f, 0.5f });
 
 	// Mesh init
-	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj");
+	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds");
+	coneMesh = engine->LoadMesh("Resources/Models/Cone.FBX", NULL);
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
 	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", true ,PrioEngine::Primitives::cube);
-
+	cone = coneMesh->CreateModel();
 	cube->AttatchToParent(cube2);
-
+	//cone->Scale(0.000001f);
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(50.0f);
+	cube->SetXPos(5.0f);
+	cone->RotateX(-180.0f);
+	cone->SetXPos(25.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();

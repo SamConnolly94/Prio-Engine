@@ -8,12 +8,16 @@
 #include "Model.h"
 #include "Texture.h"
 #include "DiffuseLightShader.h"
+#include "ColourShader.h"
 #include "AssimpManager.h"
 #include "Light.h"
 
 class CMesh
 {
 private:
+	// Handle of our main window.
+	HWND mHwnd;
+
 	// Pointer to the device object.
 	ID3D11Device* mpDevice;
 
@@ -23,6 +27,7 @@ private:
 
 	// Shader objects.
 	CDirectionalLightShader* mpDirectionalLightShader;
+	CColourShader* mpColourShader;
 
 	// File strings
 	std::string mFilename;

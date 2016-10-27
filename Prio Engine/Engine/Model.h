@@ -24,10 +24,11 @@ private:
 
 	D3DXMATRIX mWorldMatrix;
 public:
-	CModel(ID3D11Device * device);
+	CModel(ID3D11Device * device, PrioEngine::VertexType vertexType);
 	~CModel();
 
 	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals);
+	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);
 	void SetNumberOfNormals(int size);
