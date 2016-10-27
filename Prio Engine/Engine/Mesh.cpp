@@ -368,7 +368,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		// Iterate through each index contained in this face.
-		for (int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
+		for (int i = 0; i < kNumIndicesInFace; i++)
 		{
 			// Copy the index from the face into our indices array.
 			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
