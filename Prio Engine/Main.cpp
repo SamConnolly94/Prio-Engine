@@ -70,7 +70,7 @@ void GameLoop(CEngine* &engine)
 	myCam->SetPositionZ(-20.0f);
 
 	// Light init
-	diffuseLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	diffuseLight = engine->CreateLight(D3DXVECTOR4{ 9.0f, 10.0f, 8.0f, 1.0f });
 	diffuseLight->SetDirection({ 0.5f, -0.5f, 0.5f });
 
 	// Mesh init
@@ -79,7 +79,7 @@ void GameLoop(CEngine* &engine)
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
-	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", true ,PrioEngine::Primitives::cube);
+	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", false ,PrioEngine::Primitives::cube);
 	cone = coneMesh->CreateModel();
 	cube->AttatchToParent(cube2);
 	//cone->Scale(0.000001f);

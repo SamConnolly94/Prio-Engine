@@ -109,7 +109,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	return true;
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices)
+bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR4* colours)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -122,7 +122,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices)
 	mpVertexManager->CreateVertexArray();
 
 	// Create the points of the model.
-	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, PrioEngine::Colours::black);
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, colours);
 
 	// Create the vertex buffer.
 	if (!mpVertexManager->CreateVertexBuffer())

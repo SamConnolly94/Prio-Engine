@@ -52,6 +52,7 @@ private:
 	unsigned long* mpIndices;
 	D3DXVECTOR2* mpUV;
 	D3DXVECTOR3* mpNormals;
+	D3DXVECTOR4* mpVerticeColours;
 
 public:
 	CMesh(ID3D11Device* device, HWND hwnd);

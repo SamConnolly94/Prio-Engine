@@ -53,7 +53,7 @@ public:
 
 	void SetVertexArray(float x, float y, float z);
 	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV, D3DXVECTOR3* normals);
-	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour);
+	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR4* colours);
 	bool CreateVertexBuffer();
 
 	void RenderBuffers(ID3D11DeviceContext* deviceContext, ID3D11Buffer* indexBuffer);

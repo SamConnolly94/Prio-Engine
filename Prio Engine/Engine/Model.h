@@ -28,7 +28,7 @@ public:
 	~CModel();
 
 	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals);
-	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices);
+	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR4* colours);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);
 	void SetNumberOfNormals(int size);

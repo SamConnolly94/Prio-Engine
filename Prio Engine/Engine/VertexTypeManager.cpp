@@ -197,7 +197,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * ver
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, PrioEngine::RGBA colour)
+void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR4* colours)
 {
 	if (!mpVerticesColour)
 	{
@@ -209,7 +209,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * ver
 	for (int i = 0; i < mNumOfVertices; i++)
 	{
 		mpVerticesColour[i].position = vertices[i];
-		mpVerticesColour[i].colour = D3DXVECTOR4{ colour.r, colour.g, colour.b, colour.a };
+		mpVerticesColour[i].colour = colours[i];
 
 	}
 }

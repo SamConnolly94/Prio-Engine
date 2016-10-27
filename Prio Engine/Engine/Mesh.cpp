@@ -17,6 +17,13 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 
 	// Set the pointer to our texture to be null, we can use this for checks to see if we're using a texture or not later.
 	mpTexture = nullptr;
+
+	// Initialise any of our class buffers to be null.
+	mpVertices = nullptr;
+	mpIndices = nullptr;
+	mpVerticeColours = nullptr;
+	mpUV = nullptr;
+	mpNormals = nullptr;
 	
 	// Allocate memory to the manager of our assimp loader.
 	mpAssimpManager = new CAssimpManager();
@@ -266,7 +273,7 @@ CModel* CMesh::CreateModel()
 	}
 	else if (mpColourShader)
 	{
-		model->SetGeometry(mpVertices, mpIndices);
+		model->SetGeometry(mpVertices, mpIndices, mpVerticeColours);
 	}
 	else
 	{
@@ -316,6 +323,9 @@ bool CMesh::LoadAssimpModel(char* filename)
 	// Allocate memory to the UV
 	mpUV = new D3DXVECTOR2[mVertexCount];
 
+
+	mpVerticeColours = new D3DXVECTOR4[mVertexCount];
+
 	// Copy vertices from the the assimp manager.
 	for (int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -324,7 +334,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpVertices[i].z = mesh->mVertices[i].z;
 
 		// Parse the UV data while we're in the loop anyway.
-		if (mesh->mTextureCoords[0])
+		if (mesh->HasTextureCoords(0))
 		{
 			mpUV[i].x = mesh->mTextureCoords[0][i].x;
 			mpUV[i].y = mesh->mTextureCoords[0][i].y;
@@ -347,6 +357,18 @@ bool CMesh::LoadAssimpModel(char* filename)
 			mpNormals[i].x = NULL;
 			mpNormals[i].y = NULL;
 			mpNormals[i].z = NULL;
+		}
+
+		// If the mesh has colours.
+		if (mesh->HasVertexColors(i))
+		{
+			// Grab the colours and store it in the colour array. Probably no point colouring if we're texturing though.
+			mpVerticeColours[i] = D3DXVECTOR4{ mesh->mColors[0][i].r, mesh->mColors[i]->g, mesh->mColors[i]->b, mesh->mColors[i]->a };
+		}
+		else
+		{
+			// Doesn't have colours, so just default to black.
+			mpVerticeColours[i] = D3DXVECTOR4{ PrioEngine::Colours::black.r, PrioEngine::Colours::black.g, PrioEngine::Colours::black.b, PrioEngine::Colours::black.a };
 		}
 	}
 
@@ -376,7 +398,6 @@ bool CMesh::LoadAssimpModel(char* filename)
 			indiceCurrIndex++;
 		}
 	}
-
 
 	// Success!
 	return true;
