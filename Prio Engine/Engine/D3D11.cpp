@@ -20,10 +20,8 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	unsigned int numModes;
 	unsigned int refRateNumerator;
 	unsigned int refRateDenominator;
-	unsigned int stringLength;
 	DXGI_MODE_DESC* displayModeList;
 	DXGI_ADAPTER_DESC adapterDesc;
-	int error;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	D3D_FEATURE_LEVEL featureLevel;
 	ID3D11Texture2D* backBufferPtr;
@@ -109,7 +107,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	}
 
 	// Iterate through display modes to find one which matches screen width and height. When found store the refresh rate.
-	for (int i = 0; i < numModes; i++)
+	for (unsigned int i = 0; i < numModes; i++)
 	{
 		// If width is the same as our screen.
 		if (displayModeList[i].Width == (unsigned int) screenWidth)
@@ -140,7 +138,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	mGraphicsCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 	
 	// Convert the name of the video card to a character array and store it.
-	for (int i = 0; i < STRING_NUMBER_OF_BITS; i++)
+	for (unsigned int i = 0; i < STRING_NUMBER_OF_BITS; i++)
 	{
 		// Store each char in the graphics card description.
 		mGraphicsCardDescription[i] = adapterDesc.Description[i];
@@ -603,7 +601,9 @@ bool CD3D11::CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBuff
 	HRESULT result;
 
 	// Initialise the description of the stencil state.
-	ZeroMemory(&depthStencilBufferDesc, NULL, &mpDepthStencilBuffer);
+	depthStencilBufferDesc = {};
+	//mpDepthStencilBuffer = {};
+	//ZeroMemory(&depthStencilBufferDesc, NULL, &mpDepthStencilBuffer);
 
 	// Set up the description of the stencil state.
 	depthStencilBufferDesc.DepthEnable = true;

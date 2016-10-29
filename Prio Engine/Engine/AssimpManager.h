@@ -14,13 +14,9 @@
 		CAssimpManager();
 		~CAssimpManager();
 
-		bool LoadModelFromFile(const std::string& pFile);
-		std::list<aiMesh* > GetMeshes();
-		aiMesh* GetLastLoadedMesh();
-		const aiScene* GetScene() { return mpScene;};
+		const aiMesh* LoadModelFromFile(const std::string& pFile);
+		const aiScene* GetScene();
 	private:
-		std::list<aiMesh* > mpMeshes;
-		const aiScene* mpScene;
 		CLogger* mpLogger;
 	};
 #endif

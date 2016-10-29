@@ -22,8 +22,8 @@ private:
 	ID3D11Device* mpDevice;
 
 	// Constants.
-	const int kNumIndicesInFace = 3;
-	const int kCuttoffSize = 300000;
+	const unsigned int kNumIndicesInFace = 3;
+	const unsigned int kCuttoffSize = 300000;
 
 	// Shader objects.
 	CDirectionalLightShader* mpDirectionalLightShader;
@@ -70,5 +70,14 @@ private:
 	bool InitialiseArrays();
 	unsigned int mVertexCount;
 	unsigned int mIndexCount;
+
+	enum ShaderType
+	{
+		Colour,
+		DirectionalLight,
+		Texture
+	};
+
+	ShaderType mShaderType;
 };
 #endif

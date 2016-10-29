@@ -224,7 +224,7 @@ void CColourShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwn
 	
 	std::string errStr;
 
-	for (int i = 0; i < bufferSize; i++)
+	for (unsigned int i = 0; i < bufferSize; i++)
 	{
 		errStr += compileErrors[i];
 	}

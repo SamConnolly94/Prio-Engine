@@ -56,9 +56,7 @@ void GameLoop(CEngine* &engine)
 	// Variables
 	float frameTime;
 	CCamera* myCam;
-	CMesh* triangleMesh;
 	CMesh* cubeMesh;
-	CModel* triangleModel;
 	CModel* cube;
 	CPrimitive* cube2;
 	CLight* diffuseLight;

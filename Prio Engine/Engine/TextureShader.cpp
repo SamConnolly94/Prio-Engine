@@ -254,7 +254,7 @@ void CTextureShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hw
 	errMsg = "";
 
 	// Compile the error message into a string variable.
-	for (int i = 0; i < bufferSize; i++)
+	for (unsigned int i = 0; i < bufferSize; i++)
 	{
 		errMsg += compileErrors[i];
 	}

@@ -9,43 +9,39 @@ CAssimpManager::~CAssimpManager()
 {
 }
 
-bool CAssimpManager::LoadModelFromFile(const std::string& pFile)
+const aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
 {
 	Assimp::Importer importer;
 
 	mpLogger->GetLogger().WriteLine("Attempting to open " + pFile + " using Assimp.");
 
 	// Read in the file, store this mesh in the scene.
-	mpScene = importer.ReadFile(pFile,
+	const aiScene* scene = importer.ReadFile(pFile,
 								aiProcess_CalcTangentSpace |
 								aiProcess_Triangulate |
 								aiProcess_JoinIdenticalVertices |
 								aiProcess_SortByPType);
+	
 
 	// If scene hasn't been initialised then something has gone wrong!
-	if (!mpScene)
+	if (!scene)
 	{
 		mpLogger->GetLogger().WriteLine(importer.GetErrorString());
 		mpLogger->GetLogger().WriteLine("Failed to create scene.");
-		return false;
+		return nullptr;
 	}
 	
 	// Store the mesh on a list.
-	int i = mpScene->mNumMeshes - 1; // Adjust the number of meshes so we can apply to an array.
-	mpLogger->GetLogger().WriteLine(pFile + " has: \n" + std::to_string(mpScene->mMeshes[i]->mNumFaces) + " faces: \n" + std::to_string(mpScene->mMeshes[i]->mFaces[0].mNumIndices) + " indices \n and "+ std::to_string(mpScene->mMeshes[i]->mNumVertices) + " vertices.");
+	int i = scene->mNumMeshes - 1; // Adjust the number of meshes so we can apply to an array.
+	mpLogger->GetLogger().WriteLine(pFile + " has: \n" + std::to_string(scene->mMeshes[i]->mNumFaces) + " faces, " + std::to_string(scene->mMeshes[i]->mFaces[0].mNumIndices) + " indices and "+ std::to_string(scene->mMeshes[i]->mNumVertices) + " vertices.");
 	mpLogger->GetLogger().WriteLine("No errors were found, assumed success of model loading.");
-	mpMeshes.push_back(mpScene->mMeshes[i]);
 
-	return true;
+	return scene->mMeshes[i];
 }
 
-/* Returns a list of all meshes loaded by Assimp. */
-std::list<aiMesh* > CAssimpManager::GetMeshes()
+const aiScene * CAssimpManager::GetScene()
 {
-	return mpMeshes;
-}
+	Assimp::Importer importer;
 
-aiMesh* CAssimpManager::GetLastLoadedMesh()
-{
-	return mpMeshes.back();
+	return importer.GetScene();
 }

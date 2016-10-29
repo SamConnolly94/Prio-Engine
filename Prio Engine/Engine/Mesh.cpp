@@ -28,8 +28,10 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 	// Allocate memory to the manager of our assimp loader.
 	mpAssimpManager = new CAssimpManager();
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpAssimpManager).name());
-}
 
+	// Default the shader type to colour, we can change this later on circumstantially.
+	mShaderType = Colour;
+}
 
 CMesh::~CMesh()
 {
@@ -148,6 +150,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
 	if (mpTexture)
 	{
+		mShaderType = DirectionalLight;
 		// Initialise our directional light shader.
 		mpDirectionalLightShader = new CDirectionalLightShader();
 		// If the directional light shader is not successfully initialised.
@@ -159,6 +162,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	}
 	else
 	{
+		mShaderType = Colour;
 		// Allocate memory to the colour shader.
 		mpColourShader = new CColourShader();
 		// If the colour shader is not successfully initialised.
@@ -200,7 +204,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 
 		while (lightIt != lights.end())
 		{
-			if (mpDirectionalLightShader)
+			if (mShaderType == DirectionalLight)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour()))
@@ -209,7 +213,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				}
 				lightIt++;
 			}
-			else if (mpColourShader)
+			else if (mShaderType == Colour)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpColourShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj))
@@ -238,11 +242,11 @@ CModel* CMesh::CreateModel()
 	// Create a variable equal to a vertex type.
 	PrioEngine::VertexType vt;
 	// Initialise the vertex type.
-	if (mpDirectionalLightShader)
+	if (mShaderType == DirectionalLight)
 	{
 		vt = PrioEngine::VertexType::Diffuse;
 	}
-	else if (mpColourShader)
+	else if (mShaderType == Colour)
 	{
 		vt = PrioEngine::VertexType::Colour;
 	}
@@ -291,12 +295,16 @@ CModel* CMesh::CreateModel()
 @Returns bool Success*/
 bool CMesh::LoadAssimpModel(char* filename)
 {
-	// Load the mesh into our scene using our manager.
-	mpAssimpManager->LoadModelFromFile(filename);
-
 	// Grab the mesh object for the last mesh we loaded.
-	aiMesh* mesh = mpAssimpManager->GetLastLoadedMesh();
+	const aiMesh* mesh = mpAssimpManager->LoadModelFromFile(filename);
 	
+	if (mesh == nullptr)
+	{
+		mpLogger->GetLogger().WriteLine("Model loaded through assimp was a nullptr, not continuing with this method. ");
+		MessageBox(mHwnd, L"Failed to load mesh. Check logs for more details.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Acquire the number of vertices we will store.
 	mVertexCount = mesh->mNumVertices;
 	
@@ -327,7 +335,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	mpVerticeColours = new D3DXVECTOR4[mVertexCount];
 
 	// Copy vertices from the the assimp manager.
-	for (int i = 0; i < mesh->mNumVertices; i++)
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		mpVertices[i].x = mesh->mVertices[i].x;
 		mpVertices[i].y = mesh->mVertices[i].y;
@@ -387,10 +395,10 @@ bool CMesh::LoadAssimpModel(char* filename)
 	}
 	
 	// Copy indices over to our array.
-	for (int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
+	for (unsigned int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		// Iterate through each index contained in this face.
-		for (int i = 0; i < kNumIndicesInFace; i++)
+		for (unsigned int i = 0; i < kNumIndicesInFace; i++)
 		{
 			// Copy the index from the face into our indices array.
 			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
@@ -573,15 +581,15 @@ bool CMesh::InitialiseArrays()
 				// If memory has been allocated to the mpMatrices variable.
 				if (mpIndices)
 				{
-					D3DXVECTOR3	indices;
+					int index1, index2, index3;
 					// Read in each value.
-					inFile >> indices.x >> indices.y >> indices.z;
+					inFile >> index1 >> index2 >> index3;
 
-					mpIndices[indiceIndex] = indices.x;
+					mpIndices[indiceIndex] = index1;
 					indiceIndex++;
-					mpIndices[indiceIndex] = indices.y;
+					mpIndices[indiceIndex] = index2;
 					indiceIndex++;
-					mpIndices[indiceIndex] = indices.z;
+					mpIndices[indiceIndex] = index3;
 					indiceIndex++;
 				}
 			}

@@ -125,6 +125,9 @@
     <None Include="Engine\Vertex Shaders\Texture.vs.hlsl">
       <Filter>Engine\Vertex Shaders</Filter>
     </None>
+    <None Include="Resources\Models\Cube.obj">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds">
