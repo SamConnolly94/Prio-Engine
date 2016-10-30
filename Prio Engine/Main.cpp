@@ -79,12 +79,11 @@ void GameLoop(CEngine* &engine)
 	cube = cubeMesh->CreateModel();
 	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", false ,PrioEngine::Primitives::cube);
 	cone = coneMesh->CreateModel();
-	cube->AttatchToParent(cube2);
-	//cone->Scale(0.000001f);
+
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(5.0f);
+	cube->SetXPos(0.0f);
 	cone->RotateX(-180.0f);
-	cone->SetXPos(25.0f);
+	cone->SetXPos(5.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();

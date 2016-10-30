@@ -436,7 +436,7 @@ bool CEngine::RemoveMesh(CMesh * mesh)
 	return mpGraphics->RemoveMesh(mesh);
 }
 
-CMesh * CEngine::LoadMesh(char * filename, WCHAR * textureFilename)
+CMesh *const CEngine::LoadMesh(char * filename, WCHAR * textureFilename)
 {
 	return mpGraphics->LoadMesh(filename, textureFilename);
 }

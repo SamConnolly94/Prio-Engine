@@ -33,6 +33,9 @@ const aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
 	
 	// Store the mesh on a list.
 	int i = scene->mNumMeshes - 1; // Adjust the number of meshes so we can apply to an array.
+	aiNode* node;
+	node->F
+	
 	mpLogger->GetLogger().WriteLine(pFile + " has: \n" + std::to_string(scene->mMeshes[i]->mNumFaces) + " faces, " + std::to_string(scene->mMeshes[i]->mFaces[0].mNumIndices) + " indices and "+ std::to_string(scene->mMeshes[i]->mNumVertices) + " vertices.");
 	mpLogger->GetLogger().WriteLine("No errors were found, assumed success of model loading.");
 

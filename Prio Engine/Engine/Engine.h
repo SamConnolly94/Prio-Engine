@@ -68,7 +68,7 @@ public:
 	bool RemovePrimitive(CPrimitive* model);
 	bool RemoveMesh(CMesh* mesh);
 
-	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
+	CMesh *const LoadMesh(char* filename, WCHAR* textureFilename);
 	
 
 	float GetFrameTime();

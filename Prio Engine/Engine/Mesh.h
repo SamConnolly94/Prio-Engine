@@ -59,7 +59,7 @@ public:
 	~CMesh();
 
 	// Loads data from file into our mesh object.
-	CModel* CreateModel();
+	CModel *const CreateModel();
 	bool LoadMesh(char* filename, WCHAR* textureName);
 
 	void Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
@@ -77,6 +77,17 @@ private:
 		DirectionalLight,
 		Texture
 	};
+
+	//// A function which does the equivalent of zero memorying arrays.
+	//template <typename T>
+	//T initArray(T arr, unsigned int size)
+	//{
+	//	for (unsigned int i = 0; i < size; i++)
+	//	{
+	//		arr[i] = 0;
+	//	}
+	//	return arr;
+	//}
 
 	ShaderType mShaderType;
 };

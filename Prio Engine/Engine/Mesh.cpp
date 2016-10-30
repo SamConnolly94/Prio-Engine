@@ -235,7 +235,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 /* Create an instance of this mesh. 
 @Returns CModel* ptr
  */
-CModel* CMesh::CreateModel()
+CModel *const CMesh::CreateModel()
 {
 	// Allocate memory to a model.
 	CModel* model;
@@ -317,7 +317,8 @@ bool CMesh::LoadAssimpModel(char* filename)
 
 	// Allocate memory to the array we will store vertices in.
 	mpVertices = new D3DXVECTOR3[mVertexCount];
-	
+	ZeroMemory(mpVertices, mVertexCount);
+
 	// If we failed to allocate memory to the array.
 	if (!mpVertices)
 	{
@@ -327,12 +328,14 @@ bool CMesh::LoadAssimpModel(char* filename)
 
 	// Allocate memory to the normals array.
 	mpNormals = new D3DXVECTOR3[mVertexCount];
-
+	ZeroMemory(mpNormals, mVertexCount);
+	
 	// Allocate memory to the UV
 	mpUV = new D3DXVECTOR2[mVertexCount];
-
+	ZeroMemory(mpUV, mVertexCount);
 
 	mpVerticeColours = new D3DXVECTOR4[mVertexCount];
+	ZeroMemory(mpUV, mVertexCount);
 
 	// Copy vertices from the the assimp manager.
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -340,6 +343,9 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpVertices[i].x = mesh->mVertices[i].x;
 		mpVertices[i].y = mesh->mVertices[i].y;
 		mpVertices[i].z = mesh->mVertices[i].z;
+
+		/** BUG HERE*******/
+		// To load in vertices need to use mesh->mVertices[mesh->mFaces[meshFaceCount].mIndices[mIndiceCount]];
 
 		// Parse the UV data while we're in the loop anyway.
 		if (mesh->HasTextureCoords(0))
@@ -381,11 +387,19 @@ bool CMesh::LoadAssimpModel(char* filename)
 	}
 
 	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
-	mIndexCount = mesh->mNumFaces * kNumIndicesInFace;
+	mIndexCount = /*mesh->mNumFaces * kNumIndicesInFace*/0;
+	for (unsigned int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
+	{
+		for (unsigned int indexCount = 0; indexCount < mesh->mFaces[faceCount].mNumIndices; indexCount++)
+		{
+			mIndexCount++;
+		}
+	}
 
 	// Allocate memory to the indices array.
 	int indiceCurrIndex = 0;
 	mpIndices = new unsigned long[mIndexCount];
+	ZeroMemory(mpIndices, mIndexCount);
 
 	// Check our indices array was successfully initialised.
 	if (!mpIndices)
@@ -398,7 +412,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	for (unsigned int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
 	{
 		// Iterate through each index contained in this face.
-		for (unsigned int i = 0; i < kNumIndicesInFace; i++)
+		for (unsigned int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
 		{
 			// Copy the index from the face into our indices array.
 			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];

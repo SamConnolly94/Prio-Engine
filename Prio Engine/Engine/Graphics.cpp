@@ -443,7 +443,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 
 
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
-	//mpTriangle = new CModel(red);
+
 	if (!model)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
@@ -577,7 +577,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 	return false;
 }
 
-CMesh * CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
+CMesh *const CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd);
