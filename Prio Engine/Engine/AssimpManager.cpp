@@ -9,7 +9,7 @@ CAssimpManager::~CAssimpManager()
 {
 }
 
-const aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
+aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
 {
 	Assimp::Importer importer;
 
@@ -17,10 +17,10 @@ const aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
 
 	// Read in the file, store this mesh in the scene.
 	const aiScene* scene = importer.ReadFile(pFile,
-								aiProcess_CalcTangentSpace |
-								aiProcess_Triangulate |
-								aiProcess_JoinIdenticalVertices |
-								aiProcess_SortByPType);
+											/* aiProcess_ConvertToLeftHanded |*/
+											aiProcess_JoinIdenticalVertices |
+											aiProcess_Triangulate |
+											aiProcess_SortByPType);
 	
 
 	// If scene hasn't been initialised then something has gone wrong!
@@ -32,11 +32,9 @@ const aiMesh* CAssimpManager::LoadModelFromFile(const std::string& pFile)
 	}
 	
 	// Store the mesh on a list.
-	int i = scene->mNumMeshes - 1; // Adjust the number of meshes so we can apply to an array.
-	aiNode* node;
-	node->F
+	int i = 0; // Adjust the number of meshes so we can apply to an array.
 	
-	mpLogger->GetLogger().WriteLine(pFile + " has: \n" + std::to_string(scene->mMeshes[i]->mNumFaces) + " faces, " + std::to_string(scene->mMeshes[i]->mFaces[0].mNumIndices) + " indices and "+ std::to_string(scene->mMeshes[i]->mNumVertices) + " vertices.");
+	mpLogger->GetLogger().WriteLine(pFile + " has: " + std::to_string(scene->mMeshes[i]->mNumFaces) + " faces, " + std::to_string(scene->mMeshes[i]->mFaces[0].mNumIndices) + " indices and "+ std::to_string(scene->mMeshes[i]->mNumVertices) + " vertices.");
 	mpLogger->GetLogger().WriteLine("No errors were found, assumed success of model loading.");
 
 	return scene->mMeshes[i];

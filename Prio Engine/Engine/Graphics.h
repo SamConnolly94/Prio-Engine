@@ -72,7 +72,7 @@ public:
 	bool RemovePrimitive(CPrimitive* &model);
 
 	// Model creation / deletion.
-	CMesh *const LoadMesh(char* filename, WCHAR* textureFilename);
+	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
 	bool RemoveMesh(CMesh* &mesh);
 
 	CLight* CreateLight(D3DXVECTOR4 colour);

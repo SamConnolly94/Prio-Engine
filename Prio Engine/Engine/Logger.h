@@ -30,6 +30,7 @@ public:
 	CLogger(CLogger const&) = delete;
 	void operator = (CLogger const&) = delete;
 private:
+	const std::string k256Astericks = "****************************************************************************************************************************************************************************************************************************************************************";
 	// A boolean flag which is toggled on / off depending on if _LOGGING_ENABLED is defined by the preprocessor and successfully opening the log file.
 	bool mLoggingEnabled;
 
@@ -47,6 +48,9 @@ public:
 
 	void MemoryAllocWriteLine(std::string name);
 	void MemoryDeallocWriteLine(std::string name);
+
+	void WriteSubtitle(std::string name);
+	void CloseSubtitle();
 
 	void Shutdown();
 };

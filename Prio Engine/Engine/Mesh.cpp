@@ -138,6 +138,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		mpTexture = new CTexture();
 		mpTexture->Initialise(mpDevice, textureName);
+		mShaderType = DirectionalLight;
 	}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
@@ -148,9 +149,8 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	mFileExtension = mFilename.substr(extensionLocation, mFilename.length());
 
 	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
-	if (mpTexture)
+	if (mShaderType == DirectionalLight)
 	{
-		mShaderType = DirectionalLight;
 		// Initialise our directional light shader.
 		mpDirectionalLightShader = new CDirectionalLightShader();
 		// If the directional light shader is not successfully initialised.
@@ -160,9 +160,8 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 			mpLogger->GetLogger().WriteLine("Failed to initialise the directional light shader in mesh object.");
 		}
 	}
-	else
+	else if (mShaderType == Colour)
 	{
-		mShaderType = Colour;
 		// Allocate memory to the colour shader.
 		mpColourShader = new CColourShader();
 		// If the colour shader is not successfully initialised.
@@ -235,7 +234,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 /* Create an instance of this mesh. 
 @Returns CModel* ptr
  */
-CModel *const CMesh::CreateModel()
+CModel* CMesh::CreateModel()
 {
 	// Allocate memory to a model.
 	CModel* model;
@@ -295,10 +294,17 @@ CModel *const CMesh::CreateModel()
 @Returns bool Success*/
 bool CMesh::LoadAssimpModel(char* filename)
 {
-	// Grab the mesh object for the last mesh we loaded.
-	const aiMesh* mesh = mpAssimpManager->LoadModelFromFile(filename);
+	mpLogger->GetLogger().WriteSubtitle(mFilename);
+
+	mpMesh = mpAssimpManager->LoadModelFromFile(filename);
+	mpLogger->GetLogger().WriteLine("");
+	mpLogger->GetLogger().WriteLine("Mesh just loaded in. ");
+	mpLogger->GetLogger().WriteLine("Number of faces is : " + std::to_string(mpMesh->mNumFaces) + " and the number of indices in the first face is : " + std::to_string(mpMesh->mFaces[0].mNumIndices));
+	mpLogger->GetLogger().WriteLine("Number of vertices is : " + std::to_string(mpMesh->mNumVertices));
+	mpLogger->GetLogger().WriteLine("Texcoords in first face are : " + std::to_string(mpMesh->mTextureCoords[0][0].x ) + ", " + std::to_string(mpMesh->mTextureCoords[0][0].y));
 	
-	if (mesh == nullptr)
+	mpLogger->GetLogger().WriteLine("");
+	if (mpMesh == nullptr)
 	{
 		mpLogger->GetLogger().WriteLine("Model loaded through assimp was a nullptr, not continuing with this method. ");
 		MessageBox(mHwnd, L"Failed to load mesh. Check logs for more details.", L"Error", MB_OK);
@@ -306,7 +312,8 @@ bool CMesh::LoadAssimpModel(char* filename)
 	}
 
 	// Acquire the number of vertices we will store.
-	mVertexCount = mesh->mNumVertices;
+	mVertexCount = mpMesh->mNumVertices;
+	mpLogger->GetLogger().WriteLine("The vertex count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mVertexCount));
 	
 	// Check that the mesh has a valid number of vertices, sometimes inconsistencies in loading will cause it not to.
 	if (mVertexCount > kCuttoffSize)
@@ -315,9 +322,27 @@ bool CMesh::LoadAssimpModel(char* filename)
 		return false;
 	}
 
+	mNumFaces = mpMesh->mNumFaces;
+	FaceStruct* indexArray = new FaceStruct[mNumFaces];
+	mpLogger->GetLogger().WriteLine("The number of faces set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mNumFaces));
+
+	for (int i = 0; i < mNumFaces; i++)
+	{
+		indexArray[i].x = 0;
+		indexArray[i].y = 0;
+		indexArray[i].z = 0;
+	}
+
+	mpLogger->GetLogger().WriteLine("The index array has set all elements to null.");
+
+	// Vertices may repeat, but that's okay. It'll save us hassle in the long run.
+	mIndexCount = mNumFaces * kNumIndicesInFace;
+	mpLogger->GetLogger().WriteLine("The index count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mIndexCount));
+
 	// Allocate memory to the array we will store vertices in.
 	mpVertices = new D3DXVECTOR3[mVertexCount];
 	ZeroMemory(mpVertices, mVertexCount);
+	mpLogger->GetLogger().WriteLine("The mpVertices array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
 
 	// If we failed to allocate memory to the array.
 	if (!mpVertices)
@@ -329,98 +354,106 @@ bool CMesh::LoadAssimpModel(char* filename)
 	// Allocate memory to the normals array.
 	mpNormals = new D3DXVECTOR3[mVertexCount];
 	ZeroMemory(mpNormals, mVertexCount);
-	
+	mpLogger->GetLogger().WriteLine("The normals array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
+
 	// Allocate memory to the UV
 	mpUV = new D3DXVECTOR2[mVertexCount];
 	ZeroMemory(mpUV, mVertexCount);
+	mpLogger->GetLogger().WriteLine("The UV array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector2 to use.");
 
 	mpVerticeColours = new D3DXVECTOR4[mVertexCount];
 	ZeroMemory(mpUV, mVertexCount);
+	mpLogger->GetLogger().WriteLine("The colours array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
 
-	// Copy vertices from the the assimp manager.
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+	/** BUG HERE*******/
+	// To load in vertices need to use mesh->mVertices[mesh->mFaces[meshFaceCount].mIndices[mIndiceCount]];
+	unsigned int vertexCount = 0;
+
+	for (unsigned int vertexCount = 0; vertexCount < mpMesh->mNumVertices; vertexCount++)
 	{
-		mpVertices[i].x = mesh->mVertices[i].x;
-		mpVertices[i].y = mesh->mVertices[i].y;
-		mpVertices[i].z = mesh->mVertices[i].z;
+		// Parse a singular vertex info.
+		const aiVector3D vertexCoords = mpMesh->mVertices[vertexCount];
 
-		/** BUG HERE*******/
-		// To load in vertices need to use mesh->mVertices[mesh->mFaces[meshFaceCount].mIndices[mIndiceCount]];
+		// Load the vertex info into our array.
+		mpVertices[vertexCount].x = vertexCoords.x;
+		mpVertices[vertexCount].y = vertexCoords.y;
+		mpVertices[vertexCount].z = vertexCoords.z;
 
-		// Parse the UV data while we're in the loop anyway.
-		if (mesh->HasTextureCoords(0))
-		{
-			mpUV[i].x = mesh->mTextureCoords[0][i].x;
-			mpUV[i].y = mesh->mTextureCoords[0][i].y;
-		}
-		else
-		{
-			mpUV[i].x = NULL;
-			mpUV[i].y = NULL;
-		}
+		// Parse information on the UV of a singular vertex.
+		const aiVector3D textureCoords = mpMesh->mTextureCoords[0][vertexCount];
 
-		// Parse the normals too!
-		if (mesh->HasNormals())
-		{
-			mpNormals[i].x = mesh->mNormals[i].x;
-			mpNormals[i].y = mesh->mNormals[i].y;
-			mpNormals[i].z = mesh->mNormals[i].z;
-		}
-		else
-		{
-			mpNormals[i].x = NULL;
-			mpNormals[i].y = NULL;
-			mpNormals[i].z = NULL;
-		}
+		// Only need to parse the U and V channels.
+		mpUV[vertexCount].x = textureCoords.x;
+		mpUV[vertexCount].y = textureCoords.y;
 
-		// If the mesh has colours.
-		if (mesh->HasVertexColors(i))
+		// Load the normals data of this singular vertex.
+		const aiVector3D normals = mpMesh->mNormals[vertexCount];
+
+		// Store this normals data in our array.
+		mpNormals[vertexCount].x = normals.x;
+		mpNormals[vertexCount].y = normals.y;
+		mpNormals[vertexCount].z = normals.z;
+	}
+
+	mpLogger->GetLogger().WriteLine("Successfully initialised our arrays for mesh '" + mFilename + "'. ");
+
+	for (unsigned int faceCount = 0; faceCount < mNumFaces; faceCount++)
+	{
+		const aiFace& face = mpMesh->mFaces[faceCount];
+		mpLogger->GetLogger().WriteLine("face number " + std::to_string(faceCount) + " has " + std::to_string(face.mNumIndices) + " indices.");
+
+		for (unsigned int index = 0; index < kNumIndicesInFace; index++)
 		{
-			// Grab the colours and store it in the colour array. Probably no point colouring if we're texturing though.
-			mpVerticeColours[i] = D3DXVECTOR4{ mesh->mColors[0][i].r, mesh->mColors[i]->g, mesh->mColors[i]->b, mesh->mColors[i]->a };
-		}
-		else
-		{
-			// Doesn't have colours, so just default to black.
-			mpVerticeColours[i] = D3DXVECTOR4{ PrioEngine::Colours::black.r, PrioEngine::Colours::black.g, PrioEngine::Colours::black.b, PrioEngine::Colours::black.a };
+
+			// Store index data too!
+			// Copy the index from the face into our indices array.
+			if (index == 0)
+			{
+				indexArray[faceCount].x = face.mIndices[index];
+			}
+			else if (index == 1)
+			{
+				indexArray[faceCount].y = face.mIndices[index];
+			}
+			else if (index == 2)
+			{
+				indexArray[faceCount].z = face.mIndices[index];
+			}
+
+
+			// Increment the vertex count.
+			vertexCount++;
 		}
 	}
 
-	// We can predict there will be 3 indices in every face as they form a triangle, so multiple the faces by 3 to calculate our total number of indices.
-	mIndexCount = /*mesh->mNumFaces * kNumIndicesInFace*/0;
-	for (unsigned int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
-	{
-		for (unsigned int indexCount = 0; indexCount < mesh->mFaces[faceCount].mNumIndices; indexCount++)
-		{
-			mIndexCount++;
-		}
-	}
+	mpLogger->GetLogger().WriteLine("Successfully initialised index our arrays too for mesh '" + mFilename + "'. ");
 
-	// Allocate memory to the indices array.
-	int indiceCurrIndex = 0;
-	mpIndices = new unsigned long[mIndexCount];
-	ZeroMemory(mpIndices, mIndexCount);
-
-	// Check our indices array was successfully initialised.
-	if (!mpIndices)
+	mpIndices = new unsigned long[mNumFaces * kNumIndicesInFace];
+	unsigned int count = 0;
+	for (int faceCount = 0; faceCount < mNumFaces; faceCount++)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the indices array.");
-		return false;
-	}
-	
-	// Copy indices over to our array.
-	for (unsigned int faceCount = 0; faceCount < mesh->mNumFaces; faceCount++)
-	{
-		// Iterate through each index contained in this face.
-		for (unsigned int i = 0; i < mesh->mFaces[faceCount].mNumIndices; i++)
+		for (int index = 0; index < kNumIndicesInFace; index++)
 		{
 			// Copy the index from the face into our indices array.
-			mpIndices[indiceCurrIndex] = mesh->mFaces[faceCount].mIndices[i];
-
-			indiceCurrIndex++;
+			if (index == 0)
+			{
+				mpIndices[count] = indexArray[faceCount].x;
+			}
+			else if (index == 1)
+			{
+				mpIndices[count] = indexArray[faceCount].y;
+			}
+			else if (index == 2)
+			{
+				mpIndices[count] = indexArray[faceCount].z;
+			}
+			count++;
 		}
 	}
 
+	mpLogger->GetLogger().WriteLine("Moved data index data out of struct and into unsigned long array for mesh '" + mFilename + "'. ");
+
+	mpLogger->GetLogger().CloseSubtitle();
 	// Success!
 	return true;
 }

@@ -177,9 +177,6 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 /* Sets the vertex array of a mesh which has been loaded in. */
 void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV, D3DXVECTOR3* normals)
 {
-	float U = 0.0f;
-	float V = 0.0f;
-
 	if (!mpVerticesDiffuse)
 	{
 		mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];

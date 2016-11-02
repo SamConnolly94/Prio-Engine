@@ -577,7 +577,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 	return false;
 }
 
-CMesh *const CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
+CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd);

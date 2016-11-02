@@ -117,6 +117,23 @@ void CLogger::MemoryDeallocWriteLine(std::string name)
 	}
 }
 
+/* Writes a new section to our log, helps with clarity and ease of reading. */
+void CLogger::WriteSubtitle(std::string name)
+{
+	WriteLine("");
+	WriteLine(k256Astericks);
+	WriteLine(name);
+	WriteLine(k256Astericks);
+	WriteLine("");
+}
+
+/* Closes the section to our log ready to start a new one.*/
+void CLogger::CloseSubtitle()
+{
+	WriteLine(k256Astericks);
+	WriteLine("");
+}
+
 void CLogger::Shutdown()
 {
 	if (mMemoryLogFile.is_open())

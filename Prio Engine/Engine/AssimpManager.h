@@ -14,7 +14,7 @@
 		CAssimpManager();
 		~CAssimpManager();
 
-		const aiMesh* LoadModelFromFile(const std::string& pFile);
+		aiMesh* LoadModelFromFile(const std::string& pFile);
 		const aiScene* GetScene();
 	private:
 		CLogger* mpLogger;

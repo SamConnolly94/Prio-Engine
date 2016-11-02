@@ -60,8 +60,8 @@ void GameLoop(CEngine* &engine)
 	CModel* cube;
 	CPrimitive* cube2;
 	CLight* diffuseLight;
-	CMesh* coneMesh;
-	CModel* cone;
+	CMesh* coneMesh = nullptr;
+	CModel* cone = nullptr;
 
 	// Camera init.
 	myCam = engine->CreateCamera();

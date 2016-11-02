@@ -53,13 +53,14 @@ private:
 	D3DXVECTOR2* mpUV;
 	D3DXVECTOR3* mpNormals;
 	D3DXVECTOR4* mpVerticeColours;
+	unsigned int mNumFaces;
 
 public:
 	CMesh(ID3D11Device* device, HWND hwnd);
 	~CMesh();
 
 	// Loads data from file into our mesh object.
-	CModel *const CreateModel();
+	CModel* CreateModel();
 	bool LoadMesh(char* filename, WCHAR* textureName);
 
 	void Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
@@ -77,18 +78,17 @@ private:
 		DirectionalLight,
 		Texture
 	};
+	
+	struct FaceStruct
+	{
+		unsigned int x;
+		unsigned int y;
+		unsigned int z;
+	};
 
-	//// A function which does the equivalent of zero memorying arrays.
-	//template <typename T>
-	//T initArray(T arr, unsigned int size)
-	//{
-	//	for (unsigned int i = 0; i < size; i++)
-	//	{
-	//		arr[i] = 0;
-	//	}
-	//	return arr;
-	//}
 
 	ShaderType mShaderType;
+	// Grab the mesh object for the last mesh we loaded.
+	const aiMesh* mpMesh = nullptr;
 };
 #endif
