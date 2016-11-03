@@ -62,7 +62,7 @@ public:
 	CPrimitive* CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape);
 	
-	CLight* CreateLight(D3DXVECTOR4 colour);
+	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	bool RemoveLight(CLight* &light);
 
 	bool RemovePrimitive(CPrimitive* model);

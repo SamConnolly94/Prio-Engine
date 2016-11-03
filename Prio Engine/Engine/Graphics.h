@@ -76,7 +76,7 @@ public:
 	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, ShaderType shaderType);
 	bool RemoveMesh(CMesh* &mesh);
 
-	CLight* CreateLight(D3DXVECTOR4 colour);
+	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	bool RemoveLight(CLight* &light);
 	/* Camera control, required by the engine. */
 	CCamera* CreateCamera();

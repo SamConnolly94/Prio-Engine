@@ -105,7 +105,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 		mpTexture->Initialise(mpDevice, textureName);
 		if (mShaderType == Colour)
 		{
-			mShaderType = DirectionalLight;
+			mShaderType = Diffuse;
 		} 
 	}
 
@@ -117,7 +117,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	mFileExtension = mFilename.substr(extensionLocation, mFilename.length());
 
 	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
-	if (mShaderType == DirectionalLight)
+	if (mShaderType == Diffuse)
 	{
 		// Initialise our directional light shader.
 		mpDirectionalLightShader = new CDirectionalLightShader();
@@ -182,10 +182,10 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 
 		while (lightIt != lights.end())
 		{
-			if (mShaderType == DirectionalLight)
+			if (mShaderType == Diffuse)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
-				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour()))
+				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour()))
 				{
 					mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
 				}
@@ -229,7 +229,7 @@ CModel* CMesh::CreateModel()
 	// Create a variable equal to a vertex type.
 	PrioEngine::VertexType vt;
 	// Initialise the vertex type.
-	if (mShaderType == DirectionalLight)
+	if (mShaderType == Diffuse)
 	{
 		vt = PrioEngine::VertexType::Diffuse;
 	}

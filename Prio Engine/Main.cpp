@@ -59,7 +59,7 @@ void GameLoop(CEngine* &engine)
 	CMesh* cubeMesh;
 	CModel* cube;
 	CPrimitive* cube2;
-	CLight* diffuseLight;
+	CLight* ambientLight;
 	CMesh* coneMesh = nullptr;
 	CModel* cone = nullptr;
 
@@ -68,12 +68,12 @@ void GameLoop(CEngine* &engine)
 	myCam->SetPositionZ(-20.0f);
 
 	// Light init
-	diffuseLight = engine->CreateLight(D3DXVECTOR4{ 9.0f, 10.0f, 8.0f, 1.0f });
-	diffuseLight->SetDirection({ 0.5f, -0.5f, 0.5f });
+	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
+	ambientLight->SetDirection({ 0.5f, -0.5f, 0.5f });
 
 	// Mesh init
-	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds");
-	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", Texture);
+	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", Diffuse);
+	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", Diffuse);
 
 	// Model init.
 	cube = cubeMesh->CreateModel();

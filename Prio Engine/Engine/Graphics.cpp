@@ -280,7 +280,7 @@ bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3D
 	// Render each diffuse light in the list.
 	do
 	{
-		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(),(*it)->GetDirection(), (*it)->GetDiffuseColour());
+		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(),(*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
 		it++;
 	} while (it != mpLights.end());
 
@@ -583,7 +583,7 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 	CMesh* mesh;
 	if (textureFilename != L"" && textureFilename != NULL)
 	{
-		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, DirectionalLight);
+		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, Diffuse);
 	}
 	else
 	{
@@ -667,7 +667,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 }
 
 /* Create an instance of a light and return a pointer to it. */
-CLight * CGraphics::CreateLight(D3DXVECTOR4 colour)
+CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
 	CLight* light = new CLight();
 	if (!light)
@@ -679,7 +679,8 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 colour)
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(light).name());
 
 	// Set the colour to our colour variable passed in.
-	light->SetDiffuseColour({ colour.x, colour.y, colour.z, colour.z });
+	light->SetDiffuseColour(diffuseColour);
+	light->SetAmbientColour(ambientColour);
 	light->SetDirection({ 1.0f, 1.0f, 1.0f });
 	
 	// Stick the new instance on a list so we can track it, we can then ensure there are no memory leaks.

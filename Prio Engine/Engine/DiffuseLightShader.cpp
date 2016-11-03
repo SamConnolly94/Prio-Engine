@@ -37,12 +37,12 @@ void CDirectionalLightShader::Shutdown()
 }
 
 bool CDirectionalLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
+	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour, ambientColour);
 	if (!result)
 	{
 		return false;
@@ -305,7 +305,7 @@ void CDirectionalLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage,
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CDirectionalLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour)
+bool CDirectionalLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -358,6 +358,7 @@ bool CDirectionalLightShader::SetShaderParameters(ID3D11DeviceContext * deviceCo
 
 	// Copy the lighting variables into the constant buffer.
 	dataPtr2->diffuseColour = diffuseColour;
+	dataPtr2->ambientColour = ambientColour;
 	dataPtr2->lightDirection = lightDirection;
 	dataPtr2->padding = 0.0f;
 

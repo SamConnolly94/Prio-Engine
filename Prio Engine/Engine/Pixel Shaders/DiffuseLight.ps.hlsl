@@ -4,6 +4,7 @@ SamplerState SampleType;
 
 cbuffer LightBuffer
 {
+	float4 ambientColour;
 	float4 diffuseColour;
 	float3 lightDirection;
 	float padding;
@@ -28,14 +29,22 @@ float4 LightPixelShader(PixelInputType input) : SV_TARGET
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	textureColour = shaderTexture.Sample(SampleType, input.tex);
 
+	// Set the colour to the ambient colour.
+	colour = ambientColour;
+
 	// Invert the light direction for calculations.
 	lightDir = -lightDirection;
 
 	// Calculate the amount of light on this pixel.
 	lightIntensity = saturate(dot(input.normal, lightDir));
 
+	if (lightIntensity > 0.0f)
+	{
+		colour += (diffuseColour * lightIntensity);
+	}
+
 	// Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.
-	colour = saturate(diffuseColour * lightIntensity);
+	colour = saturate(colour);
 
 	// Multiply the texture pixel and the final diffuse color to get the final pixel color result.
 	colour = colour * textureColour;

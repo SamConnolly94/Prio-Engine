@@ -19,7 +19,7 @@
 enum ShaderType
 {
 	Colour,
-	DirectionalLight,
+	Diffuse,
 	Texture
 };
 

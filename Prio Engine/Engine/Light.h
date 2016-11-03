@@ -11,14 +11,17 @@ public:
 	CLight();
 	~CLight();
 
-	void SetDiffuseColour(PrioEngine::RGBA colour);
+	void SetAmbientColour(D3DXVECTOR4 colour);
+	void SetDiffuseColour(D3DXVECTOR4 colour);
 	void SetDirection(D3DXVECTOR3 direction);
 
 	D3DXVECTOR4 GetDiffuseColour();
+	D3DXVECTOR4 GetAmbientColour();
 	D3DXVECTOR3 GetDirection();
 
 private:
 	D3DXVECTOR4 mDiffuseColour;
+	D3DXVECTOR4 mAmbientColour;
 	D3DXVECTOR3 mDirection;
 };
 
