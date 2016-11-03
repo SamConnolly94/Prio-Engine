@@ -73,6 +73,7 @@ public:
 
 	// Model creation / deletion.
 	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
+	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, ShaderType shaderType);
 	bool RemoveMesh(CMesh* &mesh);
 
 	CLight* CreateLight(D3DXVECTOR4 colour);

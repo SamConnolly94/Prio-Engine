@@ -218,6 +218,13 @@ void CModelControl::SetScale(float x, float y, float z)
 	mScale.z = z;
 }
 
+void CModelControl::SetScale(float value)
+{
+	mScale.x = value;
+	mScale.y = value;
+	mScale.z = value;
+}
+
 void CModelControl::AttatchToParent(CModelControl * parent)
 {
 	mpParent = parent;

@@ -44,9 +44,13 @@ void CModel::UpdateMatrices()
 	D3DXMATRIX matrixRotationZ;
 
 	// Calculate the rotation of the model.
-	D3DXMatrixRotationX(&matrixRotationX, GetRotationX());
-	D3DXMatrixRotationY(&matrixRotationY, GetRotationY());
-	D3DXMatrixRotationZ(&matrixRotationZ, GetRotationZ());
+	float rotX = (GetRotationX() * PrioEngine::kPi) / 180.0f;
+	float rotY = (GetRotationY() * PrioEngine::kPi) / 180.0f;
+	float rotZ = (GetRotationZ() * PrioEngine::kPi) / 180.0f;
+
+	D3DXMatrixRotationX(&matrixRotationX, rotX);
+	D3DXMatrixRotationY(&matrixRotationY, rotY);
+	D3DXMatrixRotationZ(&matrixRotationZ, rotZ);
 
 	// Calculate scaling.
 	D3DXMatrixScaling(&scale, GetScaleX(), GetScaleY(), GetScaleZ());
@@ -77,6 +81,58 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	// Create the points of the model.
 	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, UV, normals);
+
+	// Create the vertex buffer.
+	if (!mpVertexManager->CreateVertexBuffer())
+	{
+		return false;
+	}
+
+	/* Set up the descriptor of the index buffer. */
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * mIndicesCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	/* Give the subresource structure a pointer to the index data. */
+	unsigned long* indices = new unsigned long[mIndicesCount];
+	for (int i = 0; i < mIndicesCount; i++)
+	{
+		indices[i] = indicesList[i];
+	}
+
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// Create the index buffer.
+	result = mpDevice->CreateBuffer(&indexBufferDesc, &indexData, &mpIndexBuffer);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	mpVertexManager->CleanArrays();
+	delete[] indices;
+	return true;
+}
+
+bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indicesList, std::vector<D3DXVECTOR2> UV)
+{
+	D3D11_BUFFER_DESC indexBufferDesc;
+	D3D11_SUBRESOURCE_DATA indexData;
+	HRESULT result;
+
+	// Set the number of vertices in the vertex array.
+	mpVertexManager->SetNumberOfVertices(mVerticesCount);
+
+	// Create a vertex array
+	mpVertexManager->CreateVertexArray();
+
+	// Create the points of the model.
+	mpVertexManager->SetVertexArray(0.0f, 0.0f, 0.0f, vertices, UV);
 
 	// Create the vertex buffer.
 	if (!mpVertexManager->CreateVertexBuffer())

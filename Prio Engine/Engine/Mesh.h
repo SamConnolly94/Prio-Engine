@@ -9,11 +9,19 @@
 #include "Texture.h"
 #include "DiffuseLightShader.h"
 #include "ColourShader.h"
+#include "TextureShader.h"
 #include "Light.h"
 #include <vector>
 #include "Dependencies/assimp-3.3.1/include/assimp/Importer.hpp"
 #include "Dependencies/assimp-3.3.1/include\assimp/scene.h"
 #include "Dependencies/assimp-3.3.1/include/assimp/postprocess.h"
+
+enum ShaderType
+{
+	Colour,
+	DirectionalLight,
+	Texture
+};
 
 class CMesh
 {
@@ -24,12 +32,9 @@ private:
 	// Pointer to the device object.
 	ID3D11Device* mpDevice;
 
-	// Constants.
-	const unsigned int kNumIndicesInFace = 3;
-	const unsigned int kCuttoffSize = 300000;
-
 	// Shader objects.
 	CDirectionalLightShader* mpDirectionalLightShader;
+	CTextureShader* mpTextureShader;
 	CColourShader* mpColourShader;
 
 	// File strings
@@ -48,14 +53,13 @@ private:
 	CTexture* mpTexture;
 
 	// Arrays to store data about vertices in.
-	unsigned int mNumFaces;
 	std::vector<D3DXVECTOR3> mpVerticesList;
 	std::vector<D3DXVECTOR2> mpUVList;
 	std::vector<D3DXVECTOR3> mpNormalsList;
 	std::vector<D3DXVECTOR4> mpVertexColourList;
 	std::vector<unsigned long> mpIndicesList;
 public:
-	CMesh(ID3D11Device* device, HWND hwnd);
+	CMesh(ID3D11Device* device, HWND hwnd, ShaderType shaderType);
 	~CMesh();
 
 	// Loads data from file into our mesh object.
@@ -70,13 +74,6 @@ private:
 	bool InitialiseArrays();
 	unsigned int mVertexCount;
 	unsigned int mIndexCount;
-
-	enum ShaderType
-	{
-		Colour,
-		DirectionalLight,
-		Texture
-	};
 	
 	struct FaceStruct
 	{

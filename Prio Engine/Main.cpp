@@ -50,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 void GameLoop(CEngine* &engine)
 {
 	// Constants.
-	const float kRotationSpeed = 1.0f;
+	const float kRotationSpeed = 100.0f;
 	const float kMovementSpeed = 1.0f;
 
 	// Variables
@@ -73,7 +73,7 @@ void GameLoop(CEngine* &engine)
 
 	// Mesh init
 	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds");
-	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png");
+	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", Texture);
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
@@ -83,6 +83,8 @@ void GameLoop(CEngine* &engine)
 	cube2->SetXPos(-5.0f);
 	cube->SetXPos(0.0f);
 	cone->SetXPos(5.0f);
+	cone->SetRotationX(90.0f);
+	cone->SetScale(10.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();

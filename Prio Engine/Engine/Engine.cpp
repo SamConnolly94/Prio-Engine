@@ -441,6 +441,11 @@ CMesh* CEngine::LoadMesh(char * filename, WCHAR * textureFilename)
 	return mpGraphics->LoadMesh(filename, textureFilename);
 }
 
+CMesh* CEngine::LoadMesh(char * filename, WCHAR * textureFilename, ShaderType shaderType)
+{
+	return mpGraphics->LoadMesh(filename, textureFilename, shaderType);
+}
+
 /* Create a primitive shape and place it in our world, may pass in diffuse lighting boolean to indicate wether it should be used. */
 CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape)
 {

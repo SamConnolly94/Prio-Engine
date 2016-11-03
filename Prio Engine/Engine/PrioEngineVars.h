@@ -1,10 +1,14 @@
 #ifndef PRIOTYPES_H
 #define PRIOTYPES_H
 
+
+
 #include <windows.h>
 
 namespace PrioEngine
 {
+	const float kPi = 3.14159265359f;
+
 	// Defines 3 floats for use with 3D coordinates.
 	typedef struct Coords
 	{

@@ -1,9 +1,9 @@
 #include "Mesh.h"
 
-CMesh::CMesh(ID3D11Device* device, HWND hwnd)
+CMesh::CMesh(ID3D11Device* device, HWND hwnd, ShaderType shaderType)
 {
 	// Initialise our counter variables to the default values.
-	mVertexCount  = 0;
+	mVertexCount = 0;
 	mIndexCount = 0;
 
 	// Store the handle to our main window.
@@ -19,7 +19,14 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 	mpTexture = nullptr;
 
 	// Default the shader type to colour, we can change this later on circumstantially.
-	mShaderType = Colour;
+	if (shaderType != NULL)
+	{
+		mShaderType = shaderType;
+	}
+	else
+	{
+		mShaderType = Colour;
+	}
 }
 
 CMesh::~CMesh()
@@ -45,6 +52,26 @@ CMesh::~CMesh()
 		mpDirectionalLightShader = nullptr;
 	}
 
+	if (mpColourShader)
+	{
+		// Deallocate memory.
+		delete mpColourShader;
+		// Write the deallocation message to the memory log.
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpColourShader).name());
+		// Set the colour shader pointer to be default value.
+		mpColourShader = nullptr;
+	}
+
+	if (mpTextureShader)
+	{
+		// Deallocate memory.
+		delete mpTextureShader;
+		// Write the deallocation message to the memory log.
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+		// Set the mpTextureShader shader pointer to be default value.
+		mpTextureShader = nullptr;
+	}
+		
 	// If the texture has been allocated memory.
 	if (mpTexture)
 	{
@@ -55,17 +82,6 @@ CMesh::~CMesh()
 		// Set the texture pointer to be a default value.
 		mpTexture = nullptr;
 	}
-
-	//// If the indices array has been allocated memory.
-	//if (mpIndices)
-	//{
-	//	// Deallocate memory given to the indices array.
-	//	delete[] mpIndices;
-	//	// Output the deallocation message to the log.
-	//	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
-	//	// Set the pointer to the indices array to be a default value.
-	//	mpIndices = nullptr;
-	//}
 }
 
 /* Load data from file into our mesh object. */
@@ -87,7 +103,10 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		mpTexture = new CTexture();
 		mpTexture->Initialise(mpDevice, textureName);
-		mShaderType = DirectionalLight;
+		if (mShaderType == Colour)
+		{
+			mShaderType = DirectionalLight;
+		} 
 	}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
@@ -107,6 +126,17 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 		{
 			// Output failure message to the log.
 			mpLogger->GetLogger().WriteLine("Failed to initialise the directional light shader in mesh object.");
+		}
+	}
+	else if (mShaderType == Texture)
+	{
+		// Allocate memory to the texture shader.
+		mpTextureShader = new CTextureShader();
+		// If the texture shader is not successfully initialised.
+		if (!mpTextureShader->Initialise(mpDevice, mHwnd))
+		{
+			// output failure message to the log.
+			mpLogger->GetLogger().WriteLine("Failed to initialise the colour shader in mesh object.");
 		}
 	}
 	else if (mShaderType == Colour)
@@ -161,6 +191,15 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				}
 				lightIt++;
 			}
+			else if (mShaderType == Texture)
+			{
+				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+				if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture()))
+				{
+					mpLogger->GetLogger().WriteLine("Failed to render the mesh model.");
+				}
+				lightIt++;
+			}
 			else if (mShaderType == Colour)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
@@ -194,6 +233,10 @@ CModel* CMesh::CreateModel()
 	{
 		vt = PrioEngine::VertexType::Diffuse;
 	}
+	else if (mShaderType == Texture)
+	{
+		vt = PrioEngine::VertexType::Texture;
+	}
 	else if (mShaderType == Colour)
 	{
 		vt = PrioEngine::VertexType::Colour;
@@ -223,6 +266,10 @@ CModel* CMesh::CreateModel()
 	{
 		model->SetGeometry(mpVerticesList, mpIndicesList, mpUVList, mpNormalsList);
 	}
+	else if (mpTextureShader)
+	{
+		model->SetGeometry(mpVerticesList, mpIndicesList, mpUVList);
+	}
 	else if (mpColourShader)
 	{
 		model->SetGeometry(mpVerticesList, mpIndicesList, mpVertexColourList);
@@ -251,7 +298,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 
 	// Read in the file, store this mesh in the scene.
 	const aiScene* scene = importer.ReadFile(filename,
-		/* aiProcess_ConvertToLeftHanded |*/
+		aiProcess_ConvertToLeftHanded |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_Triangulate |
 		aiProcess_SortByPType);
@@ -264,38 +311,15 @@ bool CMesh::LoadAssimpModel(char* filename)
 		mpLogger->GetLogger().WriteLine("Failed to create scene.");
 		return nullptr;
 	}
-/* mpAssimpManager->LoadModelFromFile(filename); */
 
-	mpLogger->GetLogger().WriteLine("");
-	mpLogger->GetLogger().WriteLine("Mesh just loaded in. ");
-	
-	mpLogger->GetLogger().WriteLine("");
-
-
-
-	// Acquire the number of vertices we will store.
-	//mVertexCount = mpMesh->mNumVertices;
-	mpLogger->GetLogger().WriteLine("The vertex count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mVertexCount));
-
-	// Acquire the number of faces contained within this mesh.
-	//mNumFaces = mpMesh->mNumFaces;
-
-	// Output message to the user to let them know we've initialise it to 0.
-	mpLogger->GetLogger().WriteLine("The index array has set all elements to null.");
-
-	// Vertices may repeat, but that's okay. It'll save us hassle in the long run.
-	mIndexCount = mNumFaces * kNumIndicesInFace;
-	mpLogger->GetLogger().WriteLine("The index count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mIndexCount));
-
-	/** BUG HERE*******/
-	// To load in vertices need to use mesh->mVertices[mesh->mFaces[meshFaceCount].mIndices[mIndiceCount]];
+	// Iterate through all our meshes to be loaded.
 	for (int meshCount = 0; meshCount < scene->mNumMeshes; meshCount++)
 	{
+		// Load the current mesh.
 		const aiMesh& mesh = *scene->mMeshes[meshCount];
+		// Store info about the mesh.
 		unsigned int numFaces = mesh.mNumFaces;
 		unsigned int numVertices = mesh.mNumVertices;
-		mNumFaces = mesh.mNumFaces;
-	
 
 		for (unsigned int vertexCount = 0; vertexCount < numVertices; vertexCount++)
 		{

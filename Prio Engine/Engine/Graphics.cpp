@@ -580,7 +580,37 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 {
 	// Allocate the mesh memory.
-	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd);
+	CMesh* mesh;
+	if (textureFilename != L"" && textureFilename != NULL)
+	{
+		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, DirectionalLight);
+	}
+	else
+	{
+		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, Colour);
+	}
+
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
+
+	// If we failed to load the mesh, then delete the object and return a nullptr.
+	if (!mesh->LoadMesh(filename, textureFilename))
+	{
+		// Deallocate memory.
+		delete mesh;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mesh).name());
+		return nullptr;
+	}
+
+	// Push the pointer onto a member variable list so that we don't lose it.
+	mpMeshes.push_back(mesh);
+
+	return mesh;
+}
+
+CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, ShaderType shaderType)
+{
+	// Allocate the mesh memory.
+	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd, shaderType);
 	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.

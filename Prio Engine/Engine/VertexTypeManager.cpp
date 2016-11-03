@@ -194,6 +194,25 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
+void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR2> UV)
+{
+	if (!mpVerticesTexture)
+	{
+		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
+	}
+
+
+	// Set the positions of vertices first.
+	for (int i = 0; i < mNumOfVertices; i++)
+	{
+		mpVerticesTexture[i].position = vertices[i];
+		mpVerticesTexture[i].texture = UV[i];
+
+	}
+}
+
+
+/* Sets the vertex array of a mesh which has been loaded in. */
 void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR4> colours)
 {
 	if (!mpVerticesColour)

@@ -29,6 +29,7 @@ public:
 	~CModel();
 
 	bool SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indices, std::vector<D3DXVECTOR2> UV, std::vector<D3DXVECTOR3> normals);
+	bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indicesList, std::vector<D3DXVECTOR2> UV);
 	bool SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indices, std::vector<D3DXVECTOR4> colours);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);

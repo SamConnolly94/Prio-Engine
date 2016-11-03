@@ -55,6 +55,7 @@ public:
 	void SetScaleY(float y);
 	void SetScaleZ(float z);
 	void SetScale(float x, float y, float z);
+	void SetScale(float value);
 
 	void AttatchToParent(CModelControl* parent);
 	void SeperateFromParent();

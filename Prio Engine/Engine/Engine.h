@@ -69,6 +69,7 @@ public:
 	bool RemoveMesh(CMesh* mesh);
 
 	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
+	CMesh* LoadMesh(char * filename, WCHAR * textureFilename, ShaderType shaderType);
 	
 
 	float GetFrameTime();
