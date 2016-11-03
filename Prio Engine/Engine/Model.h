@@ -3,6 +3,7 @@
 
 #include "VertexTypeManager.h"
 #include "ModelControl.h"
+#include <vector>
 
 class CModel : public CModelControl
 {
@@ -27,8 +28,8 @@ public:
 	CModel(ID3D11Device * device, PrioEngine::VertexType vertexType);
 	~CModel();
 
-	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals);
-	bool SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR4* colours);
+	bool SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indices, std::vector<D3DXVECTOR2> UV, std::vector<D3DXVECTOR3> normals);
+	bool SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indices, std::vector<D3DXVECTOR4> colours);
 	void SetNumberOfVertices(int size);
 	void SetTextureCount(int size);
 	void SetNumberOfNormals(int size);

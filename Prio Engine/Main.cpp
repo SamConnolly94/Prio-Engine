@@ -73,7 +73,7 @@ void GameLoop(CEngine* &engine)
 
 	// Mesh init
 	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds");
-	coneMesh = engine->LoadMesh("Resources/Models/Cone.FBX", NULL);
+	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png");
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
@@ -82,7 +82,6 @@ void GameLoop(CEngine* &engine)
 
 	cube2->SetXPos(-5.0f);
 	cube->SetXPos(0.0f);
-	cone->RotateX(-180.0f);
 	cone->SetXPos(5.0f);
 
 	// Start the game timer running.

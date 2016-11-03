@@ -9,8 +9,11 @@
 #include "Texture.h"
 #include "DiffuseLightShader.h"
 #include "ColourShader.h"
-#include "AssimpManager.h"
 #include "Light.h"
+#include <vector>
+#include "Dependencies/assimp-3.3.1/include/assimp/Importer.hpp"
+#include "Dependencies/assimp-3.3.1/include\assimp/scene.h"
+#include "Dependencies/assimp-3.3.1/include/assimp/postprocess.h"
 
 class CMesh
 {
@@ -41,20 +44,16 @@ private:
 	// Loggers
 	CLogger* mpLogger;
 
-	// Manager objects for loading meshes.
-	CAssimpManager* mpAssimpManager;
-
 	// The object reffering to the texture for this mesh.
 	CTexture* mpTexture;
 
 	// Arrays to store data about vertices in.
-	D3DXVECTOR3* mpVertices;
-	unsigned long* mpIndices;
-	D3DXVECTOR2* mpUV;
-	D3DXVECTOR3* mpNormals;
-	D3DXVECTOR4* mpVerticeColours;
 	unsigned int mNumFaces;
-
+	std::vector<D3DXVECTOR3> mpVerticesList;
+	std::vector<D3DXVECTOR2> mpUVList;
+	std::vector<D3DXVECTOR3> mpNormalsList;
+	std::vector<D3DXVECTOR4> mpVertexColourList;
+	std::vector<unsigned long> mpIndicesList;
 public:
 	CMesh(ID3D11Device* device, HWND hwnd);
 	~CMesh();
@@ -88,7 +87,5 @@ private:
 
 
 	ShaderType mShaderType;
-	// Grab the mesh object for the last mesh we loaded.
-	const aiMesh* mpMesh = nullptr;
 };
 #endif

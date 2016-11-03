@@ -63,7 +63,7 @@ void CModel::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	mpVertexManager->RenderBuffers(deviceContext, mpIndexBuffer);
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR2* UV, D3DXVECTOR3* normals)
+bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indicesList, std::vector<D3DXVECTOR2> UV, std::vector<D3DXVECTOR3> normals)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -93,6 +93,12 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	indexBufferDesc.StructureByteStride = 0;
 
 	/* Give the subresource structure a pointer to the index data. */
+	unsigned long* indices = new unsigned long[mIndicesCount];
+	for (int i = 0; i < mIndicesCount; i++)
+	{
+		indices[i] = indicesList[i];
+	}
+
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
@@ -105,11 +111,11 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	}
 
 	mpVertexManager->CleanArrays();
-
+	delete[] indices;
 	return true;
 }
 
-bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVECTOR4* colours)
+bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned long> indicesList, std::vector<D3DXVECTOR4> colours)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -139,6 +145,11 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	indexBufferDesc.StructureByteStride = 0;
 
 	/* Give the subresource structure a pointer to the index data. */
+	unsigned long* indices = new unsigned long[mIndicesCount];
+	for (int i = 0; i < mIndicesCount; i++)
+	{
+		indices[i] = indicesList[i];
+	}
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
@@ -151,6 +162,7 @@ bool CModel::SetGeometry(D3DXVECTOR3 * vertices, unsigned long* indices, D3DXVEC
 	}
 
 	mpVertexManager->CleanArrays();
+	delete [] indices;
 
 	return true;
 }

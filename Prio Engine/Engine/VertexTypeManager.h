@@ -8,6 +8,7 @@
 
 #include "PrioEngineVars.h"
 #include "Logger.h"
+#include <vector>
 
 class CVertexManager
 {
@@ -52,8 +53,8 @@ public:
 	void SetNumberOfVertices(int amount);
 
 	void SetVertexArray(float x, float y, float z);
-	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV, D3DXVECTOR3* normals);
-	void SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR4* colours);
+	void SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR2> UV, std::vector<D3DXVECTOR3> normals);
+	void SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR4> colours);
 	bool CreateVertexBuffer();
 
 	void RenderBuffers(ID3D11DeviceContext* deviceContext, ID3D11Buffer* indexBuffer);

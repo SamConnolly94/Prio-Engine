@@ -99,9 +99,6 @@
     <ClCompile Include="Engine\TextureShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\AssimpManager.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -197,9 +194,6 @@
     </ClInclude>
     <ClInclude Include="Engine\TextureShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\AssimpManager.h">
-      <Filter>Engine\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

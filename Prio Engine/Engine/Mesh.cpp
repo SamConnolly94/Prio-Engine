@@ -18,33 +18,12 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd)
 	// Set the pointer to our texture to be null, we can use this for checks to see if we're using a texture or not later.
 	mpTexture = nullptr;
 
-	// Initialise any of our class buffers to be null.
-	mpVertices = nullptr;
-	mpIndices = nullptr;
-	mpVerticeColours = nullptr;
-	mpUV = nullptr;
-	mpNormals = nullptr;
-	
-	// Allocate memory to the manager of our assimp loader.
-	mpAssimpManager = new CAssimpManager();
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpAssimpManager).name());
-
 	// Default the shader type to colour, we can change this later on circumstantially.
 	mShaderType = Colour;
 }
 
 CMesh::~CMesh()
 {
-	// If the vertices array has been allocated memory.
-	if (mpVertices)
-	{
-		// Delete allocated memory from the back of our array.
-		delete[] mpVertices;
-		// Write the deallocation message to the memory log.
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVertices).name());
-		// Set the pointer to the vertices array to be a default value.
-		mpVertices = nullptr;
-	}
 
 	// If we still have pointers to models.
 	while (!mpModels.empty())
@@ -77,46 +56,16 @@ CMesh::~CMesh()
 		mpTexture = nullptr;
 	}
 
-	// If the UV array has been allocated memory.
-	if (mpUV)
-	{
-		// Deallocate any memory given to this array.
-		delete[] mpUV;
-		// Output the deallocation message to the log.
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpUV).name());
-		// Set the pointer to the UV's array to be a default value.
-		mpUV = nullptr;
-	}
-
-	// If the normals array has been allocated memory.
-	if (mpNormals)
-	{
-		delete[] mpNormals;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpNormals).name());
-		mpNormals = nullptr;
-	}
-
-	// If our assimp manager has been allocated memory.
-	if (mpAssimpManager)
-	{
-		// Deallocate any memory given to this manager.
-		delete mpAssimpManager;
-		// Output the deallocation message to the log.
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpAssimpManager).name());
-		// Set the assimp manager pointer to be a default value.
-		mpAssimpManager = nullptr;
-	}
-
-	// If the indices array has been allocated memory.
-	if (mpIndices)
-	{
-		// Deallocate memory given to the indices array.
-		delete[] mpIndices;
-		// Output the deallocation message to the log.
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
-		// Set the pointer to the indices array to be a default value.
-		mpIndices = nullptr;
-	}
+	//// If the indices array has been allocated memory.
+	//if (mpIndices)
+	//{
+	//	// Deallocate memory given to the indices array.
+	//	delete[] mpIndices;
+	//	// Output the deallocation message to the log.
+	//	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpIndices).name());
+	//	// Set the pointer to the indices array to be a default value.
+	//	mpIndices = nullptr;
+	//}
 }
 
 /* Load data from file into our mesh object. */
@@ -266,17 +215,17 @@ CModel* CMesh::CreateModel()
 		return nullptr;
 	}
 
-	model->SetNumberOfVertices(mVertexCount);
-	model->SetNumberOfIndices(mIndexCount);
+	model->SetNumberOfVertices(mpVerticesList.size());
+	model->SetNumberOfIndices(mpIndicesList.size());
 
 	// If we're using diffuse light.
 	if (mpDirectionalLightShader)
 	{
-		model->SetGeometry(mpVertices, mpIndices, mpUV, mpNormals);
+		model->SetGeometry(mpVerticesList, mpIndicesList, mpUVList, mpNormalsList);
 	}
 	else if (mpColourShader)
 	{
-		model->SetGeometry(mpVertices, mpIndices, mpVerticeColours);
+		model->SetGeometry(mpVerticesList, mpIndicesList, mpVertexColourList);
 	}
 	else
 	{
@@ -294,166 +243,102 @@ CModel* CMesh::CreateModel()
 @Returns bool Success*/
 bool CMesh::LoadAssimpModel(char* filename)
 {
-	mpLogger->GetLogger().WriteSubtitle(mFilename);
+	// Grab the mesh object for the last mesh we loaded.
 
-	mpMesh = mpAssimpManager->LoadModelFromFile(filename);
+	Assimp::Importer importer;
+	const std::string name = filename;
+	mpLogger->GetLogger().WriteLine("Attempting to open " + name + " using Assimp.");
+
+	// Read in the file, store this mesh in the scene.
+	const aiScene* scene = importer.ReadFile(filename,
+		/* aiProcess_ConvertToLeftHanded |*/
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_Triangulate |
+		aiProcess_SortByPType);
+
+
+	// If scene hasn't been initialised then something has gone wrong!
+	if (!scene)
+	{
+		mpLogger->GetLogger().WriteLine(importer.GetErrorString());
+		mpLogger->GetLogger().WriteLine("Failed to create scene.");
+		return nullptr;
+	}
+/* mpAssimpManager->LoadModelFromFile(filename); */
+
 	mpLogger->GetLogger().WriteLine("");
 	mpLogger->GetLogger().WriteLine("Mesh just loaded in. ");
-	mpLogger->GetLogger().WriteLine("Number of faces is : " + std::to_string(mpMesh->mNumFaces) + " and the number of indices in the first face is : " + std::to_string(mpMesh->mFaces[0].mNumIndices));
-	mpLogger->GetLogger().WriteLine("Number of vertices is : " + std::to_string(mpMesh->mNumVertices));
-	mpLogger->GetLogger().WriteLine("Texcoords in first face are : " + std::to_string(mpMesh->mTextureCoords[0][0].x ) + ", " + std::to_string(mpMesh->mTextureCoords[0][0].y));
 	
 	mpLogger->GetLogger().WriteLine("");
-	if (mpMesh == nullptr)
-	{
-		mpLogger->GetLogger().WriteLine("Model loaded through assimp was a nullptr, not continuing with this method. ");
-		MessageBox(mHwnd, L"Failed to load mesh. Check logs for more details.", L"Error", MB_OK);
-		return false;
-	}
+
+
 
 	// Acquire the number of vertices we will store.
-	mVertexCount = mpMesh->mNumVertices;
+	//mVertexCount = mpMesh->mNumVertices;
 	mpLogger->GetLogger().WriteLine("The vertex count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mVertexCount));
-	
-	// Check that the mesh has a valid number of vertices, sometimes inconsistencies in loading will cause it not to.
-	if (mVertexCount > kCuttoffSize)
-	{
-		mpLogger->GetLogger().WriteLine("You have either tried to load a very large model or assimp has failed to load correct details for whatever reason, refusing to load a model this large.");
-		return false;
-	}
 
-	mNumFaces = mpMesh->mNumFaces;
-	FaceStruct* indexArray = new FaceStruct[mNumFaces];
-	mpLogger->GetLogger().WriteLine("The number of faces set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mNumFaces));
+	// Acquire the number of faces contained within this mesh.
+	//mNumFaces = mpMesh->mNumFaces;
 
-	for (int i = 0; i < mNumFaces; i++)
-	{
-		indexArray[i].x = 0;
-		indexArray[i].y = 0;
-		indexArray[i].z = 0;
-	}
-
+	// Output message to the user to let them know we've initialise it to 0.
 	mpLogger->GetLogger().WriteLine("The index array has set all elements to null.");
 
 	// Vertices may repeat, but that's okay. It'll save us hassle in the long run.
 	mIndexCount = mNumFaces * kNumIndicesInFace;
 	mpLogger->GetLogger().WriteLine("The index count set in the mesh with name '" + mFilename + "' is equal to: " + std::to_string(mIndexCount));
 
-	// Allocate memory to the array we will store vertices in.
-	mpVertices = new D3DXVECTOR3[mVertexCount];
-	ZeroMemory(mpVertices, mVertexCount);
-	mpLogger->GetLogger().WriteLine("The mpVertices array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
-
-	// If we failed to allocate memory to the array.
-	if (!mpVertices)
-	{
-		mpLogger->GetLogger().WriteLine("Failed to create the vertices array.");
-		return false;
-	}
-
-	// Allocate memory to the normals array.
-	mpNormals = new D3DXVECTOR3[mVertexCount];
-	ZeroMemory(mpNormals, mVertexCount);
-	mpLogger->GetLogger().WriteLine("The normals array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
-
-	// Allocate memory to the UV
-	mpUV = new D3DXVECTOR2[mVertexCount];
-	ZeroMemory(mpUV, mVertexCount);
-	mpLogger->GetLogger().WriteLine("The UV array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector2 to use.");
-
-	mpVerticeColours = new D3DXVECTOR4[mVertexCount];
-	ZeroMemory(mpUV, mVertexCount);
-	mpLogger->GetLogger().WriteLine("The colours array set in the mesh with name '" + mFilename + "' has been allocated " + std::to_string(mVertexCount) + " spaces in D3DXVector3 to use.");
-
 	/** BUG HERE*******/
 	// To load in vertices need to use mesh->mVertices[mesh->mFaces[meshFaceCount].mIndices[mIndiceCount]];
-	unsigned int vertexCount = 0;
-
-	for (unsigned int vertexCount = 0; vertexCount < mpMesh->mNumVertices; vertexCount++)
+	for (int meshCount = 0; meshCount < scene->mNumMeshes; meshCount++)
 	{
-		// Parse a singular vertex info.
-		const aiVector3D vertexCoords = mpMesh->mVertices[vertexCount];
+		const aiMesh& mesh = *scene->mMeshes[meshCount];
+		unsigned int numFaces = mesh.mNumFaces;
+		unsigned int numVertices = mesh.mNumVertices;
+		mNumFaces = mesh.mNumFaces;
+	
 
-		// Load the vertex info into our array.
-		mpVertices[vertexCount].x = vertexCoords.x;
-		mpVertices[vertexCount].y = vertexCoords.y;
-		mpVertices[vertexCount].z = vertexCoords.z;
+		for (unsigned int vertexCount = 0; vertexCount < numVertices; vertexCount++)
+		{
+			// Parse a singular vertex info.
 
-		// Parse information on the UV of a singular vertex.
-		const aiVector3D textureCoords = mpMesh->mTextureCoords[0][vertexCount];
+			const aiVector3D& vertexCoords = mesh.mVertices[vertexCount];
 
-		// Only need to parse the U and V channels.
-		mpUV[vertexCount].x = textureCoords.x;
-		mpUV[vertexCount].y = textureCoords.y;
+			// Load the vertex info into our array.
+			mpVerticesList.push_back(D3DXVECTOR3(vertexCoords.x, vertexCoords.y, vertexCoords.z));
 
-		// Load the normals data of this singular vertex.
-		const aiVector3D normals = mpMesh->mNormals[vertexCount];
+			// Parse information on the UV of a singular vertex.
+			const aiVector3D& textureCoords = mesh.mTextureCoords[0][vertexCount];
 
-		// Store this normals data in our array.
-		mpNormals[vertexCount].x = normals.x;
-		mpNormals[vertexCount].y = normals.y;
-		mpNormals[vertexCount].z = normals.z;
+			// Only need to parse the U and V channels.
+			mpUVList.push_back(D3DXVECTOR2(textureCoords.x, textureCoords.y));
+
+			// Load the normals data of this singular vertex.
+			const aiVector3D& normals = mesh.mNormals[vertexCount];
+
+			// Store this normals data in our array.
+			mpNormalsList.push_back(D3DXVECTOR3(normals.x, normals.y, normals.z));
+
+			// Set the default colour to black just in case no texture can be loaded.
+			mpVertexColourList.push_back(D3DXVECTOR4(PrioEngine::Colours::black.r, PrioEngine::Colours::black.g, PrioEngine::Colours::black.b, PrioEngine::Colours::black.a));
+		}
+
+		for (unsigned int faceCount = 0; faceCount < numFaces; faceCount++)
+		{
+			const aiFace& face = mesh.mFaces[faceCount];
+
+			for (unsigned int indexCount = 0; indexCount < face.mNumIndices; indexCount++)
+			{
+				mpIndicesList.push_back(face.mIndices[indexCount]);
+			}
+		}
 	}
 
 	mpLogger->GetLogger().WriteLine("Successfully initialised our arrays for mesh '" + mFilename + "'. ");
 
-	for (unsigned int faceCount = 0; faceCount < mNumFaces; faceCount++)
-	{
-		const aiFace& face = mpMesh->mFaces[faceCount];
-		mpLogger->GetLogger().WriteLine("face number " + std::to_string(faceCount) + " has " + std::to_string(face.mNumIndices) + " indices.");
 
-		for (unsigned int index = 0; index < kNumIndicesInFace; index++)
-		{
-
-			// Store index data too!
-			// Copy the index from the face into our indices array.
-			if (index == 0)
-			{
-				indexArray[faceCount].x = face.mIndices[index];
-			}
-			else if (index == 1)
-			{
-				indexArray[faceCount].y = face.mIndices[index];
-			}
-			else if (index == 2)
-			{
-				indexArray[faceCount].z = face.mIndices[index];
-			}
-
-
-			// Increment the vertex count.
-			vertexCount++;
-		}
-	}
-
-	mpLogger->GetLogger().WriteLine("Successfully initialised index our arrays too for mesh '" + mFilename + "'. ");
-
-	mpIndices = new unsigned long[mNumFaces * kNumIndicesInFace];
-	unsigned int count = 0;
-	for (int faceCount = 0; faceCount < mNumFaces; faceCount++)
-	{
-		for (int index = 0; index < kNumIndicesInFace; index++)
-		{
-			// Copy the index from the face into our indices array.
-			if (index == 0)
-			{
-				mpIndices[count] = indexArray[faceCount].x;
-			}
-			else if (index == 1)
-			{
-				mpIndices[count] = indexArray[faceCount].y;
-			}
-			else if (index == 2)
-			{
-				mpIndices[count] = indexArray[faceCount].z;
-			}
-			count++;
-		}
-	}
-
-	mpLogger->GetLogger().WriteLine("Moved data index data out of struct and into unsigned long array for mesh '" + mFilename + "'. ");
-
+	// Close off this section in the log.
 	mpLogger->GetLogger().CloseSubtitle();
+
 	// Success!
 	return true;
 }
@@ -462,32 +347,6 @@ bool CMesh::LoadSam()
 {
 	// Will find the size that our array should be.
 	GetSizes();
-
-	// Define the vertices array.
-	mpVertices = new D3DXVECTOR3[mVertexCount];
-	// Check memory was successfully allocated.
-	if (!mpVertices)
-	{
-		// Write failure message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpVertices array.");
-		// Don't continue with this function any further.
-		return false;
-	}
-	// Output the message to indicate memory allocation to the logs.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertices).name());
-
-	// Define the indices array
-	mpIndices = new unsigned long[mIndexCount];
-	// Check memory was successfully allocated.
-	if (!mpIndices)
-	{
-		// Write failure message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to allocate memory to mpIndices array.");
-		// Don't continue with this function any further.
-		return false;
-	}
-	// Output the message to indicate memory allocation to the logs.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpIndices).name());
 
 	// Will populate the new arrays we have created.
 	InitialiseArrays();
@@ -608,15 +467,13 @@ bool CMesh::InitialiseArrays()
 			inFile.get(ch);
 			if (ch == ' ')
 			{
-				// If memory has been allocated to the mpMatrices variable.
-				if (mpVertices)
-				{
-					// Read in each value.
-					inFile >> mpVertices[vertexIndex].x >> mpVertices[vertexIndex].y >> mpVertices[vertexIndex].z;
-
-					// Increment our index.
-					vertexIndex++;
-				}
+				float x, y, z;
+				// Read in each value.
+				/*inFile >> mpVertices[vertexIndex].x >> mpVertices[vertexIndex].y >> mpVertices[vertexIndex].z;*/
+				inFile >> x >> y >> z;
+				mpVerticesList.push_back(D3DXVECTOR3(x, y, z));
+				// Increment our index.
+				vertexIndex++;
 			}
 			
 		}
@@ -626,19 +483,14 @@ bool CMesh::InitialiseArrays()
 			if (ch == ' ')
 			{
 				// If memory has been allocated to the mpMatrices variable.
-				if (mpIndices)
-				{
-					int index1, index2, index3;
-					// Read in each value.
-					inFile >> index1 >> index2 >> index3;
+				unsigned long index1, index2, index3;
+				// Read in each value.
+				inFile >> index1 >> index2 >> index3;
 
-					mpIndices[indiceIndex] = index1;
-					indiceIndex++;
-					mpIndices[indiceIndex] = index2;
-					indiceIndex++;
-					mpIndices[indiceIndex] = index3;
-					indiceIndex++;
-				}
+				mpIndicesList.push_back(index1);
+				mpIndicesList.push_back(index2);
+				mpIndicesList.push_back(index3);
+
 			}
 		}
 

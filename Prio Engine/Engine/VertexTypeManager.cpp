@@ -175,7 +175,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR2 * UV, D3DXVECTOR3* normals)
+void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR2> UV, std::vector<D3DXVECTOR3> normals)
 {
 	if (!mpVerticesDiffuse)
 	{
@@ -194,7 +194,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * ver
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
-void CVertexManager::SetVertexArray(float x, float y, float z, D3DXVECTOR3 * vertices, D3DXVECTOR4* colours)
+void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXVECTOR3> vertices, std::vector<D3DXVECTOR4> colours)
 {
 	if (!mpVerticesColour)
 	{
