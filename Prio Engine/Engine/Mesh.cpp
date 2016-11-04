@@ -37,6 +37,7 @@ CMesh::~CMesh()
 	{
 		// Delete allocated memory from the back of our array.
 		delete (mpModels.back());
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpModels.back()).name());
 		// Pop the model off of the list.
 		mpModels.pop_back();
 	}
@@ -102,11 +103,12 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	else
 	{
 		mpTexture = new CTexture();
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTexture).name());
 		mpTexture->Initialise(mpDevice, textureName);
 		if (mShaderType == Colour)
 		{
 			mShaderType = Diffuse;
-		} 
+		}
 	}
 
 	// Stash our filename for this mesh away as a member variable, it may come in handy in future.
@@ -121,6 +123,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Initialise our directional light shader.
 		mpDirectionalLightShader = new CDirectionalLightShader();
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 		// If the directional light shader is not successfully initialised.
 		if (!mpDirectionalLightShader->Initialise(mpDevice, mHwnd))
 		{
@@ -132,6 +135,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Allocate memory to the texture shader.
 		mpTextureShader = new CTextureShader();
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTexture).name());
 		// If the texture shader is not successfully initialised.
 		if (!mpTextureShader->Initialise(mpDevice, mHwnd))
 		{
@@ -143,6 +147,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Allocate memory to the colour shader.
 		mpColourShader = new CColourShader();
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpColourShader).name());
 		// If the colour shader is not successfully initialised.
 		if (!mpColourShader->Initialise(mpDevice, mHwnd))
 		{

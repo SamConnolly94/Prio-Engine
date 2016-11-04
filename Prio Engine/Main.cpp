@@ -25,6 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// Return 0, we're saying we're okay, implement error codes in future versions maybe? 
 		return 0;
 	}
+	CLogger::GetLogger().MemoryAllocWriteLine(typeid(PrioEngine).name());
 
 	// Set up the engine.
 	result = PrioEngine->Initialise();
@@ -38,6 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Shutdown and release the engine.
 	PrioEngine->Shutdown();
 	delete PrioEngine;
+	CLogger::GetLogger().MemoryDeallocWriteLine(typeid(PrioEngine).name());
 	PrioEngine = nullptr;
 
 	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.

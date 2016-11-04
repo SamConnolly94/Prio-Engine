@@ -96,6 +96,7 @@ void CEngine::Shutdown()
 		delete mpGraphics;
 		// Reset the pointer to the graphics object to null.
 		mpGraphics = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpGraphics).name());
 	}
 
 	// Release the input object.

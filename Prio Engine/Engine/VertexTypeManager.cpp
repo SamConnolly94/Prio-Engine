@@ -180,6 +180,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesDiffuse)
 	{
 		mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 	}
 
 	
@@ -199,6 +200,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesTexture)
 	{
 		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
 	}
 
 
@@ -218,6 +220,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesColour)
 	{
 		mpVerticesColour = new VertexColourType[mNumOfVertices];
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
 	}
 
 

@@ -62,6 +62,7 @@ CPrimitive::~CPrimitive()
 	{
 		delete mpVertexManager;
 		mpVertexManager = nullptr;
+		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVertexManager).name());
 	}
 }
 
