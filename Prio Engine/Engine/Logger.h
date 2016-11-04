@@ -53,6 +53,8 @@ public:
 	void CloseSubtitle();
 
 	void Shutdown();
+
+	void MemoryAnalysis();
 };
 
 #endif

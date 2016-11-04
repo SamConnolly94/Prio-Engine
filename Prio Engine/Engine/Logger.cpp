@@ -150,3 +150,51 @@ void CLogger::Shutdown()
 	mMemoryLogLineNumber = NULL;
 
 }
+
+void CLogger::MemoryAnalysis()
+{
+	std::ifstream inFile;
+
+	inFile.open(mMemoryLogName);
+	const std::string allocMessage = "Variable of type ";
+
+	while (!inFile.eof())
+	{
+		std::string classType = "";
+		std::string variableName = "";
+		std::string line = "";
+		size_t strStartPos = 0;
+		size_t strOffset = 0;
+
+		// Read the line out of the infile.
+		std::getline(inFile, line);
+
+		// Find where our allocation message starts.
+		strStartPos = line.find(allocMessage);
+		// Find where our allocation message ends.
+		strOffset = strStartPos + allocMessage.length();
+		// Find the keyword (class / struct typically) which follows our allocation message.
+		classType = line.substr(strOffset, line.find(' '));
+
+		strStartPos = line.find(classType);
+		strOffset = strStartPos + classType.length();
+		size_t endPoint = line.find(' ');
+
+		variableName = line.substr(strOffset + 1, endPoint);
+		
+		strStartPos = line.find(variableName);
+		strOffset = strStartPos + variableName.length();
+		endPoint = line.find(' ');
+		
+		size_t wasPos = line.substr(strOffset, endPoint).find("was");
+		while (wasPos == 0)
+		{
+			variableName += line.substr(strOffset, endPoint);
+			strStartPos = line.find(variableName);
+			strOffset = strStartPos + variableName.length();
+			endPoint = line.find(" ");
+			wasPos = line.substr(strOffset, endPoint).find("was");
+		}
+
+	}
+}
