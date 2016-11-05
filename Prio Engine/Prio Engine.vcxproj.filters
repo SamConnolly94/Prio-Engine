@@ -181,4 +181,24 @@
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Texture.ps.hlsl">
+      <Filter>Engine\Source Files\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Colour.vs.hlsl">
+      <Filter>Engine\Source Files\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl">
+      <Filter>Engine\Source Files\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Texture.vs.hlsl">
+      <Filter>Engine\Source Files\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Colour.ps.hlsl">
+      <Filter>Engine\Source Files\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl">
+      <Filter>Engine\Source Files\Pixel Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

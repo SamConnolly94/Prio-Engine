@@ -281,6 +281,26 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Colour.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Colour.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\DiffuseLight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\DiffuseLight.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Texture.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Texture.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
