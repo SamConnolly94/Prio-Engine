@@ -326,7 +326,6 @@ void CEngine::ShutdownWindows()
 	mpLogger->GetLogger().WriteLine("Application handle has been successfully released.");
 
 	mpLogger->GetLogger().WriteLine("Shutdown of window successful.");
-	mpLogger->GetLogger().Shutdown();
 
 	return;
 }

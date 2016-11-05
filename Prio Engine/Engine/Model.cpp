@@ -100,11 +100,11 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	/* Give the subresource structure a pointer to the index data. */
 	unsigned long* indices = new unsigned long[mIndicesCount];
+	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(indices).name());
 	for (int i = 0; i < mIndicesCount; i++)
 	{
 		indices[i] = indicesList[i];
 	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(indices).name());
 
 	indexData.pSysMem = indices;
 	indexData.SysMemPitch = 0;

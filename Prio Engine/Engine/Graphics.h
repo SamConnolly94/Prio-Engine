@@ -57,7 +57,7 @@ private:
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShaderForModel(HWND hwnd);
-	bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
+	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 
 	float mRotation;

@@ -12,9 +12,6 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd, ShaderType shaderType)
 	// Stash away a pointer to our device.
 	mpDevice = device;
 
-	// If we were successful, write to the memory allocation log.
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
-
 	// Set the pointer to our texture to be null, we can use this for checks to see if we're using a texture or not later.
 	mpTexture = nullptr;
 
@@ -135,7 +132,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Allocate memory to the texture shader.
 		mpTextureShader = new CTextureShader();
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTexture).name());
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTextureShader).name());
 		// If the texture shader is not successfully initialised.
 		if (!mpTextureShader->Initialise(mpDevice, mHwnd))
 		{

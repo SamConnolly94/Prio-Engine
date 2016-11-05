@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string.h>
 #include <iomanip>
+#include <list>
 
 #ifdef _DEBUG
 #define _LOGGING_ENABLED

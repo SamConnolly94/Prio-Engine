@@ -334,15 +334,16 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(TextureFilename);
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(TextureFilename);
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
 	}
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
 		mpLogger->GetLogger().WriteLine("Failed to create the model object");
@@ -433,16 +434,15 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(colour);
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(colour);
+		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
 	}
-
-
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
 
 	if (!model)
 	{

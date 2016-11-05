@@ -151,8 +151,25 @@ void CLogger::Shutdown()
 
 }
 
+/* This will analyse the memory logs and tell you what has been allocated memory but never been deallocated. Should only be run at the end of the program. */
 void CLogger::MemoryAnalysis()
 {
+	enum MemoryType
+	{
+		Allocated,
+		Deallocated
+	};
+
+	struct MemoryBlock
+	{
+		std::string name;
+		std::string classType;
+		MemoryType memoryType;
+	};
+
+	std::list<MemoryBlock*> allocList;
+	std::list<MemoryBlock*> deallocList;
+
 	std::ifstream inFile;
 
 	inFile.open(mMemoryLogName);
@@ -160,7 +177,9 @@ void CLogger::MemoryAnalysis()
 
 	while (!inFile.eof())
 	{
-		std::string classType = "";
+		MemoryBlock* block = new MemoryBlock();
+		//MemoryAllocWriteLine(typeid(block).name());
+
 		std::string variableName = "";
 		std::string line = "";
 		size_t strStartPos = 0;
@@ -169,32 +188,109 @@ void CLogger::MemoryAnalysis()
 		// Read the line out of the infile.
 		std::getline(inFile, line);
 
-		// Find where our allocation message starts.
-		strStartPos = line.find(allocMessage);
-		// Find where our allocation message ends.
-		strOffset = strStartPos + allocMessage.length();
-		// Find the keyword (class / struct typically) which follows our allocation message.
-		classType = line.substr(strOffset, line.find(' '));
-
-		strStartPos = line.find(classType);
-		strOffset = strStartPos + classType.length();
-		size_t endPoint = line.find(' ');
-
-		variableName = line.substr(strOffset + 1, endPoint);
-		
-		strStartPos = line.find(variableName);
-		strOffset = strStartPos + variableName.length();
-		endPoint = line.find(' ');
-		
-		size_t wasPos = line.substr(strOffset, endPoint).find("was");
-		while (wasPos == 0)
+		if (line != "")
 		{
-			variableName += line.substr(strOffset, endPoint);
-			strStartPos = line.find(variableName);
-			strOffset = strStartPos + variableName.length();
-			endPoint = line.find(" ");
-			wasPos = line.substr(strOffset, endPoint).find("was");
+			// Find where our allocation message starts.
+			strStartPos = line.find(allocMessage);
+			// Find where our allocation message ends.
+			strOffset = strStartPos + allocMessage.length();
+
+			// Find the keyword (class / struct typically) which follows our allocation message.
+			block->classType = line.substr(strOffset, line.find(' ', strOffset) - strOffset);
+
+			// Find the start point of the keyword.
+			strStartPos = line.find(block->classType);
+			// Set the offset amount by this.
+			strOffset = strStartPos + block->classType.length();
+			// Find the end of the variable type name.
+			size_t endPoint = line.find('\\*');
+			// get the name of the variable type.
+			block->name = line.substr(strOffset + 1, endPoint - strOffset);
+
+			strStartPos = line.find(block->name);
+			strOffset = strStartPos + block->name.length();
+			size_t found = line.find("deallocated.");
+			if (found != std::string::npos)
+			{
+				block->memoryType = Deallocated;
+				deallocList.push_back(block);
+			}
+			else
+			{
+				found = line.find("allocated ");
+				if (found != std::string::npos)
+				{
+					block->memoryType = Allocated;
+					allocList.push_back(block);
+				}
+				else
+				{
+					//WriteLine("Something went wrong when gathering data for memory analysis, do not rely on this!");
+					delete block;
+				}
+			}
 		}
 
+		inFile.eof();
 	}
+
+	std::list<MemoryBlock*>::iterator allocIt = allocList.begin();
+	std::list<MemoryBlock*>::iterator deallocIt = deallocList.begin();
+	while (allocIt != allocList.end())
+	{
+		bool foundPair = false;
+		deallocIt = deallocList.begin();
+
+		// Iterate through the deallocated memory list.
+		while (deallocIt != deallocList.end() && !foundPair)
+		{
+			// If all the current things match then remove from dealloc list and break.
+			if ((*allocIt)->name != "FOUND" &&
+				((*allocIt)->name == (*deallocIt)->name && (*allocIt)->classType == (*deallocIt)->classType))
+			{
+				// Remove from the list.
+				(*deallocIt)->name = "FOUND";
+				(*deallocIt)->classType = "FOUND";
+
+				// Set some flags on the allocation info.
+				(*allocIt)->name = "FOUND";
+				(*allocIt)->classType = "FOUND";
+
+				// Don't continue iterating through.
+				foundPair = true;
+			}
+			else
+			{
+				// Look at the next element on the dealloc list.
+				deallocIt++;
+			}
+		}
+		deallocIt = deallocList.begin();
+		allocIt++;
+	}
+
+	WriteSubtitle("Memory dump summary.");
+
+	while (!allocList.empty())
+	{
+		if (allocList.back()->name != "FOUND")
+		{
+			WriteLine("Memory was given to " + allocList.back()->classType + " " + allocList.back()->name + " but never deallocated.");
+		}
+		delete allocList.back();
+		//MemoryDeallocWriteLine(typeid(allocList.back()).name());
+		allocList.pop_back();
+	}
+
+	while (!deallocList.empty())
+	{
+		delete deallocList.back();
+		//MemoryDeallocWriteLine(typeid(deallocList.back()).name());
+		deallocList.pop_back();
+	}
+	WriteLine("");
+	WriteLine(k256Astericks);
+	WriteLine("Memory dump summary complete.");
+	WriteLine(k256Astericks);
+	return;
 }

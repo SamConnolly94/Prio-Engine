@@ -1,5 +1,6 @@
 #include "Engine/Engine.h"
 
+
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
 
@@ -42,10 +43,12 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CLogger::GetLogger().MemoryDeallocWriteLine(typeid(PrioEngine).name());
 	PrioEngine = nullptr;
 
-	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.
-	_CrtDumpMemoryLeaks();
 
 	CLogger::GetLogger().MemoryAnalysis();
+	CLogger::GetLogger().Shutdown();
+
+	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.
+	_CrtDumpMemoryLeaks();
 
 	return 0;
 }
