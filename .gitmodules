@@ -1,0 +1,3 @@
+[submodule "StaticLib"]
+	path = StaticLib
+	url = https://github.com/SamConnolly94/PrioEngineStaticLibrary.git
