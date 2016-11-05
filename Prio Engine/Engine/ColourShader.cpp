@@ -19,7 +19,7 @@ bool CColourShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex and pixel shaders.
-	result = InitialiseShader(device, hwnd, L"../Prio Engine/Engine/Vertex Shaders/Colour.vs.hlsl", L"../Prio Engine/Engine/Pixel Shaders/Colour.ps.hlsl");
+	result = InitialiseShader(device, hwnd, L"Shaders/Colour.vs.hlsl", L"Shaders/Colour.ps.hlsl");
 	if (!result)
 	{
 		return false;

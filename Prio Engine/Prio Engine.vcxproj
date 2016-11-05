@@ -114,6 +114,17 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
+echo "Made dir, copying shaders to that dir."
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
+if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
+if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
+echo "Made resources dir, copying resources to that dir."
+xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -138,6 +149,17 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
+echo "Made dir, copying shaders to that dir."
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
+if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
+if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
+echo "Made resources dir, copying resources to that dir."
+xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -159,6 +181,17 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
+echo "Made dir, copying shaders to that dir."
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
+if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
+if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
+echo "Made resources dir, copying resources to that dir."
+xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -180,6 +213,17 @@
       <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
+echo "Made dir, copying shaders to that dir."
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
+if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
+xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
+if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
+echo "Made resources dir, copying resources to that dir."
+xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Camera.cpp" />
@@ -231,26 +275,6 @@
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Engine\Pixel Shaders\Colour.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Engine\Pixel Shaders\DiffuseLight.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Engine\Pixel Shaders\Texture.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Engine\Vertex Shaders\Colour.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Engine\Vertex Shaders\DiffuseLight.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Engine\Vertex Shaders\Texture.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Models\Cube.obj">

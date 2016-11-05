@@ -20,7 +20,7 @@ bool CDirectionalLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, L"../Prio Engine/Engine/Vertex Shaders/DiffuseLight.vs.hlsl", L"../Prio Engine/Engine/Pixel Shaders/DiffuseLight.ps.hlsl");
+	result = InitialiseShader(device, hwnd, L"Shaders/DiffuseLight.vs.hlsl", L"Shaders/DiffuseLight.ps.hlsl");
 
 	if (!result)
 	{

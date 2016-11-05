@@ -8,9 +8,6 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{33189332-57ee-4915-96bb-32c2309c4da3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Pixel Shaders">
-      <UniqueIdentifier>{a717d5c0-d338-4456-bd95-661875a3885b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -20,9 +17,6 @@
     </Filter>
     <Filter Include="Engine\Header Files">
       <UniqueIdentifier>{aa44bc0c-3452-47b4-9fc1-d06137770a88}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Vertex Shaders">
-      <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -36,6 +30,15 @@
     </Filter>
     <Filter Include="Engine\Dependencies">
       <UniqueIdentifier>{0db77c1c-45af-45b9-a162-a2560b28cead}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Procedural Generation">
+      <UniqueIdentifier>{8671074e-7f51-4813-b383-6c3fa8b3328d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source Files\Pixel Shaders">
+      <UniqueIdentifier>{a717d5c0-d338-4456-bd95-661875a3885b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source Files\Vertex Shaders">
+      <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -103,24 +106,6 @@
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
       <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Engine\Pixel Shaders\Colour.ps.hlsl">
-      <Filter>Engine\Pixel Shaders</Filter>
-    </None>
-    <None Include="Engine\Pixel Shaders\DiffuseLight.ps.hlsl">
-      <Filter>Engine\Pixel Shaders</Filter>
-    </None>
-    <None Include="Engine\Pixel Shaders\Texture.ps.hlsl">
-      <Filter>Engine\Pixel Shaders</Filter>
-    </None>
-    <None Include="Engine\Vertex Shaders\Colour.vs.hlsl">
-      <Filter>Engine\Vertex Shaders</Filter>
-    </None>
-    <None Include="Engine\Vertex Shaders\DiffuseLight.vs.hlsl">
-      <Filter>Engine\Vertex Shaders</Filter>
-    </None>
-    <None Include="Engine\Vertex Shaders\Texture.vs.hlsl">
-      <Filter>Engine\Vertex Shaders</Filter>
     </None>
     <None Include="Resources\Models\Cube.obj">
       <Filter>Resource Files</Filter>
