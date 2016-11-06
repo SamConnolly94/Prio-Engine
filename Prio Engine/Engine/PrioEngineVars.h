@@ -1,8 +1,9 @@
-#ifndef PRIOENGINEVARS_H
-#define PRIOENGINEVARS_H
+#ifndef PRIO_ENGINE_VARS_H
+#define PRIO_ENGINE_VARS_H
 
 #include "Logger.h"
 #include <windows.h>
+
 extern CLogger* gLogger;
 
 namespace PrioEngine
@@ -202,10 +203,10 @@ namespace Key
 	const unsigned int kRight = VK_RIGHT;
 }
 	// A collection of mathematical functions for use within programs.
-namespace maths
+namespace Math
 {
-	typedef struct VEC3 { float x; float y; float z; } vector3;
-	typedef struct VEC2 { float x; float y; } vector2;
+	typedef struct VEC3 { float x; float y; float z; } VEC3;
+	typedef struct VEC2 { float x; float y; } VEC2;
 
 	/* Squares a number, uses templates to accept any valid number.
 	* @Returns type that was passed in as parameter.
@@ -219,7 +220,7 @@ namespace maths
 	/* Finds the dot product of two vectors.
 	* @Returns float, the scalar. representation of the dot of these two vectors.
 	*/
-	float DotProduct(VEC3 vectorA, VEC3 vectorB)
+	inline float DotProduct(VEC3 vectorA, VEC3 vectorB)
 	{
 		return (vectorA.x * vectorB.x + vectorA.y * vectorB.y + vectorA.z * vectorB.z);
 	}
@@ -229,14 +230,13 @@ namespace maths
 	*
 	* Will return a vector which is mutually perpendicular to the two vectors passed in.
 	*/
-	VEC3 CrossProduct(VEC3 vectorA, VEC3 vectorB)
+	inline VEC3 CrossProduct(VEC3 vectorA, VEC3 vectorB)
 	{
-		float x, y, z;
-		x = vectorA.y * vectorB.z - vectorB.y * vectorA.z;
-		y = vectorA.z * vectorB.x - vectorB.z * vectorA.x;
-		z = vectorA.x * vectorB.y - vectorB.x * vectorA.y;
-
-		return VEC3{ x, y, z };
+		VEC3 result;
+		result.x = vectorA.y * vectorB.z - vectorB.y * vectorA.z;
+		result.y = vectorA.z * vectorB.x - vectorB.z * vectorA.x;
+		result.z = vectorA.x * vectorB.y - vectorB.x * vectorA.y;
+		return result;
 	}
 }
 

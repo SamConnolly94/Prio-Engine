@@ -1,7 +1,6 @@
 #include "VertexTypeManager.h"
 
 
-
 CVertexManager::CVertexManager(PrioEngine::VertexType vertexType)
 {
 	// Set any pointers that are to be used to be null.
