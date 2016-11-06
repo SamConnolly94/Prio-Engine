@@ -205,7 +205,7 @@ namespace Key
 	
 // A function for squaring a number.
 	template <typename T>
-	inline T square (T x)
+	inline T Square (T x)
 	{
 		return x * x;
 	}
