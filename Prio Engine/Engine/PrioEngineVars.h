@@ -3,8 +3,6 @@
 
 #include "Logger.h"
 #include <windows.h>
-#include <D3DX10math.h>
-
 extern CLogger* gLogger;
 
 namespace PrioEngine
@@ -206,6 +204,9 @@ namespace Key
 	// A collection of mathematical functions for use within programs.
 namespace maths
 {
+	typedef struct VEC3 { float x; float y; float z; } vector3;
+	typedef struct VEC2 { float x; float y; } vector2;
+
 	/* Squares a number, uses templates to accept any valid number.
 	* @Returns type that was passed in as parameter.
 	*/
@@ -218,24 +219,24 @@ namespace maths
 	/* Finds the dot product of two vectors.
 	* @Returns float, the scalar. representation of the dot of these two vectors.
 	*/
-	float DotProduct(D3DXVECTOR3 vectorA, D3DXVECTOR3 vectorB)
+	float DotProduct(VEC3 vectorA, VEC3 vectorB)
 	{
 		return (vectorA.x * vectorB.x + vectorA.y * vectorB.y + vectorA.z * vectorB.z);
 	}
 
 	/* Finds the cross product of two vectors.
-	* @Returns D3DXVECTOR3, the vector representation of the cross of these two vectors.
+	* @Returns VEC3, the vector representation of the cross of these two vectors.
 	*
 	* Will return a vector which is mutually perpendicular to the two vectors passed in.
 	*/
-	D3DXVECTOR3 CrossProduct(D3DXVECTOR3 vectorA, D3DXVECTOR3 vectorB)
+	VEC3 CrossProduct(VEC3 vectorA, VEC3 vectorB)
 	{
 		float x, y, z;
 		x = vectorA.y * vectorB.z - vectorB.y * vectorA.z;
 		y = vectorA.z * vectorB.x - vectorB.z * vectorA.x;
 		z = vectorA.x * vectorB.y - vectorB.x * vectorA.y;
 
-		return D3DXVECTOR3(x, y, z);
+		return VEC3{ x, y, z };
 	}
 }
 
