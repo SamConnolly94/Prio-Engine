@@ -88,10 +88,10 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 		}
 		else
 		{
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -105,10 +105,10 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 		}
 		else
 		{
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -116,7 +116,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the vertex shader from the buffer.");
+		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -124,7 +124,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the pixel shader from the buffer.");
+		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -165,7 +165,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create polygon layout.");
+		gLogger->WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -196,7 +196,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		gLogger->WriteLine("Failed to create the sampler state in TextureShader.cpp");
 		return false;
 	}
 
@@ -213,7 +213,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -227,7 +227,7 @@ bool CDirectionalLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
+		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
 		return false;
 	}
 
@@ -295,7 +295,7 @@ void CDirectionalLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage,
 	}
 
 	// Write the error string to the logs.
-	mpLogger->GetLogger().WriteLine(errMsg);
+	gLogger->WriteLine(errMsg);
 
 	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();

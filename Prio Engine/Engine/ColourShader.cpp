@@ -82,10 +82,10 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 		}
 		else
 		{
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -103,10 +103,10 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 		else
 		{
 			// Output a message to the log and a message box.
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -114,7 +114,7 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the vertex shader from the buffer.");
+		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -122,7 +122,7 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the pixel shader from the buffer.");
+		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -150,7 +150,7 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create polygon layout.");
+		gLogger->WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -176,7 +176,7 @@ bool CColourShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
+		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
 		return false;
 	}
 
@@ -229,8 +229,8 @@ void CColourShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwn
 		errStr += compileErrors[i];
 	}
 
-	mpLogger->GetLogger().WriteLine("*** SHADER ERROR ***");
-	mpLogger->GetLogger().WriteLine(errStr);
+	gLogger->WriteLine("*** SHADER ERROR ***");
+	gLogger->WriteLine(errStr);
 
 	// Release the blob used to store error message data.
 	errorMessage->Release();
@@ -256,7 +256,7 @@ bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3D
 	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to the lock the constant buffer so we could write to it in ColourShader.cpp.");
+		gLogger->WriteLine("Failed to the lock the constant buffer so we could write to it in ColourShader.cpp.");
 		return false;
 	}
 

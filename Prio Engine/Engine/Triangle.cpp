@@ -18,7 +18,7 @@ CTriangle::CTriangle(WCHAR* filename)
 	mShape = PrioEngine::Primitives::triangle;
 
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::triangle);
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
 
 CTriangle::CTriangle(WCHAR * filename, bool useLighting)
@@ -46,7 +46,7 @@ CTriangle::CTriangle(WCHAR * filename, bool useLighting)
 	{
 		mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::triangle);
 	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
 
 CTriangle::CTriangle(PrioEngine::RGBA colour)
@@ -64,7 +64,7 @@ CTriangle::CTriangle(PrioEngine::RGBA colour)
 	mShape = PrioEngine::Primitives::triangle;
 
 	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour, PrioEngine::Primitives::triangle);
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 
 	mpVertexManager->SetColour(colour);
 }
@@ -123,7 +123,7 @@ bool CTriangle::InitialiseBuffers(ID3D11Device * device)
 
 	// Create the index array.
 	indices = new unsigned long[mIndexCount];
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(indices).name());
+	gLogger->MemoryAllocWriteLine(typeid(indices).name());
 	if (!indices)
 	{
 		return false;
@@ -165,7 +165,7 @@ bool CTriangle::InitialiseBuffers(ID3D11Device * device)
 
 	delete[] indices;
 	indices = nullptr;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(indices).name());
+	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }

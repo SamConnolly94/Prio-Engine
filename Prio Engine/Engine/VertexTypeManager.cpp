@@ -46,21 +46,21 @@ void CVertexManager::CleanArrays()
 	{
 		delete[] mpVerticesColour;
 		mpVerticesColour = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVerticesColour).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpVerticesColour).name());
 	}
 
 	if (mpVerticesTexture != nullptr)
 	{
 		delete[] mpVerticesTexture;
 		mpVerticesTexture = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVerticesTexture).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpVerticesTexture).name());
 	}
 
 	if (mpVerticesDiffuse != nullptr)
 	{
 		delete[] mpVerticesDiffuse;
 		mpVerticesDiffuse = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
 	}
 }
 
@@ -98,11 +98,11 @@ void CVertexManager::SetNumberOfVertices(int amount)
 void CVertexManager::CreateVertexColour()
 {
 	mpVerticesColour = new VertexColourType[mNumOfVertices];
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpVerticesColour).name());
 
 	if (!mpVerticesColour)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create a vertex array for colour.");
+		gLogger->WriteLine("Failed to create a vertex array for colour.");
 	}
 }
 
@@ -110,11 +110,11 @@ void CVertexManager::CreateVertexColour()
 void CVertexManager::CreateVertexDiffuse()
 {
 	mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 
 	if (!mpVerticesDiffuse)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
+		gLogger->WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
 	}
 }
 
@@ -122,11 +122,11 @@ void CVertexManager::CreateVertexDiffuse()
 void CVertexManager::CreateVertexTexture()
 {
 	mpVerticesTexture = new VertexTextureType[mNumOfVertices];
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
-
+	gLogger->MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
+	
 	if (!mpVerticesTexture)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create a vertex array for texture.");
+		gLogger->WriteLine("Failed to create a vertex array for texture.");
 	}
 }
 
@@ -171,7 +171,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 	}
 	}
 
-	mpLogger->GetLogger().WriteLine("Failed to set any buffers to be drawn.");
+	gLogger->WriteLine("Failed to set any buffers to be drawn.");
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
@@ -180,7 +180,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesDiffuse)
 	{
 		mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 	}
 
 	
@@ -200,7 +200,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesTexture)
 	{
 		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
 	}
 
 
@@ -220,7 +220,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesColour)
 	{
 		mpVerticesColour = new VertexColourType[mNumOfVertices];
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpVerticesColour).name());
 	}
 
 
@@ -405,7 +405,7 @@ bool CVertexManager::CreateVertexBuffer()
 		vertexData.pSysMem = mpVerticesDiffuse;
 		break;
 	default:
-		mpLogger->GetLogger().WriteLine("Failed to find any vertex type. This prevents us from creating a vertex buffer.");
+		gLogger->WriteLine("Failed to find any vertex type. This prevents us from creating a vertex buffer.");
 		return false;
 	}
 
@@ -421,13 +421,13 @@ bool CVertexManager::CreateVertexBuffer()
 
 	if (mpDevice == nullptr)
 	{
-		mpLogger->GetLogger().WriteLine("The device hasn't been initialised, you need to pass it into the VertexManager class first.");
+		gLogger->WriteLine("The device hasn't been initialised, you need to pass it into the VertexManager class first.");
 	}
 
 	result = mpDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the vertex buffer.");
+		gLogger->WriteLine("Failed to create the vertex buffer.");
 		return false;
 	}
 
@@ -453,7 +453,7 @@ void CVertexManager::RenderBuffers(ID3D11DeviceContext * deviceContext, ID3D11Bu
 		stride = sizeof(VertexDiffuseLightingType);
 		break;
 	default:
-		mpLogger->GetLogger().WriteLine("Neither texture nor colour is being used when rendered. You're probably going to crash here when attempting to render.");
+		gLogger->WriteLine("Neither texture nor colour is being used when rendered. You're probably going to crash here when attempting to render.");
 		break;
 	}
 

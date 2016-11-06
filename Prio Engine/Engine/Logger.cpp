@@ -1,5 +1,6 @@
 #include "Logger.h"
 
+// Constructor.
 CLogger::CLogger()
 {
 	mLoggingEnabled = false;
@@ -48,12 +49,20 @@ CLogger::CLogger()
 
 }
 
-CLogger & CLogger::GetLogger()
+// Destructor.
+CLogger::~CLogger()
 {
-	// A logging class which can be used to write files to a text document.
-	static CLogger instance;
+	// Analyse the memory allocated / deallocated messages and check for anything missing.
+	MemoryAnalysis();
 
-	return instance;
+	// Close the memory dump log.
+	mMemoryLogFile.close();
+	// Close the debug log.
+	mLogFile.close();
+
+	// Reset any static variables we used to null.
+	mLineNumber = NULL;
+	mMemoryLogLineNumber = NULL;
 }
 
 /**  Write a piece of text to the debug log and add a new line.. */
@@ -132,23 +141,6 @@ void CLogger::CloseSubtitle()
 {
 	WriteLine(k256Astericks);
 	WriteLine("");
-}
-
-void CLogger::Shutdown()
-{
-	if (mMemoryLogFile.is_open())
-	{
-		mMemoryLogFile.close();
-	}
-
-	if (mLogFile.is_open())
-	{
-		mLogFile.close();
-	}
-
-	mLineNumber = NULL;
-	mMemoryLogLineNumber = NULL;
-
 }
 
 /* This will analyse the memory logs and tell you what has been allocated memory but never been deallocated. Should only be run at the end of the program. */

@@ -44,7 +44,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Output failure message to log.
-		mpLogger->GetLogger().WriteLine("Failed to create a Direct X Graphics Interface Factory.");
+		gLogger->WriteLine("Failed to create a Direct X Graphics Interface Factory.");
 		// Stop!
 		return false;
 	}
@@ -55,7 +55,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create an adapter for our graphics card.");
+		gLogger->WriteLine("Failed to create an adapter for our graphics card.");
 		// Stop!
 		return false;
 	}
@@ -66,7 +66,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to initialise adapter outputs. This means we could not find the primary monitor the graphics card is connected to.");
+		gLogger->WriteLine("Failed to initialise adapter outputs. This means we could not find the primary monitor the graphics card is connected to.");
 		// Stop!
 		return false;
 	}
@@ -77,7 +77,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Did not successfully acquire the number of modes that our monitor supports.");
+		gLogger->WriteLine("Did not successfully acquire the number of modes that our monitor supports.");
 		// Stop!
 		return false;
 	}
@@ -88,12 +88,12 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (!displayModeList)
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to store any display modes for this graphics card and monitor.");
+		gLogger->WriteLine("Failed to store any display modes for this graphics card and monitor.");
 		// Stop!
 		return false;
 	}
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(displayModeList).name());
+	gLogger->MemoryAllocWriteLine(typeid(displayModeList).name());
 
 	// Fill the display mode list struct.
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList);
@@ -101,7 +101,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to populate the display mode list structure.");
+		gLogger->WriteLine("Failed to populate the display mode list structure.");
 		// Stop!
 		return false;
 	}
@@ -129,64 +129,40 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to retrieve the description of the graphics card / adapter.");
+		gLogger->WriteLine("Failed to retrieve the description of the graphics card / adapter.");
 		// Stop!
 		return false;
 	}
 
 	// Store how much VRAM we found on the graphics card.
 	mGraphicsCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
-	
-	// Convert the name of the video card to a character array and store it.
-	for (unsigned int i = 0; i < STRING_NUMBER_OF_BITS; i++)
-	{
-		// Store each char in the graphics card description.
-		mGraphicsCardDescription[i] = adapterDesc.Description[i];
-	}
 
-	// Define a variable to check whether our graphics card is 
-	bool isEmpty = true;
-	for (int i = 0; i < STRING_NUMBER_OF_BITS; i++)
-	{
-		// Is this position in the array of chars set to something other than the default value?
-		if (mGraphicsCardDescription[i] != '\0')
-		{
-			// Fantastic! We have successfully parsed the name of the graphics card.
-			isEmpty = false;
-			// Stop running this for loop, no need.
-			break;
-		}
-	}
+	/// Convert the name of the graphics card to a string from WCHAR* and store it.
+	WCHAR* graphicsCardDescWCHAR = adapterDesc.Description;
+	std::wstring graphicsCardDescWS(graphicsCardDescWCHAR);
+	std::string graphicsCardDescStr(graphicsCardDescWS.begin(), graphicsCardDescWS.end());
+	mGraphicsCardDescription = graphicsCardDescStr;
+	
 
 	// If we did not manage to parse the graphics card name from the descriptor.
-	if (isEmpty)
+	if (mGraphicsCardDescription == "")
 	{
 		// Output the error message to the log.
-		mpLogger->GetLogger().WriteLine("Could not parse the name of the graphics card from the descriptor.");
+		gLogger->WriteLine("Could not parse the name of the graphics card from the descriptor.");
 		// Stop!
 		return false;
 	}
-
-	// Iterate through the char array to add each character to the string and construct the full name of the graphics card.
-	for (int i = 0; i < STRING_NUMBER_OF_BITS; i++)
-	{
-		// If this part of the char array hasn't been initialised then break. We've hit the end.
-		if (mGraphicsCardDescription[i] == '\0')
-		{
-			break;
-		}
-
-		// Add character to the graphics card name var.
-		mGraphicsCardName += mGraphicsCardDescription[i];
-	}
+	
+	mGraphicsCardName = mGraphicsCardDescription;
+	
 
 	// Output the name of the graphics card to the log.
-	mpLogger->GetLogger().WriteLine("Got the name of the graphics card: '" + mGraphicsCardName + "'" );
+	gLogger->WriteLine("Got the name of the graphics card: '" + mGraphicsCardName + "'" );
 
 	// Release the structures and interfaces we used to get monitor refresh rate.
 	delete [] displayModeList;
 	displayModeList = NULL;
-	mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(displayModeList).name());
+	gLogger->MemoryDeallocWriteLine(typeid(displayModeList).name());
 
 	// Release the adapter output (monitor).
 	adapterOutput->Release();
@@ -213,7 +189,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Could not get the pointer to the back buffer.");
+		gLogger->WriteLine("Could not get the pointer to the back buffer.");
 		// Stop!
 		return false;
 	}
@@ -224,7 +200,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create the render target view.");
+		gLogger->WriteLine("Failed to create the render target view.");
 		// Stop!
 		return false;
 	}
@@ -291,7 +267,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 /* Clean up function. Should be called when the application is closing. Always call from parent cleanup function, NOWHERE ELSE. */
 void CD3D11::Shutdown()
 {
-	mpLogger->GetLogger().WriteLine("DirectX Shutdown Function Initialised.");
+	gLogger->WriteLine("DirectX Shutdown Function Initialised.");
 
 	// If swap chain has been intialised.
 	if (mpSwapChain)
@@ -299,7 +275,7 @@ void CD3D11::Shutdown()
 		// Set to windowed mode before shutting down or swap chain throws an exception.
 		mpSwapChain->SetFullscreenState(false, NULL);
 		// Output change in window to log.
-		mpLogger->GetLogger().WriteLine("Set to windowed mode.");
+		gLogger->WriteLine("Set to windowed mode.");
 	}
 
 	// If rasterizer state has been initialised.
@@ -367,7 +343,7 @@ void CD3D11::Shutdown()
 	}
 
 	// Output success message to log.
-	mpLogger->GetLogger().WriteLine("Successfully cleaned up anything related to directX used for this program.");
+	gLogger->WriteLine("Successfully cleaned up anything related to directX used for this program.");
 
 	// Complete! Return.
 	return;
@@ -438,12 +414,12 @@ void CD3D11::GetOrthogonalMatrix(D3DMATRIX & orthogMatrix)
 }
 
 /* Gets information about the graphics card that DirectX is using. */
-void CD3D11::GetGraphicsCardInfo(char * cardName, int & memory)
-{
-	strcpy_s(cardName, STRING_NUMBER_OF_BITS, mGraphicsCardDescription);
-	memory = mGraphicsCardMemory;
-	return;
-}
+//void CD3D11::GetGraphicsCardInfo(char * cardName, int & memory)
+//{
+//	strcpy_s(cardName, STRING_NUMBER_OF_BITS, mGraphicsCardDescription);
+//	memory = mGraphicsCardMemory;
+//	return;
+//}
 
 /* Creates a swaph and chain from the descriptor passed in, this will switch the back and front buffers depending on what is ready to be displayed.*/
 void CD3D11::CreateSwapChainDesc(HWND hwnd, DXGI_SWAP_CHAIN_DESC& swapChainDesc, int refRateNumerator, int refRateDenominator)
@@ -523,7 +499,7 @@ bool CD3D11::CreateSwapChain(D3D_FEATURE_LEVEL & featureLevel, DXGI_SWAP_CHAIN_D
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Could not successfully create the device and swap chain.");
+		gLogger->WriteLine("Could not successfully create the device and swap chain.");
 		// Stop!
 		return false;
 	}
@@ -557,7 +533,7 @@ bool CD3D11::CreateDepthBuffer(D3D11_TEXTURE2D_DESC& depthBufferDesc)
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create the depth buffer from the description given.");
+		gLogger->WriteLine("Failed to create the depth buffer from the description given.");
 		// Stop!
 		return false;
 	}
@@ -584,7 +560,7 @@ bool CD3D11::CreateDepthStencilView(D3D11_DEPTH_STENCIL_VIEW_DESC& depthStencilV
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create the depth stencil view.");
+		gLogger->WriteLine("Failed to create the depth stencil view.");
 		// Stop!
 		return false;
 	}
@@ -631,7 +607,7 @@ bool CD3D11::CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBuff
 	if (FAILED(result))
 	{
 		// Log the error message.
-		mpLogger->GetLogger().WriteLine("Failed to create the depth stencil buffer from the descriptor provided.");
+		gLogger->WriteLine("Failed to create the depth stencil buffer from the descriptor provided.");
 		// Stop!
 		return false;
 	}
@@ -662,7 +638,7 @@ bool CD3D11::InitRasterizer(D3D11_RASTERIZER_DESC& rasterDesc)
 	if (FAILED(result))
 	{
 		// Log the error message
-		mpLogger->GetLogger().WriteLine("Failed to create the rasterizer from the description provided.");
+		gLogger->WriteLine("Failed to create the rasterizer from the description provided.");
 		// Stop!
 		return false;
 	}

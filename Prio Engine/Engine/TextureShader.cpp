@@ -43,7 +43,7 @@ bool CTextureShader::Render(ID3D11DeviceContext * deviceContext, int indexCount,
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture);
 	if (!result)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to set the shader parameters in texture shader.");
+		gLogger->WriteLine("Failed to set the shader parameters in texture shader.");
 		return false;
 	}
 
@@ -86,10 +86,10 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		}
 		else
 		{
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -103,10 +103,10 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		}
 		else
 		{
-			mpLogger->GetLogger().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		mpLogger->GetLogger().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -114,7 +114,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the vertex shader from the buffer.");
+		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -122,7 +122,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the pixel shader from the buffer.");
+		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -150,7 +150,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create polygon layout.");
+		gLogger->WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -174,7 +174,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -198,7 +198,7 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		gLogger->WriteLine("Failed to create the sampler state in TextureShader.cpp");
 		return false;
 	}
 
@@ -260,7 +260,7 @@ void CTextureShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hw
 	}
 
 	// Write the error string to the logs.
-	mpLogger->GetLogger().WriteLine(errMsg);
+	gLogger->WriteLine(errMsg);
 
 	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();
@@ -286,7 +286,7 @@ bool CTextureShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		mpLogger->GetLogger().WriteLine("Failed to the lock the constant buffer so we could write to it in TextureShader.cpp.");
+		gLogger->WriteLine("Failed to the lock the constant buffer so we could write to it in TextureShader.cpp.");
 		return false;
 	}
 

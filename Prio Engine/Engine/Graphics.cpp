@@ -32,11 +32,11 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	if (!mpD3D)
 	{
 		// Output failure message to the log.
-		mpLogger->GetLogger().WriteLine("Did not successfully create the D3D11 object.");
+		gLogger->WriteLine("Did not successfully create the D3D11 object.");
 		//Don't continue with the init function any more.
 		return false;
 	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpD3D).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpD3D).name());
 
 	// Initialise the D3D object.
 	successful = mpD3D->Initialise(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
@@ -44,7 +44,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	if (!successful)
 	{
 		// Write the error to the log.
-		mpLogger->GetLogger().WriteLine("Failed to initialised Direct3D.");
+		gLogger->WriteLine("Failed to initialised Direct3D.");
 		// Write the error to a message box too.
 		MessageBox(hwnd, L"Could not initialise Direct3D.", L"Error", MB_OK);
 		// Do not continue with this function any more.
@@ -52,7 +52,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Success!
-	mpLogger->GetLogger().WriteLine("Direct3D was successfully initialised.");
+	gLogger->WriteLine("Direct3D was successfully initialised.");
 	return true;
 }
 
@@ -64,7 +64,7 @@ void CGraphics::Shutdown()
 		mpDiffuseLightShader->Shutdown();
 		delete mpDiffuseLightShader;
 		mpDiffuseLightShader = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpDiffuseLightShader).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpDiffuseLightShader).name());
 	}
 
 	if (mpTextureShader)
@@ -72,7 +72,7 @@ void CGraphics::Shutdown()
 		mpTextureShader->Shutdown();
 		delete mpTextureShader;
 		mpTextureShader = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpTextureShader).name());
 	}
 
 	if (mpColourShader)
@@ -80,7 +80,7 @@ void CGraphics::Shutdown()
 		mpColourShader->Shutdown();
 		delete mpColourShader;
 		mpColourShader = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpColourShader).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpColourShader).name());
 	}
 
 	// Deallocate any allocated memory on the primitives list.
@@ -92,7 +92,7 @@ void CGraphics::Shutdown()
 		(*it)->Shutdown();
 		delete (*it);
 		(*it) = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+		gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
 		it++;
 	}
 
@@ -109,7 +109,7 @@ void CGraphics::Shutdown()
 	{
 		delete (*meshIt);
 		(*meshIt) = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*meshIt)).name());
+		gLogger->MemoryDeallocWriteLine(typeid((*meshIt)).name());
 		meshIt++;
 	}
 
@@ -126,7 +126,7 @@ void CGraphics::Shutdown()
 	{
 		delete (*lightIt);
 		(*lightIt) = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(*lightIt).name());
+		gLogger->MemoryDeallocWriteLine(typeid(*lightIt).name());
 		lightIt++;
 	}
 
@@ -141,7 +141,7 @@ void CGraphics::Shutdown()
 	{
 		delete mpCamera;
 		mpCamera = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpCamera).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpCamera).name());
 	}
 
 	// If the Direct 3D object exists.
@@ -151,9 +151,9 @@ void CGraphics::Shutdown()
 		mpD3D->Shutdown();
 		delete mpD3D;
 		mpD3D = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpD3D).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpD3D).name());
 		// Output message to log to let us know that this object is gone.
-		mpLogger->GetLogger().WriteLine("Direct3D object has been shutdown, deallocated and pointer set to null.");
+		gLogger->WriteLine("Direct3D object has been shutdown, deallocated and pointer set to null.");
 	}
 
 	return;
@@ -170,7 +170,7 @@ bool CGraphics::Frame()
 	if (!success)
 	{
 		// Output a message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to render the scene.");
+		gLogger->WriteLine("Failed to render the scene.");
 		// Prevent the program from continuing any further.
 		return false;
 	}
@@ -287,7 +287,7 @@ bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3D
 	// If we did not successfully render.
 	if (!success)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+		gLogger->WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
 		return false;
 	}
 
@@ -302,7 +302,7 @@ bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatr
 	success = mpColourShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix);
 	if (!success)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to render the model using the colour shader object.");
+		gLogger->WriteLine("Failed to render the model using the colour shader object.");
 		return false;
 	}
 	
@@ -318,7 +318,7 @@ bool CGraphics::RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMa
 
 	if (!success)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+		gLogger->WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
 		return false;
 	}
 
@@ -334,11 +334,11 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(TextureFilename);
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+		gLogger->MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(TextureFilename);
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+		gLogger->MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
@@ -346,7 +346,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 
 	if (!model)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the model object");
+		gLogger->WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -354,7 +354,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -393,10 +393,10 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 	}
 
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+	gLogger->MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the model object");
+		gLogger->WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -404,7 +404,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -434,11 +434,11 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(colour);
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+		gLogger->MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(colour);
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(model).name());
+		gLogger->MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
@@ -446,7 +446,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 
 	if (!model)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the model object");
+		gLogger->WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -454,7 +454,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the model object");
+		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -476,10 +476,10 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 
 		// Create texture shader.
 		mpDiffuseLightShader = new CDirectionalLightShader();
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{
-			mpLogger->GetLogger().WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
 			return false;
 		}
 
@@ -487,7 +487,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		successful = mpDiffuseLightShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			mpLogger->GetLogger().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
+			gLogger->WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
@@ -504,10 +504,10 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 
 		// Create texture shader.
 		mpTextureShader = new CTextureShader();
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpTextureShader).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpTextureShader).name());
 		if (!mpTextureShader)
 		{
-			mpLogger->GetLogger().WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
 			return false;
 		}
 
@@ -515,7 +515,7 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 		successful = mpTextureShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			mpLogger->GetLogger().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
+			gLogger->WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
@@ -534,16 +534,16 @@ bool CGraphics::CreateColourShaderForModel(HWND hwnd)
 		mpColourShader = new CColourShader();
 		if (!mpColourShader)
 		{
-			mpLogger->GetLogger().WriteLine("Failed to create the colour shader object.");
+			gLogger->WriteLine("Failed to create the colour shader object.");
 			return false;
 		}
-		mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpColourShader).name());
+		gLogger->MemoryAllocWriteLine(typeid(mpColourShader).name());
 
 		// Initialise the colour shader object.
 		successful = mpColourShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			mpLogger->GetLogger().WriteLine("*** ERROR! *** Could not initialise the colour shader object");
+			gLogger->WriteLine("*** ERROR! *** Could not initialise the colour shader object");
 			MessageBox(hwnd, L"Could not initialise the colour shader object. ", L"Error", MB_OK);
 			return false;
 		}
@@ -564,7 +564,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 			model->Shutdown();
 			delete model;
 			(*it) = nullptr;
-			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
 			mpPrimitives.erase(it);
 			model = nullptr;
 			return true;
@@ -573,7 +573,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 		it++;
 	}
 
-	mpLogger->GetLogger().WriteLine("Failed to find model to delete.");
+	gLogger->WriteLine("Failed to find model to delete.");
 	return false;
 }
 
@@ -590,14 +590,14 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, Colour);
 	}
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
+	gLogger->MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
 	if (!mesh->LoadMesh(filename, textureFilename))
 	{
 		// Deallocate memory.
 		delete mesh;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mesh).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mesh).name());
 		return nullptr;
 	}
 
@@ -611,14 +611,14 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, ShaderType s
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd, shaderType);
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mesh).name());
+	gLogger->MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
 	if (!mesh->LoadMesh(filename, textureFilename))
 	{
 		// Deallocate memory.
 		delete mesh;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mesh).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mesh).name());
 		return nullptr;
 	}
 
@@ -647,7 +647,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 			// Reset the pointer to be null.
 			(*it) = nullptr;
 			// Output the memory deallocation message to the memory log.
-			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
 			// Erase this element off of the list.
 			mpMeshes.erase(it);
 			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
@@ -660,7 +660,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 	}
 
 	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
-	mpLogger->GetLogger().WriteLine("Failed to find mesh to delete.");
+	gLogger->WriteLine("Failed to find mesh to delete.");
 
 	// Return failure.
 	return false;
@@ -673,10 +673,10 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientCo
 	if (!light)
 	{
 		// Output error string to the message log.
-		mpLogger->GetLogger().WriteLine("Failed to create the light object. ");
+		gLogger->WriteLine("Failed to create the light object. ");
 		return nullptr;
 	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(light).name());
+	gLogger->MemoryAllocWriteLine(typeid(light).name());
 
 	// Set the colour to our colour variable passed in.
 	light->SetDiffuseColour(diffuseColour);
@@ -687,7 +687,7 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientCo
 	mpLights.push_back(light);
 
 	// Output success message.
-	mpLogger->GetLogger().WriteLine("Light successfully created.");
+	gLogger->WriteLine("Light successfully created.");
 
 	// Returns a pointer to the light.
 	return light;
@@ -713,7 +713,7 @@ bool CGraphics::RemoveLight(CLight *& light)
 			// Reset the pointer to be null.
 			(*it) = nullptr;
 			// Output the memory deallocation message to the memory log.
-			mpLogger->GetLogger().MemoryDeallocWriteLine(typeid((*it)).name());
+			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
 			// Erase this element off of the list.
 			mpLights.erase(it);
 			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
@@ -726,7 +726,7 @@ bool CGraphics::RemoveLight(CLight *& light)
 	}
 
 	// If we got to this point, the light that was passed in was not found on the list. Output failure message to the log.
-	mpLogger->GetLogger().WriteLine("Failed to find light to delete.");
+	gLogger->WriteLine("Failed to find light to delete.");
 
 	// Return failure.
 	return false;
@@ -738,10 +738,10 @@ CCamera* CGraphics::CreateCamera()
 	mpCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 	if (!mpCamera)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to create the camera for DirectX.");
+		gLogger->WriteLine("Failed to create the camera for DirectX.");
 		return nullptr;
 	}
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpCamera).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpCamera).name());
 
 	// Set the initial camera position.
 	mpCamera->SetPosition(0.0f, 0.0f, 0.0f);

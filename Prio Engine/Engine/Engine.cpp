@@ -6,14 +6,14 @@ CEngine::CEngine()
 	mpInput = nullptr;
 	mpGraphics = nullptr;
 	mTimer = new CGameTimer();
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mTimer).name());
+	gLogger->MemoryAllocWriteLine(typeid(mTimer).name());
 	mStopped = false;
 }
 
 /* Default destructor. */
 CEngine::~CEngine()
 {
-	mpLogger->GetLogger().WriteLine("Engine destructor called.");
+	gLogger->WriteLine("Engine destructor called.");
 }
 
 /* Initialise our engine. */
@@ -37,13 +37,13 @@ bool CEngine::Initialise()
 	if (!mpInput)
 	{
 		// Output failure message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to create the input object. ");
+		gLogger->WriteLine("Failed to create the input object. ");
 		
 		// Prevent function from continuing any further, could not init input log.
 		return false;
 	}
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpInput).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpInput).name());
 	
 	// Set up the input object for use.
 	mpInput->Initialise();
@@ -53,13 +53,13 @@ bool CEngine::Initialise()
 	if (!mpGraphics)
 	{
 		// Output error message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to create the graphics object. ");
+		gLogger->WriteLine("Failed to create the graphics object. ");
 		
 		// Prevent function from continuing any further, could not init input log.
 		return false;
 	}
 
-	mpLogger->GetLogger().MemoryAllocWriteLine(typeid(mpGraphics).name());
+	gLogger->MemoryAllocWriteLine(typeid(mpGraphics).name());
 
 	// Initialise the graphics object
 	result = mpGraphics->Initialise(screenWidth, screenHeight, mHwnd);
@@ -68,7 +68,7 @@ bool CEngine::Initialise()
 	if (!result)
 	{
 		// Output error message to the log.
-		mpLogger->GetLogger().WriteLine("Failed to initialise the graphics object for use.");
+		gLogger->WriteLine("Failed to initialise the graphics object for use.");
 		
 		// Prevent the funciton from continuing any further.
 		return false;
@@ -96,7 +96,7 @@ void CEngine::Shutdown()
 		delete mpGraphics;
 		// Reset the pointer to the graphics object to null.
 		mpGraphics = nullptr;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpGraphics).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpGraphics).name());
 	}
 
 	// Release the input object.
@@ -104,7 +104,7 @@ void CEngine::Shutdown()
 	{
 		// Deallocate the memory given to the input object.
 		delete mpInput;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mpInput).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mpInput).name());
 		// Reset the input object pointer to null.
 		mpInput = nullptr;
 	}
@@ -113,7 +113,7 @@ void CEngine::Shutdown()
 	{
 		// Deallocate the memory give to the timer.
 		delete mTimer;
-		mpLogger->GetLogger().MemoryDeallocWriteLine(typeid(mTimer).name());
+		gLogger->MemoryDeallocWriteLine(typeid(mTimer).name());
 		mTimer = nullptr;
 	}
 
@@ -199,7 +199,7 @@ bool CEngine::Frame()
 	result = mpGraphics->Frame();
 	if (!result)
 	{
-		mpLogger->GetLogger().WriteLine("Failed to process the graphics for this frame. ");
+		gLogger->WriteLine("Failed to process the graphics for this frame. ");
 		return false;
 	}
 
@@ -258,7 +258,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 		posX = 0;
 		posY = 0;
 
-		mpLogger->GetLogger().WriteLine("Successfully set the settings for fullscreen window.");
+		gLogger->WriteLine("Successfully set the settings for fullscreen window.");
 	}
 	else
 	{
@@ -268,7 +268,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
 		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 
-		mpLogger->GetLogger().WriteLine("Successfully set the settings for windowed mode window.");
+		gLogger->WriteLine("Successfully set the settings for windowed mode window.");
 	}
 
 	// Create the window.
@@ -279,18 +279,18 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	// Output message to the log.
 	if (mHwnd)
 	{
-		mpLogger->GetLogger().WriteLine("Window created.");
+		gLogger->WriteLine("Window created.");
 	} 
 	else
 	{
-		mpLogger->GetLogger().WriteLine("Window was not successfully created..");
+		gLogger->WriteLine("Window was not successfully created..");
 	}
 
 	// Focus upon the window.
 	ShowWindow(mHwnd, SW_SHOW);
 	SetForegroundWindow(mHwnd);
 	SetFocus(mHwnd);
-	mpLogger->GetLogger().WriteLine("Set focus upon the window.");
+	gLogger->WriteLine("Set focus upon the window.");
 
 	// Hide the mouse cursor.
 	ShowCursor(true);
@@ -308,24 +308,24 @@ void CEngine::ShutdownWindows()
 	if (FULL_SCREEN)
 	{
 		ChangeDisplaySettings(NULL, 0);
-		mpLogger->GetLogger().WriteLine("Full screen display settings reset to defaults.");
+		gLogger->WriteLine("Full screen display settings reset to defaults.");
 	}
 
 	// Remove the window.
 	DestroyWindow(mHwnd);
 	mHwnd = NULL;
-	mpLogger->GetLogger().WriteLine("Window destroyed.");
+	gLogger->WriteLine("Window destroyed.");
 
 	// Remove the application instance.
 	UnregisterClass(mApplicationName, mHinstance);
 	mHinstance = NULL;
-	mpLogger->GetLogger().WriteLine("Application has been deregistered.");
+	gLogger->WriteLine("Application has been deregistered.");
 
 	// Release the pointer to the class.
 	ApplicationHandle = NULL;
-	mpLogger->GetLogger().WriteLine("Application handle has been successfully released.");
+	gLogger->WriteLine("Application handle has been successfully released.");
 
-	mpLogger->GetLogger().WriteLine("Shutdown of window successful.");
+	gLogger->WriteLine("Shutdown of window successful.");
 
 	return;
 }
