@@ -1,7 +1,7 @@
-#include "DiffuseLightShader.h"
+#include "SpecularLightingShader.h"
 
 
-CDiffuseLightShader::CDiffuseLightShader()
+CSpecularLightingShader::CSpecularLightingShader()
 {
 	mpVertexShader = nullptr;
 	mpPixelShader = nullptr;
@@ -9,18 +9,19 @@ CDiffuseLightShader::CDiffuseLightShader()
 	mpMatrixBuffer = nullptr;
 	mpSampleState = nullptr;
 	mpLightBuffer = nullptr;
+	mpCameraBuffer = nullptr;
 }
 
-CDiffuseLightShader::~CDiffuseLightShader()
+CSpecularLightingShader::~CSpecularLightingShader()
 {
 }
 
-bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
+bool CSpecularLightingShader::Initialise(ID3D11Device * device, HWND hwnd)
 {
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, L"Shaders/DiffuseLight.vs.hlsl", L"Shaders/DiffuseLight.ps.hlsl");
+	result = InitialiseShader(device, hwnd, L"Shaders/SpecularLight.vs.hlsl", L"Shaders/SpecularLight.ps.hlsl");
 
 	if (!result)
 	{
@@ -30,19 +31,20 @@ bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 	return true;
 }
 
-void CDiffuseLightShader::Shutdown()
+void CSpecularLightingShader::Shutdown()
 {
 	// Shutodwn the vertex and pixel shaders as well as all related objects.
 	ShutdownShader();
 }
 
-bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+bool CSpecularLightingShader::Render(	ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+										D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
+										D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour, ambientColour);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour, ambientColour, cameraPosition, specularColor, specularPower);
 	if (!result)
 	{
 		return false;
@@ -54,7 +56,7 @@ bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCo
 	return true;
 }
 
-bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
+bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -64,6 +66,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
+	D3D11_BUFFER_DESC cameraBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 
 	// Convert the vs & ps filename to string for logging purposes.
@@ -177,19 +180,19 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	pixelShaderBuffer = nullptr;
 
 	// Set up the sampler state descriptor.
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.MipLODBias = 0.0f;
-    samplerDesc.MaxAnisotropy = 1;
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-    samplerDesc.BorderColor[0] = 0;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
 	samplerDesc.BorderColor[1] = 0;
 	samplerDesc.BorderColor[2] = 0;
 	samplerDesc.BorderColor[3] = 0;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
 	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
@@ -217,6 +220,21 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 		return false;
 	}
 
+	// Set up the camera buffer.
+	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cameraBufferDesc.MiscFlags = 0;
+	cameraBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&cameraBufferDesc, NULL, &mpCameraBuffer);
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to create the camera buffer from the camera buffer descriptor from within the specular lighting shader class.");
+		return false;
+	}
+
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
 	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -227,19 +245,25 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
+		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the specular lighting shader class.");
 		return false;
 	}
 
 	return true;
 }
 
-void CDiffuseLightShader::ShutdownShader()
+void CSpecularLightingShader::ShutdownShader()
 {
 	if (mpLightBuffer)
 	{
 		mpLightBuffer->Release();
 		mpLightBuffer = nullptr;
+	}
+
+	if (mpCameraBuffer)
+	{
+		mpCameraBuffer->Release();
+		mpCameraBuffer = nullptr;
 	}
 
 	if (mpSampleState)
@@ -273,7 +297,7 @@ void CDiffuseLightShader::ShutdownShader()
 	}
 }
 
-void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, WCHAR * shaderFilename)
+void CSpecularLightingShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, WCHAR * shaderFilename)
 {
 	std::string errMsg;
 	char* compileErrors;
@@ -305,13 +329,15 @@ void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWN
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+bool CSpecularLightingShader::SetShaderParameters(	ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture,
+													D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 	MatrixBufferType* dataPtr;
 	LightBufferType* dataPtr2;
+	CameraBufferType* dataPtr3;
 
 
 	// Transpose the matrices to prepare them for the shader.
@@ -343,6 +369,30 @@ bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContex
 	// Now set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
+	// Lock camera constant buffer so it can be written to.
+	result = deviceContext->Map(mpCameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to lock the camera constant buffer so it could be written to in SpecularLightingShader.cpp");
+		return false;
+	}
+
+	// Get a pointer to the camera constant buffer data.
+	dataPtr3 = (CameraBufferType*)mappedResource.pData;
+
+	// Copy the camera pos over to the const buffer.
+	dataPtr3->cameraPosition = cameraPosition;
+	dataPtr3->padding = 0.0f;
+
+	// Unlock the const buffer.
+	deviceContext->Unmap(mpCameraBuffer, 0);
+
+	// Set the buffer number to 1, as it is the second buffer in the vertex shader.
+	bufferNumber = 1;
+
+	// Set the camera constant buffer with the updated values.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpCameraBuffer);
+
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
@@ -360,7 +410,8 @@ bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContex
 	dataPtr2->diffuseColour = diffuseColour;
 	dataPtr2->ambientColour = ambientColour;
 	dataPtr2->lightDirection = lightDirection;
-	dataPtr2->padding = 0.0f;
+	dataPtr2->specularColour = specularColor;
+	dataPtr2->specularPower = specularPower;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpLightBuffer, 0);
@@ -374,7 +425,7 @@ bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContex
 	return true;
 }
 
-void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CSpecularLightingShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);

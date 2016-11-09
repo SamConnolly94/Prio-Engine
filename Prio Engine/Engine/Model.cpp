@@ -1,7 +1,7 @@
 #include "Model.h"
 
 
-CModel::CModel(ID3D11Device * device, PrioEngine::VertexType vertexType)
+CModel::CModel(ID3D11Device * device, PrioEngine::ShaderType vertexType)
 {
 	mpDevice = device;
 	mpVertexManager = new CVertexManager(vertexType);

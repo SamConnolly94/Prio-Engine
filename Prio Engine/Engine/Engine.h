@@ -69,7 +69,7 @@ public:
 	bool RemoveMesh(CMesh* mesh);
 
 	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
-	CMesh* LoadMesh(char * filename, WCHAR * textureFilename, ShaderType shaderType);
+	CMesh* LoadMesh(char * filename, WCHAR * textureFilename, PrioEngine::ShaderType shaderType);
 	
 
 	float GetFrameTime();

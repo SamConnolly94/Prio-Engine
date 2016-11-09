@@ -17,7 +17,7 @@ CTriangle::CTriangle(WCHAR* filename)
 
 	mShape = PrioEngine::Primitives::triangle;
 
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::triangle);
+	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::triangle);
 	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
 
@@ -40,11 +40,11 @@ CTriangle::CTriangle(WCHAR * filename, bool useLighting)
 
 	if (useLighting)
 	{
-		mpVertexManager = new CVertexManager(PrioEngine::VertexType::Diffuse, PrioEngine::Primitives::triangle);
+		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Diffuse, PrioEngine::Primitives::triangle);
 	}
 	else
 	{
-		mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::triangle);
+		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::triangle);
 	}
 	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
@@ -63,7 +63,7 @@ CTriangle::CTriangle(PrioEngine::RGBA colour)
 
 	mShape = PrioEngine::Primitives::triangle;
 
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour, PrioEngine::Primitives::triangle);
+	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Colour, PrioEngine::Primitives::triangle);
 	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 
 	mpVertexManager->SetColour(colour);

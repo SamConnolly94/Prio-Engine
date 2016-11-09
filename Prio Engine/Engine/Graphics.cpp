@@ -260,6 +260,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
 
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
+	(*meshIt)->SetCameraPos(mpCamera->GetPosition());
 	while (meshIt != mpMeshes.end())
 	{
 		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj, mpLights);
@@ -475,7 +476,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		bool successful;
 
 		// Create texture shader.
-		mpDiffuseLightShader = new CDirectionalLightShader();
+		mpDiffuseLightShader = new CDiffuseLightShader();
 		gLogger->MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{
@@ -583,11 +584,11 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 	CMesh* mesh;
 	if (textureFilename != L"" && textureFilename != NULL)
 	{
-		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, Diffuse);
+		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, PrioEngine::ShaderType::Diffuse);
 	}
 	else
 	{
-		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, Colour);
+		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, PrioEngine::ShaderType::Colour);
 	}
 
 	gLogger->MemoryAllocWriteLine(typeid(mesh).name());
@@ -607,7 +608,7 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 	return mesh;
 }
 
-CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, ShaderType shaderType)
+CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType)
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd, shaderType);

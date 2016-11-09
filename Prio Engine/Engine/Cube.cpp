@@ -15,7 +15,7 @@ CCube::CCube(WCHAR * filename)
 
 	mShape = PrioEngine::Primitives::cube;
 
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::cube);
+	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::cube);
 	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
 
@@ -38,12 +38,12 @@ CCube::CCube(WCHAR* filename, bool useLighting)
 
 	if (useLighting)
 	{
-		mpVertexManager = new CVertexManager(PrioEngine::VertexType::Diffuse, PrioEngine::Primitives::cube);
+		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Diffuse, PrioEngine::Primitives::cube);
 		gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 	}
 	else
 	{
-		mpVertexManager = new CVertexManager(PrioEngine::VertexType::Texture, PrioEngine::Primitives::cube);
+		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::cube);
 		gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 	}
 }
@@ -62,7 +62,7 @@ CCube::CCube(PrioEngine::RGBA colour)
 
 	mShape = PrioEngine::Primitives::cube;
 
-	mpVertexManager = new CVertexManager(PrioEngine::VertexType::Colour, PrioEngine::Primitives::cube);
+	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Colour, PrioEngine::Primitives::cube);
 	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
 
 	mpVertexManager->SetColour(colour);

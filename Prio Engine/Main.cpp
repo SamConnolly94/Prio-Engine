@@ -65,11 +65,12 @@ void GameLoop(CEngine* &engine)
 	float frameTime;
 	CCamera* myCam;
 	CMesh* cubeMesh;
-	CModel* cube;
+	CMesh* houseMesh = nullptr;
+
 	CPrimitive* cube2;
 	CLight* ambientLight;
-	CMesh* coneMesh = nullptr;
-	CModel* cone = nullptr;
+	CModel* cube = nullptr;
+	CModel* house = nullptr;
 
 	// Camera init.
 	myCam = engine->CreateCamera();
@@ -77,22 +78,25 @@ void GameLoop(CEngine* &engine)
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
-	ambientLight->SetDirection({ 0.5f, -0.5f, 0.5f });
+	ambientLight->SetDirection(D3DXVECTOR3{ 0.0f, 0.0f, 1.0f });
+	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	ambientLight->SetSpecularPower(32.0f);
 
 	// Mesh init
-	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", Diffuse);
-	coneMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", Diffuse);
+	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", PrioEngine::ShaderType::Specular);
+	houseMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", PrioEngine::ShaderType::Diffuse);
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
 	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", false ,PrioEngine::Primitives::cube);
-	cone = coneMesh->CreateModel();
+	house = houseMesh->CreateModel();
+	cube->SetZPos(-20.0f);
 
 	cube2->SetXPos(-5.0f);
-	cube->SetXPos(0.0f);
-	cone->SetXPos(5.0f);
-	cone->SetRotationX(90.0f);
-	cone->SetScale(10.0f);
+	house->SetXPos(0.0f);
+	house->SetXPos(5.0f);
+	house->SetRotationX(90.0f);
+	house->SetScale(10.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();

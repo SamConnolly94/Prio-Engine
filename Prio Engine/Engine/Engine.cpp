@@ -441,7 +441,7 @@ CMesh* CEngine::LoadMesh(char * filename, WCHAR * textureFilename)
 	return mpGraphics->LoadMesh(filename, textureFilename);
 }
 
-CMesh* CEngine::LoadMesh(char * filename, WCHAR * textureFilename, ShaderType shaderType)
+CMesh* CEngine::LoadMesh(char * filename, WCHAR * textureFilename, PrioEngine::ShaderType shaderType)
 {
 	return mpGraphics->LoadMesh(filename, textureFilename, shaderType);
 }

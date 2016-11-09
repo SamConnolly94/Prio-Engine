@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-CMesh::CMesh(ID3D11Device* device, HWND hwnd, ShaderType shaderType)
+CMesh::CMesh(ID3D11Device* device, HWND hwnd, PrioEngine::ShaderType shaderType)
 {
 	// Initialise our counter variables to the default values.
 	mVertexCount = 0;
@@ -22,7 +22,7 @@ CMesh::CMesh(ID3D11Device* device, HWND hwnd, ShaderType shaderType)
 	}
 	else
 	{
-		mShaderType = Colour;
+		mShaderType = PrioEngine::ShaderType::Colour;
 	}
 }
 
@@ -69,6 +69,16 @@ CMesh::~CMesh()
 		// Set the mpTextureShader shader pointer to be default value.
 		mpTextureShader = nullptr;
 	}
+
+	if (mpSpecularShader)
+	{
+		// Deallocate memory.
+		delete mpSpecularShader;
+		// Write the deallocation message to the memory log.
+		gLogger->MemoryDeallocWriteLine(typeid(mpSpecularShader).name());
+		// Set the mpTextureShader shader pointer to be default value.
+		mpSpecularShader = nullptr;
+	}
 		
 	// If the texture has been allocated memory.
 	if (mpTexture)
@@ -102,9 +112,9 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 		mpTexture = new CTexture();
 		gLogger->MemoryAllocWriteLine(typeid(mpTexture).name());
 		mpTexture->Initialise(mpDevice, textureName);
-		if (mShaderType == Colour)
+		if (mShaderType == PrioEngine::ShaderType::Colour)
 		{
-			mShaderType = Diffuse;
+			mShaderType = PrioEngine::ShaderType::Diffuse;
 		}
 	}
 
@@ -116,10 +126,10 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	mFileExtension = mFilename.substr(extensionLocation, mFilename.length());
 
 	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
-	if (mShaderType == Diffuse)
+	if (mShaderType == PrioEngine::ShaderType::Diffuse)
 	{
 		// Initialise our directional light shader.
-		mpDirectionalLightShader = new CDirectionalLightShader();
+		mpDirectionalLightShader = new CDiffuseLightShader();
 		gLogger->MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 		// If the directional light shader is not successfully initialised.
 		if (!mpDirectionalLightShader->Initialise(mpDevice, mHwnd))
@@ -128,7 +138,20 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 			gLogger->WriteLine("Failed to initialise the directional light shader in mesh object.");
 		}
 	}
-	else if (mShaderType == Texture)
+	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
+	else if (mShaderType == PrioEngine::ShaderType::Specular)
+	{
+		// Initialise our directional light shader.
+		mpSpecularShader = new CSpecularLightingShader();
+		gLogger->MemoryAllocWriteLine(typeid(mpSpecularShader).name());
+		// If the directional light shader is not successfully initialised.
+		if (!mpSpecularShader->Initialise(mpDevice, mHwnd))
+		{
+			// Output failure message to the log.
+			gLogger->WriteLine("Failed to initialise the specular light shader in mesh object.");
+		}
+	}
+	else if (mShaderType == PrioEngine::ShaderType::Texture)
 	{
 		// Allocate memory to the texture shader.
 		mpTextureShader = new CTextureShader();
@@ -140,7 +163,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 			gLogger->WriteLine("Failed to initialise the colour shader in mesh object.");
 		}
 	}
-	else if (mShaderType == Colour)
+	else if (mShaderType == PrioEngine::ShaderType::Colour)
 	{
 		// Allocate memory to the colour shader.
 		mpColourShader = new CColourShader();
@@ -184,7 +207,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 
 		while (lightIt != lights.end())
 		{
-			if (mShaderType == Diffuse)
+			if (mShaderType == PrioEngine::ShaderType::Diffuse)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour()))
@@ -193,7 +216,17 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				}
 				lightIt++;
 			}
-			else if (mShaderType == Texture)
+			else if (mShaderType == PrioEngine::ShaderType::Specular)
+			{
+				D3DXVECTOR3 lightPos = (*lightIt)->GetPos();
+				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
+				if (!mpSpecularShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour(), lightPos, (*lightIt)->GetSpecularColour(), (*lightIt)->GetSpecularPower()))
+				{
+					gLogger->WriteLine("Failed to render the mesh model.");
+				}
+				lightIt++;
+			}
+			else if (mShaderType == PrioEngine::ShaderType::Texture)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture()))
@@ -202,7 +235,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				}
 				lightIt++;
 			}
-			else if (mShaderType == Colour)
+			else if (mShaderType == PrioEngine::ShaderType::Colour)
 			{
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpColourShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj))
@@ -229,25 +262,30 @@ CModel* CMesh::CreateModel()
 	// Allocate memory to a model.
 	CModel* model;
 	// Create a variable equal to a vertex type.
-	PrioEngine::VertexType vt;
+	PrioEngine::ShaderType vt;
 	// Initialise the vertex type.
-	if (mShaderType == Diffuse)
+	if (mShaderType == PrioEngine::ShaderType::Diffuse)
 	{
-		vt = PrioEngine::VertexType::Diffuse;
+		vt = PrioEngine::ShaderType::Diffuse;
 	}
-	else if (mShaderType == Texture)
+	else if (mShaderType == PrioEngine::ShaderType::Texture)
 	{
-		vt = PrioEngine::VertexType::Texture;
+		vt = PrioEngine::ShaderType::Texture;
 	}
-	else if (mShaderType == Colour)
+	else if (mShaderType == PrioEngine::ShaderType::Colour)
 	{
-		vt = PrioEngine::VertexType::Colour;
+		vt = PrioEngine::ShaderType::Colour;
+	}
+	else if (mShaderType == PrioEngine::ShaderType::Specular)
+	{
+		vt = PrioEngine::ShaderType::Specular;
 	}
 	else
 	{
 		// Failed to discover what vertex type should be used, return a nullptr
 		return nullptr;
 	}
+
 	model = new CModel(mpDevice, vt);
 
 	// Write an allocation message to our memory log.
@@ -264,7 +302,7 @@ CModel* CMesh::CreateModel()
 	model->SetNumberOfIndices(mpIndicesList.size());
 
 	// If we're using diffuse light.
-	if (mpDirectionalLightShader)
+	if (mpDirectionalLightShader || mpSpecularShader)
 	{
 		model->SetGeometry(mpVerticesList, mpIndicesList, mpUVList, mpNormalsList);
 	}

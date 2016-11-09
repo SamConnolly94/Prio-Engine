@@ -241,6 +241,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\Model.cpp" />
     <ClCompile Include="Engine\ModelControl.cpp" />
     <ClCompile Include="Engine\Primitive.cpp" />
+    <ClCompile Include="Engine\SpecularLightingShader.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\TextureShader.cpp" />
     <ClCompile Include="Engine\Triangle.cpp" />
@@ -271,6 +272,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\ModelControl.h" />
     <ClInclude Include="Engine\Primitive.h" />
     <ClInclude Include="Engine\PrioEngineVars.h" />
+    <ClInclude Include="Engine\SpecularLightingShader.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
@@ -298,6 +300,14 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Texture.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Engine\Shaders\SpecularLight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Engine\Shaders\SpecularLight.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

@@ -31,14 +31,14 @@
     <Filter Include="Engine\Dependencies">
       <UniqueIdentifier>{0db77c1c-45af-45b9-a162-a2560b28cead}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Procedural Generation">
-      <UniqueIdentifier>{8671074e-7f51-4813-b383-6c3fa8b3328d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Source Files\Pixel Shaders">
       <UniqueIdentifier>{a717d5c0-d338-4456-bd95-661875a3885b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Source Files\Vertex Shaders">
       <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{4eeda362-c921-4d18-a33b-b8ecd8dbb13e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +102,9 @@
     <ClCompile Include="Engine\TextureShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\SpecularLightingShader.cpp">
+      <Filter>Engine\Source Files\Shader Class</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -109,6 +112,30 @@
     </None>
     <None Include="Resources\Models\Cube.obj">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Shaders\Colour.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Colour.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DiffuseLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DiffuseLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Texture.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Texture.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Engine\Shaders\SpecularLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Engine\Shaders\SpecularLight.ps.hlsl">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -180,25 +207,8 @@
     <ClInclude Include="Engine\TextureShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Texture.ps.hlsl">
-      <Filter>Engine\Source Files\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Colour.vs.hlsl">
-      <Filter>Engine\Source Files\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl">
-      <Filter>Engine\Source Files\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Texture.vs.hlsl">
-      <Filter>Engine\Source Files\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Colour.ps.hlsl">
-      <Filter>Engine\Source Files\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl">
-      <Filter>Engine\Source Files\Pixel Shaders</Filter>
-    </FxCompile>
+    <ClInclude Include="Engine\SpecularLightingShader.h">
+      <Filter>Engine\Header Files\Shader Class</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

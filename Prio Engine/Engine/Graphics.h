@@ -45,7 +45,7 @@ private:
 	CPrimitive* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
-	CDirectionalLightShader* mpDiffuseLightShader;
+	CDiffuseLightShader* mpDiffuseLightShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -73,7 +73,7 @@ public:
 
 	// Model creation / deletion.
 	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
-	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, ShaderType shaderType);
+	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType);
 	bool RemoveMesh(CMesh* &mesh);
 
 	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
