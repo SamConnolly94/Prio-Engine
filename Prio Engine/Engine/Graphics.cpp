@@ -51,6 +51,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create a colour shader now, it's necessary for terrain.
+	CreateColourShader(hwnd);
+
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -133,6 +136,22 @@ void CGraphics::Shutdown()
 	while (!mpLights.empty())
 	{
 		mpLights.pop_back();
+	}
+
+	// Deallocate memory on the terrain list.
+
+	std::list<CTerrain*>::iterator terrainIt;
+	terrainIt = mpTerrains.begin();
+	while (terrainIt != mpTerrains.end())
+	{
+		delete (*terrainIt);
+		(*terrainIt) = nullptr;
+		terrainIt++;
+	}
+
+	while (!mpTerrains.empty())
+	{
+		mpTerrains.pop_back();
 	}
 
 	// Remove camera.
@@ -260,11 +279,24 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
 
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
-	(*meshIt)->SetCameraPos(mpCamera->GetPosition());
+	D3DXVECTOR3 camPos = mpCamera->GetPosition();
 	while (meshIt != mpMeshes.end())
 	{
+		(*meshIt)->SetCameraPos(camPos);
 		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj, mpLights);
 		meshIt++;
+	}
+
+	// Render any terrains.
+
+	std::list<CTerrain*>::iterator terrainIt = mpTerrains.begin();
+
+	while (terrainIt != mpTerrains.end())
+	{
+		(*terrainIt)->Render(mpD3D->GetDeviceContext());
+		// Render the terrain model using the colour shader.
+		mpColourShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj);
+		terrainIt++;
 	}
 
 	return true;
@@ -460,7 +492,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 		return nullptr;
 	}
 
-	if (!CreateColourShaderForModel(mHwnd))
+	if (!CreateColourShader(mHwnd))
 		return nullptr;
 
 	// Place any created models onto the list for the engine to track.
@@ -525,7 +557,7 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 	return true;
 }
 
-bool CGraphics::CreateColourShaderForModel(HWND hwnd)
+bool CGraphics::CreateColourShader(HWND hwnd)
 {
 	if (mpColourShader == nullptr)
 	{
@@ -665,6 +697,14 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 	// Return failure.
 	return false;
+}
+
+CTerrain * CGraphics::CreateTerrain()
+{
+	CTerrain* terrain = new CTerrain();
+	terrain->Initialise(mpD3D->GetDevice());
+	mpTerrains.push_back(terrain);
+	return terrain;
 }
 
 /* Create an instance of a light and return a pointer to it. */

@@ -425,6 +425,11 @@ bool CEngine::RemoveLight(CLight *& light)
 	return mpGraphics->RemoveLight(light);
 }
 
+CTerrain * CEngine::CreateTerrain()
+{
+	return mpGraphics->CreateTerrain();
+}
+
 bool CEngine::RemovePrimitive(CPrimitive * model)
 {
 	mpGraphics->RemovePrimitive(model);

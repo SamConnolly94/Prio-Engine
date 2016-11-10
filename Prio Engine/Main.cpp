@@ -67,10 +67,11 @@ void GameLoop(CEngine* &engine)
 	CMesh* cubeMesh;
 	CMesh* houseMesh = nullptr;
 
-	CPrimitive* cube2;
 	CLight* ambientLight;
 	CModel* cube = nullptr;
 	CModel* house = nullptr;
+	CTerrain* grid = engine->CreateTerrain();
+	CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 
 	// Camera init.
 	myCam = engine->CreateCamera();
@@ -88,11 +89,9 @@ void GameLoop(CEngine* &engine)
 
 	// Model init.
 	cube = cubeMesh->CreateModel();
-	cube2 = engine->CreatePrimitive(L"Resources/Textures/seafloor.dds", false ,PrioEngine::Primitives::cube);
 	house = houseMesh->CreateModel();
 	cube->SetZPos(-20.0f);
 
-	cube2->SetXPos(-5.0f);
 	house->SetXPos(0.0f);
 	house->SetXPos(5.0f);
 	house->SetRotationX(90.0f);

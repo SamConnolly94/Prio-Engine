@@ -105,6 +105,9 @@
     <ClCompile Include="Engine\SpecularLightingShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -209,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="Engine\SpecularLightingShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

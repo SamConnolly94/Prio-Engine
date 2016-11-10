@@ -12,6 +12,7 @@
 #include "TextureShader.h"
 #include "DiffuseLightShader.h"
 #include "Light.h"
+#include "../Terrain.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -54,9 +55,10 @@ private:
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
 	std::list<CLight*> mpLights;
+	std::list<CTerrain*> mpTerrains;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
-	bool CreateColourShaderForModel(HWND hwnd);
+	bool CreateColourShader(HWND hwnd);
 	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 
@@ -75,6 +77,8 @@ public:
 	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
 	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType);
 	bool RemoveMesh(CMesh* &mesh);
+
+	CTerrain* CreateTerrain();
 
 	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	bool RemoveLight(CLight* &light);
