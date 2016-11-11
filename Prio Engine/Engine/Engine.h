@@ -65,7 +65,7 @@ public:
 	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	bool RemoveLight(CLight* &light);
 
-	CTerrain* CreateTerrain();
+	CTerrainGrid* CreateTerrainGrid();
 
 	bool RemovePrimitive(CPrimitive* model);
 	bool RemoveMesh(CMesh* mesh);

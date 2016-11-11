@@ -5,11 +5,11 @@
 #include <d3dx10math.h>
 #include "Engine\PrioEngineVars.h"
 
-class CTerrain
+class CTerrainGrid
 {
 public:
-	CTerrain();
-	~CTerrain();
+	CTerrainGrid();
+	~CTerrainGrid();
 private:
 	struct VertexType
 	{

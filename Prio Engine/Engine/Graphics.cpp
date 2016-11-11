@@ -140,18 +140,18 @@ void CGraphics::Shutdown()
 
 	// Deallocate memory on the terrain list.
 
-	std::list<CTerrain*>::iterator terrainIt;
-	terrainIt = mpTerrains.begin();
-	while (terrainIt != mpTerrains.end())
+	std::list<CTerrainGrid*>::iterator terrainIt;
+	terrainIt = mpTerrainGrids.begin();
+	while (terrainIt != mpTerrainGrids.end())
 	{
 		delete (*terrainIt);
 		(*terrainIt) = nullptr;
 		terrainIt++;
 	}
 
-	while (!mpTerrains.empty())
+	while (!mpTerrainGrids.empty())
 	{
-		mpTerrains.pop_back();
+		mpTerrainGrids.pop_back();
 	}
 
 	// Remove camera.
@@ -289,9 +289,9 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 
 	// Render any terrains.
 
-	std::list<CTerrain*>::iterator terrainIt = mpTerrains.begin();
+	std::list<CTerrainGrid*>::iterator terrainIt = mpTerrainGrids.begin();
 
-	while (terrainIt != mpTerrains.end())
+	while (terrainIt != mpTerrainGrids.end())
 	{
 		(*terrainIt)->Render(mpD3D->GetDeviceContext());
 		// Render the terrain model using the colour shader.
@@ -699,11 +699,11 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 	return false;
 }
 
-CTerrain * CGraphics::CreateTerrain()
+CTerrainGrid * CGraphics::CreateTerrainGrid()
 {
-	CTerrain* terrain = new CTerrain();
+	CTerrainGrid* terrain = new CTerrainGrid();
 	terrain->Initialise(mpD3D->GetDevice());
-	mpTerrains.push_back(terrain);
+	mpTerrainGrids.push_back(terrain);
 	return terrain;
 }
 

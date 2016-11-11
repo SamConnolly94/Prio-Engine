@@ -70,12 +70,11 @@ void GameLoop(CEngine* &engine)
 	CLight* ambientLight;
 	CModel* cube = nullptr;
 	CModel* house = nullptr;
-	CTerrain* grid = engine->CreateTerrain();
+	CTerrainGrid* grid = engine->CreateTerrainGrid();
 	CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 
 	// Camera init.
 	myCam = engine->CreateCamera();
-	myCam->SetPositionZ(-20.0f);
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
@@ -117,7 +116,7 @@ void GameLoop(CEngine* &engine)
 /* Control any user input here, must be called in every tick of the game loop. */
 void Control(CEngine* &engine, CCamera* cam)
 {
-	const float kMoveSpeed = 10.0f;
+	const float kMoveSpeed = 25.0f;
 	const float kRotationSpeed = 10.0f;
 	const float kCamRotationSpeed = 2.5f;
 	float frameTime = engine->GetFrameTime();

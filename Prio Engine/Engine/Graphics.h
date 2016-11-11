@@ -55,7 +55,7 @@ private:
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
 	std::list<CLight*> mpLights;
-	std::list<CTerrain*> mpTerrains;
+	std::list<CTerrainGrid*> mpTerrainGrids;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
@@ -78,7 +78,7 @@ public:
 	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType);
 	bool RemoveMesh(CMesh* &mesh);
 
-	CTerrain* CreateTerrain();
+	CTerrainGrid* CreateTerrainGrid();
 
 	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	bool RemoveLight(CLight* &light);

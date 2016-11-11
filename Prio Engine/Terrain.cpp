@@ -1,6 +1,6 @@
 #include "Terrain.h"
 
-CTerrain::CTerrain()
+CTerrainGrid::CTerrainGrid()
 {
 	// Output alloc message to memory log.
 	gLogger->MemoryAllocWriteLine(typeid(this).name());
@@ -15,7 +15,7 @@ CTerrain::CTerrain()
 }
 
 
-CTerrain::~CTerrain()
+CTerrainGrid::~CTerrainGrid()
 {
 	// Output dealloc message to memory log.
 	gLogger->MemoryDeallocWriteLine(typeid(this).name());
@@ -23,7 +23,7 @@ CTerrain::~CTerrain()
 	ShutdownBuffers();
 }
 
-bool CTerrain::Initialise(ID3D11Device * device)
+bool CTerrainGrid::Initialise(ID3D11Device * device)
 {
 	bool result;
 
@@ -44,13 +44,13 @@ bool CTerrain::Initialise(ID3D11Device * device)
 	return true;
 }
 
-void CTerrain::Render(ID3D11DeviceContext * context)
+void CTerrainGrid::Render(ID3D11DeviceContext * context)
 {
 	// Render the data contained in the buffers..
 	RenderBuffers(context);
 }
 
-bool CTerrain::InitialiseBuffers(ID3D11Device * device)
+bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -228,7 +228,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	return true;
 }
 
-void CTerrain::ShutdownBuffers()
+void CTerrainGrid::ShutdownBuffers()
 {
 	// Release any memory given to the vertex buffer.
 	if (mpVertexBuffer)
@@ -245,7 +245,7 @@ void CTerrain::ShutdownBuffers()
 	}
 }
 
-void CTerrain::RenderBuffers(ID3D11DeviceContext * context)
+void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 {
 	unsigned int stride;
 	unsigned int offset;
