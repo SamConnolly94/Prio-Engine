@@ -627,6 +627,7 @@ bool CD3D11::InitRasterizer(D3D11_RASTERIZER_DESC& rasterDesc)
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.DepthClipEnable = true;
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	//rasterDesc.FillMode = D3D11_FILL_WIREFRAME
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.ScissorEnable = false;
