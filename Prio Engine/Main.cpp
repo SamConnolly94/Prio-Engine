@@ -71,6 +71,7 @@ void GameLoop(CEngine* &engine)
 	CModel* cube = nullptr;
 	CModel* house = nullptr;
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
+	grid->CreateGrid();
 	CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 
 	// Camera init.

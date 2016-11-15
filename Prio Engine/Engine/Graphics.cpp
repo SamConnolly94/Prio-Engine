@@ -701,8 +701,9 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 CTerrainGrid * CGraphics::CreateTerrainGrid()
 {
-	CTerrainGrid* terrain = new CTerrainGrid();
-	terrain->Initialise(mpD3D->GetDevice());
+	CTerrainGrid* terrain = new CTerrainGrid(mpD3D->GetDevice());
+	//terrain->Initialise(mpD3D->GetDevice());
+	gLogger->WriteLine("Retrieved an instance of terrain but it will need to be initialised before use, if not we're going to attempt to render something which simply does not exist. Use terrainObj->CreateGrid() to create it. ");
 	mpTerrainGrids.push_back(terrain);
 	return terrain;
 }

@@ -242,12 +242,12 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\ModelControl.cpp" />
     <ClCompile Include="Engine\Primitive.cpp" />
     <ClCompile Include="Engine\SpecularLightingShader.cpp" />
+    <ClCompile Include="Engine\Terrain.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\TextureShader.cpp" />
     <ClCompile Include="Engine\Triangle.cpp" />
     <ClCompile Include="Engine\VertexTypeManager.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TestTex.dds" />
@@ -274,11 +274,11 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\Primitive.h" />
     <ClInclude Include="Engine\PrioEngineVars.h" />
     <ClInclude Include="Engine\SpecularLightingShader.h" />
+    <ClInclude Include="Engine\Terrain.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
-    <ClInclude Include="Terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Models\Cube.obj">
