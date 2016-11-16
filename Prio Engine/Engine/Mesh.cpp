@@ -353,7 +353,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 	}
 
 	// Iterate through all our meshes to be loaded.
-	for (int meshCount = 0; meshCount < scene->mNumMeshes; meshCount++)
+	for (unsigned int meshCount = 0; meshCount < scene->mNumMeshes; meshCount++)
 	{
 		// Load the current mesh.
 		const aiMesh& mesh = *scene->mMeshes[meshCount];

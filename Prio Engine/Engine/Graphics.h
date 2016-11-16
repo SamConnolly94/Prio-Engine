@@ -12,7 +12,7 @@
 #include "TextureShader.h"
 #include "DiffuseLightShader.h"
 #include "Light.h"
-#include "../Terrain.h"
+#include "Terrain.h"
 
 // Global variables.
 // Will the window run in full screen?

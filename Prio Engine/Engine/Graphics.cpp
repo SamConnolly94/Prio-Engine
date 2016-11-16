@@ -294,6 +294,15 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	while (terrainIt != mpTerrainGrids.end())
 	{
 		(*terrainIt)->Render(mpD3D->GetDeviceContext());
+
+		D3DXMatrixTranslation(&modelWorld, (*terrainIt)->GetPosX(), (*terrainIt)->GetPosY(), (*terrainIt)->GetPosZ());
+
+		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
+		D3DXMatrixRotationX(&rotX, (*terrainIt)->GetRotationX());
+		D3DXMatrixRotationY(&rotY, (*terrainIt)->GetRotationY());
+		D3DXMatrixRotationZ(&rotZ, (*terrainIt)->GetRotationZ());
+		world = modelWorld * rotX * rotY * rotZ;
+
 		// Render the terrain model using the colour shader.
 		mpColourShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj);
 		terrainIt++;

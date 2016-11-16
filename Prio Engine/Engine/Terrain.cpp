@@ -17,6 +17,9 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 
 	mHeightMapLoaded = false;
 	mpHeightMap = nullptr;
+
+	mLowestPoint = 0.0f;
+	mHighestPoint = 0.0f;
 }
 
 
@@ -369,6 +372,25 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 void CTerrainGrid::LoadHeightMap(double ** heightMap)
 {
 	mpHeightMap = heightMap;
+
+	gLogger->WriteLine("Copied height map over to terrain, time to find the heights and lowest points.");
+	for (unsigned int y = 0; y < mHeight; y++)
+	{
+		for (unsigned int x = 0; x < mWidth; x++)
+		{
+			if (mpHeightMap[y][x] < mLowestPoint)
+			{
+				mLowestPoint = static_cast<float>(mpHeightMap[y][x]);
+			}
+			else if (mpHeightMap[y][x] > mHighestPoint)
+			{
+				mHighestPoint = static_cast<float>(mpHeightMap[y][x]);
+			}
+		}
+	}
+
+	SetYPos(0.0f - mLowestPoint);
+	SetXPos( 0 - (static_cast<float>(mWidth) / 2.0f));
 
 	mHeightMapLoaded = true;
 }
