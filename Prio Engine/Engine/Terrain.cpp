@@ -373,6 +373,9 @@ void CTerrainGrid::LoadHeightMap(double ** heightMap)
 {
 	mpHeightMap = heightMap;
 
+	mLowestPoint = mpHeightMap[0][0];
+	mHighestPoint = mpHeightMap[0][0];
+
 	gLogger->WriteLine("Copied height map over to terrain, time to find the heights and lowest points.");
 	for (unsigned int y = 0; y < mHeight; y++)
 	{
