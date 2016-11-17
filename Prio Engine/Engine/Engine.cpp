@@ -8,6 +8,8 @@ CEngine::CEngine()
 	mTimer = new CGameTimer();
 	gLogger->MemoryAllocWriteLine(typeid(mTimer).name());
 	mStopped = false;
+	mKeyRecentlyHit = false;
+	mTimeSinceLastKeyPress = 0.0f;
 }
 
 /* Default destructor. */
@@ -391,7 +393,31 @@ CCamera* CEngine::CreateCamera()
 You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)
 {
-	return mpInput->KeyHit(key);
+	// If the key was hit and hadn't been hit before.
+	if (mpInput->KeyHit(key) && !mKeyRecentlyHit)
+	{
+		// Set a boolean flag to let us know that the key has been recently hit.
+		mKeyRecentlyHit = true;
+		return true;
+	}
+
+	// If the key was recently hit.
+	if (mKeyRecentlyHit)
+	{
+		// Add the frametime to our amount of time since last key press.
+		mTimeSinceLastKeyPress += GetFrameTime();
+	}
+
+	// If an appropriate amount of time has passed since the last key was hit.
+	if (mTimeSinceLastKeyPress > kKeyPressIntervalTime)
+	{
+		// Reset our tracking variables.
+		mTimeSinceLastKeyPress = 0.0f;
+		mKeyRecentlyHit = false;
+	}
+
+	// Key wasn't hit or had been pressed too soon since the last time it was hit.
+	return false;
 }
 
 /* Detects whether a key is being held. 
