@@ -3,7 +3,7 @@
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
-void Control(CEngine* &engine, CCamera* cam);
+void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid);
 
 // Globals
 CLogger* gLogger;
@@ -100,6 +100,8 @@ void GameLoop(CEngine* &engine)
 	// Start the game timer running.
 	engine->StartTimer();
 
+	grid->SetDrawStyle(Solid);
+
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
@@ -107,7 +109,7 @@ void GameLoop(CEngine* &engine)
 		frameTime = engine->GetFrameTime();
 
 		// Process any keys pressed this frame.
-		Control(engine, myCam);
+		Control(engine, myCam, grid);
 
 		// Rotate the model which has been logged on.
 		cube->RotateY(kRotationSpeed * frameTime);
@@ -115,7 +117,7 @@ void GameLoop(CEngine* &engine)
 }
 
 /* Control any user input here, must be called in every tick of the game loop. */
-void Control(CEngine* &engine, CCamera* cam)
+void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid)
 {
 	const float kMoveSpeed = 25.0f;
 	const float kRotationSpeed = 10.0f;
@@ -173,5 +175,16 @@ void Control(CEngine* &engine, CCamera* cam)
 		engine->Stop();
 	}
 
-
+	// If the user hits F1.
+	if (engine->KeyHit(PrioEngine::Key::kF1))
+	{
+		if (grid->GetDrawStyle() == Solid)
+		{
+			grid->SetDrawStyle(Wireframe);
+		}
+		else
+		{
+			grid->SetDrawStyle(Solid);
+		}
+	}
 }

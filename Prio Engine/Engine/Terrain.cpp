@@ -20,6 +20,8 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 
 	mLowestPoint = 0.0f;
 	mHighestPoint = 0.0f;
+
+	mStyle = Wireframe;
 }
 
 
@@ -76,9 +78,20 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	D3D11_SUBRESOURCE_DATA vertexData;
 	D3D11_SUBRESOURCE_DATA indexData;
 	HRESULT result;
+	const int kNumTrianglesInSquare = 4;
+	const int kNumLinesInSquare = 8;
 
 	// Calculate the number of vertices in the terrain mesh.
-	mVertexCount = (mWidth - 1) * (mHeight - 1) * 8;
+	mVertexCount = 0;
+
+	if (mStyle == Wireframe)
+	{
+		mVertexCount = (mWidth - 1) * (mHeight - 1) * kNumLinesInSquare;
+	}
+	else if (mStyle == Solid)
+	{
+		mVertexCount = (mWidth - 1) * (mHeight - 1) * kNumTrianglesInSquare;
+	}
 
 	// Same number of indices as vertices.
 	mIndexCount = mVertexCount;
@@ -102,6 +115,8 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 
 	index = 0;
 
+	/// TODO: Change from a linelist to a triangle strip, this will allow us to draw solid colours as terrain.
+
 	// Plot the vertices of the grid.
 	if (mHeightMapLoaded)
 	{
@@ -112,82 +127,131 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 				/// Line 1
 				float height = mpHeightMap[heightCount][widthCount];
 
-				// Upper left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount + 1);
+				switch (mStyle)
+				{
+				case Wireframe:
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Upper left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
 
-				// Upper right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount + 1);
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Upper right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
 
-				/// Line 2
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Upper right.
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount + 1);
+					/// Line 2
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Upper right.
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
 
-				// Bottom right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount);
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
 
-				/// Line 3
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Bottom right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount);
+					/// Line 3
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
 
-				// Bottom left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount);
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
 
-				/// Line 4
-				// Bottom left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount);
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					/// Line 4
+					// Bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
 
-				// Upper left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount + 1);
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					// Upper left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
+
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					break;
+				case Solid:
+					/// Triangle 1
+					/// Line 1
+
+					// bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
+
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					// Top left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
+
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
+
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					/// Triangle 2
+
+					// Top right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
+
+					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+					break;
+				}
 			}
 		}
 	}
@@ -197,84 +261,133 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 		{
 			for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
 			{
-				/// Line 1
+				switch (mStyle)
+				{
+				case Wireframe:
+					/// Line 1
 
-				// Upper left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount + 1);
+					// Upper left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Upper right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount + 1);
+					// Upper right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				/// Line 2
+					/// Line 2
 
-				// Upper right.
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount + 1);
+					// Upper right.
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Bottom right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount);
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				/// Line 3
+					/// Line 3
 
-				// Bottom right
-				posX = static_cast<float>(widthCount + 1);
-				posZ = static_cast<float>(heightCount);
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Bottom left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount);
+					// Bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				/// Line 4
-				// Bottom left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount);
+					/// Line 4
+					// Bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
 
-				// Upper left
-				posX = static_cast<float>(widthCount);
-				posZ = static_cast<float>(heightCount + 1);
+					// Upper left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
 
-				vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
-				vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
-				indices[index] = index;
-				index++;
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					break;
+
+				case Solid:
+					/// Triangle 1
+					/// Line 1
+
+					// bottom left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount);
+
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					// Top left
+					posX = static_cast<float>(widthCount);
+					posZ = static_cast<float>(heightCount + 1);
+
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					// Bottom right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount);
+
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+
+					/// Triangle 2
+
+					// Top right
+					posX = static_cast<float>(widthCount + 1);
+					posZ = static_cast<float>(heightCount + 1);
+
+					vertices[index].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
+					indices[index] = index;
+					index++;
+					break;
+				}
 			}
 		}
 	}
@@ -339,7 +452,7 @@ void CTerrainGrid::ShutdownBuffers()
 	if (mpVertexBuffer)
 	{
 		mpVertexBuffer->Release();
-		mpIndexBuffer->Release();
+		mpVertexBuffer = nullptr;
 	}
 
 	// Release any memory given to the index buffer.
@@ -365,8 +478,21 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	// Set the index buffer to active in the input assembler.
 	context->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
+	/// TODO: Change from a linelist to a trianglelist here. This will enable us to render a solid colour.
+
 	// Set the render format to line list.
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	switch (mStyle)
+	{
+	case Solid:
+		context->IASetPrimitiveTopology(/*D3D11_PRIMITIVE_TOPOLOGY_LINELIST*/ D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		break;
+	case Wireframe:
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		break;
+	default:
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		break;
+	}
 }
 
 void CTerrainGrid::LoadHeightMap(double ** heightMap)
@@ -396,6 +522,22 @@ void CTerrainGrid::LoadHeightMap(double ** heightMap)
 	SetXPos( 0 - (static_cast<float>(mWidth) / 2.0f));
 
 	mHeightMapLoaded = true;
+}
+
+/* Reinitialises the buffers so we can change from rendering in wireframe mode to solid colour mode. */
+void CTerrainGrid::SetDrawStyle(DrawStyle style)
+{
+	// Update the style.
+	mStyle = style;
+
+	/// Update the vertex and index buffers. Will need to recreate them.
+	// Deallocates the vertex and index buffers.
+	ShutdownBuffers();
+	// Reinitialise the vertex and index buffers.
+	InitialiseBuffers(mpDevice);
+
+	// Output a message to the log to let our user know we successfully updated the draw style.
+	gLogger->WriteLine("Updated draw style in terrain.");
 }
 
 
