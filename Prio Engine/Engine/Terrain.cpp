@@ -126,6 +126,16 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			{
 				/// Line 1
 				float height = mpHeightMap[heightCount][widthCount];
+				float nextSquareHeight;
+
+				if (heightCount == mHeight - 2)
+				{
+					nextSquareHeight = height;
+				}
+				else
+				{
+					nextSquareHeight = mpHeightMap[heightCount + 1][widthCount];
+				}
 
 				switch (mStyle)
 				{
@@ -226,7 +236,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 					posX = static_cast<float>(widthCount);
 					posZ = static_cast<float>(heightCount + 1);
 
-					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].position = D3DXVECTOR3{ posX, nextSquareHeight, posZ };
 					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 					indices[index] = index;
 					index++;
@@ -246,7 +256,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 					posX = static_cast<float>(widthCount + 1);
 					posZ = static_cast<float>(heightCount + 1);
 
-					vertices[index].position = D3DXVECTOR3{ posX, height, posZ };
+					vertices[index].position = D3DXVECTOR3{ posX, nextSquareHeight, posZ };
 					vertices[index].colour = D3DXVECTOR4(1.0f, 1.0f, 1.0f, 1.0f);
 					indices[index] = index;
 					index++;
