@@ -84,19 +84,10 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	// Calculate the number of vertices in the terrain mesh.
 	mVertexCount = 0;
 
-	if (mStyle == Wireframe)
-	{
-		mVertexCount = (mWidth - 1) * (mHeight - 1) * kNumLinesInSquare;
-	}
-	else if (mStyle == Solid)
-	{
-		mVertexCount = (mWidth - 1) * (mHeight - 1) * kNumTrianglesInSquare;
-	}
-
 	mVertexCount = (mWidth * mHeight);
 
 	// Same number of indices as vertices.
-	mIndexCount = (mWidth - 1) * (mHeight - 1) * 6;
+	mIndexCount = (mWidth) * (mHeight) * 6;
 
 	// Create the vertex array.
 	vertices = new VertexType[mVertexCount];
@@ -138,30 +129,73 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			}
 
 			vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
 			vertex++;
 		}
 	}
 
 	vertex = 0;
 
-	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
 	{
-		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
 		{
-			// Set the vertices to point at their correct points.
 			indices[index] = vertex;
-			indices[index + 1] = vertex + 1;
-			indices[index + 2] = vertex + mWidth + 1;
 
-			indices[index + 3] = vertex;
-			indices[index + 4] = vertex + mWidth;
-			indices[index + 5] = vertex + mWidth + 1;
+			// If we're not as high as can be.
+			if (heightCount < mHeight - 1)
+			{
+				indices[index + 1] = vertex + mWidth;
+				indices[index + 2] = vertex + mWidth + 1;
+				indices[index + 3] = vertex + mWidth + 1;
+			}
+			else
+			{
+				indices[index + 1] = vertex;
+				indices[index + 2] = vertex;
+				indices[index + 3] = vertex;
+			}
+
+			// If we're not as wide as can be.
+			if (widthCount < mWidth - 1)
+			{
+				indices[index + 4] = vertex + 1;
+			}
+			else
+			{
+				indices[index + 4] = vertex;
+			}
+
+			// If we're both.
+			if (widthCount >= mWidth - 1 && heightCount >= mHeight - 1)
+			{
+				indices[index + 2] = vertex;
+				indices[index + 3] = vertex;
+				indices[index + 4] = vertex;
+			}
+
+			indices[index + 5] = vertex;
 
 			index += 6;
-
 			vertex++;
 		}
 	}
+	//for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
+	//{
+	//	for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
+	//	{
+	//		// Set the vertices to point at their correct points.
+	//		indices[index] = vertex;
+	//		indices[index + 1] = vertex + 1;
+	//		indices[index + 2] = vertex + mWidth + 1;
+
+	//		indices[index + 3] = vertex + mWidth;
+
+	//		index += 4;
+
+	//		vertex++;
+	//	}
+	//}
 
 
 	// Set up the descriptor of the static vertex buffer.
