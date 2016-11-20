@@ -413,6 +413,74 @@ void CD3D11::GetOrthogonalMatrix(D3DMATRIX & orthogMatrix)
 	return;
 }
 
+void CD3D11::EnableWireframeFill()
+{
+	HRESULT	result;
+
+	mpRasterizerState->Release();
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+
+	// Set up the description for the raster which dictates how many polygons are drawn.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the previously defined description.
+	result = mpDevice->CreateRasterizerState(&rasterDesc, &mpRasterizerState);
+	// If we failed to create the rasterizer.
+	if (FAILED(result))
+	{
+		// Log the error message
+		gLogger->WriteLine("Failed to create the rasterizer from the description provided.");
+	}
+
+	// Set the rasterizer state.
+	mpDeviceContext->RSSetState(mpRasterizerState);
+	gLogger->WriteLine("Rasterizer state changed to use wireframe fill.");
+}
+
+void CD3D11::EnableSolidFill()
+{
+	HRESULT result;
+	mpRasterizerState->Release();
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+
+	// Set up the description for the raster which dictates how many polygons are drawn.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the previously defined description.
+	result = mpDevice->CreateRasterizerState(&rasterDesc, &mpRasterizerState);
+	// If we failed to create the rasterizer.
+	if (FAILED(result))
+	{
+		// Log the error message
+		gLogger->WriteLine("Failed to create the rasterizer from the description provided.");
+	}
+
+	// Set the rasterizer state.
+	mpDeviceContext->RSSetState(mpRasterizerState);
+
+	gLogger->WriteLine("Rasterizer state changed to use solid fill.");
+}
+
 /* Gets information about the graphics card that DirectX is using. */
 //void CD3D11::GetGraphicsCardInfo(char * cardName, int & memory)
 //{

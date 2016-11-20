@@ -178,13 +178,6 @@ void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid)
 	// If the user hits F1.
 	if (engine->KeyHit(PrioEngine::Key::kF1))
 	{
-		if (grid->GetDrawStyle() == Solid)
-		{
-			grid->SetDrawStyle(Wireframe);
-		}
-		else
-		{
-			grid->SetDrawStyle(Solid);
-		}
+		engine->ToggleWireframe();
 	}
 }

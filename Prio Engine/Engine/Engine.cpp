@@ -10,6 +10,7 @@ CEngine::CEngine()
 	mStopped = false;
 	mKeyRecentlyHit = false;
 	mTimeSinceLastKeyPress = 0.0f;
+	mWireframeEnabled = false;
 }
 
 /* Default destructor. */
@@ -387,6 +388,11 @@ void CEngine::StartTimer()
 CCamera* CEngine::CreateCamera()
 {
 	return mpGraphics->CreateCamera();
+}
+
+void CEngine::ToggleWireframe()
+{
+	mpGraphics->ToggleWireframe();
 }
 
 /* Detects if a key has been pressed once. 

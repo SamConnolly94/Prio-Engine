@@ -9,7 +9,7 @@ CGraphics::CGraphics()
 	mpColourShader = nullptr;
 	mpTextureShader = nullptr;
 	mpDiffuseLightShader = nullptr;
-
+	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 }
 
@@ -803,4 +803,18 @@ CCamera* CGraphics::CreateCamera()
 void CGraphics::SetCameraPos(float x, float y, float z)
 {
 	mpCamera->SetPosition(x, y, z);
+}
+
+void CGraphics::ToggleWireframe()
+{
+	if (!mWireframeEnabled)
+	{
+		mpD3D->EnableSolidFill();
+	}
+	else
+	{
+		mpD3D->EnableWireframeFill();
+	}
+
+	mWireframeEnabled = !mWireframeEnabled;
 }
