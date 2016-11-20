@@ -64,15 +64,15 @@ void GameLoop(CEngine* &engine)
 	// Variables
 	float frameTime;
 	CCamera* myCam;
-	CMesh* cubeMesh;
-	CMesh* houseMesh = nullptr;
+	//CMesh* cubeMesh;
+	//CMesh* houseMesh = nullptr;
 
 	CLight* ambientLight;
-	CModel* cube = nullptr;
-	CModel* house = nullptr;
+	//CModel* cube = nullptr;
+	//CModel* house = nullptr;
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
 	grid->CreateGrid();
-	CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
+	//CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 
 	// Camera init.
 	myCam = engine->CreateCamera();
@@ -84,18 +84,18 @@ void GameLoop(CEngine* &engine)
 	ambientLight->SetSpecularPower(32.0f);
 
 	// Mesh init
-	cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", PrioEngine::ShaderType::Specular);
-	houseMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", PrioEngine::ShaderType::Diffuse);
+	//cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", PrioEngine::ShaderType::Specular);
+	//houseMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", PrioEngine::ShaderType::Diffuse);
 
 	// Model init.
-	cube = cubeMesh->CreateModel();
-	house = houseMesh->CreateModel();
-	cube->SetZPos(-20.0f);
+	//cube = cubeMesh->CreateModel();
+	//house = houseMesh->CreateModel();
+	//cube->SetZPos(-20.0f);
 
-	house->SetXPos(0.0f);
-	house->SetXPos(5.0f);
-	house->SetRotationX(90.0f);
-	house->SetScale(10.0f);
+	//house->SetXPos(0.0f);
+	//house->SetXPos(5.0f);
+	//house->SetRotationX(90.0f);
+	//house->SetScale(10.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();
@@ -112,7 +112,7 @@ void GameLoop(CEngine* &engine)
 		Control(engine, myCam, grid);
 
 		// Rotate the model which has been logged on.
-		cube->RotateY(kRotationSpeed * frameTime);
+		//cube->RotateY(kRotationSpeed * frameTime);
 	}
 }
 
