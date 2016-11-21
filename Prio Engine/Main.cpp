@@ -100,8 +100,6 @@ void GameLoop(CEngine* &engine)
 	// Start the game timer running.
 	engine->StartTimer();
 
-	grid->SetDrawStyle(Solid);
-
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
