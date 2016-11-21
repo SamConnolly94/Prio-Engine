@@ -244,7 +244,7 @@ namespace Math
 	{
 		VEC3 result;
 		result.x = vectorA.y * vectorB.z - vectorA.z * vectorB.y;
-		result.y = vectorA.z * vectorB.x - vectorA.z * vectorB.z;
+		result.y = vectorA.z * vectorB.x - vectorA.x * vectorB.z;
 		result.z = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
 		return result;
 	}
