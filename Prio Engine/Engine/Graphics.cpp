@@ -53,6 +53,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Create a colour shader now, it's necessary for terrain.
 	CreateColourShader(hwnd);
+	CreateTextureShaderForModel(hwnd);
 
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
@@ -304,7 +305,8 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		world = modelWorld * rotX * rotY * rotZ;
 
 		// Render the terrain model using the colour shader.
-		mpColourShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj);
+		//mpColourShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj);
+		mpTextureShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTexture()->GetTexture());
 		terrainIt++;
 	}
 

@@ -20,6 +20,9 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 
 	mLowestPoint = 0.0f;
 	mHighestPoint = 0.0f;
+
+	mpTexture = new CTexture();
+	mpTexture->Initialise(device, L"Resources/Textures/Test.dds");
 }
 
 
@@ -27,6 +30,8 @@ CTerrainGrid::~CTerrainGrid()
 {
 	// Output dealloc message to memory log.
 	gLogger->MemoryDeallocWriteLine(typeid(this).name());
+
+	delete mpTexture;
 
 	ShutdownBuffers();
 }
@@ -83,6 +88,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	D3D11_SUBRESOURCE_DATA vertexData;
 	D3D11_SUBRESOURCE_DATA indexData;
 	HRESULT result;
+	
 	const int kNumIndicesInSquare = 6;
 	int numberOfNormals;
 
@@ -137,6 +143,8 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	vertex = 0;
 
 	/// Plot the vertices of the grid.
+	float U = 0.0f;
+	float V = 0.0f;
 
 	// For the height of our height map.
 	for (int heightCount = 0; heightCount < mHeight; heightCount++)
@@ -159,13 +167,18 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 				// Set the position to a default of 0.0f.
 				vertices[vertex].position = D3DXVECTOR3{ posX, 0.0f, posZ };
 			}
+			
+			U = widthCount;
+			V = heightCount;
 
+			vertices[vertex].UV = { U, V };
 			// Set the default colour.
-			vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
+			//vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 			// Onto the next vertex.
 			vertex++;
 		}
+		V += 1.0f;
 	}
 
 	vertex = 0;
@@ -200,6 +213,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			index += 6;
 
 			/// Calculate normals.
+
 			// Bottom left
 			PrioEngine::Math::VEC3 point1 = { vertices[vertex].position.x, vertices[vertex].position.y, vertices[vertex].position.z };
 			// Bottom right
@@ -222,7 +236,16 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			PrioEngine::Math::VEC3 face2Vec = PrioEngine::Math::CrossProduct(U, V);
 			normals[norms] = D3DXVECTOR3{ face2Vec.x, -face2Vec.y, face2Vec.z };
 			norms++;
-			
+
+			///// Calculate texture positions.
+			//// Top left
+			//// Top right
+			//vertices[vertex + mWidth + 1].UV = D3DXVECTOR2{ 1.0f, 0.0f };
+			//// Bottom left.
+			//vertices[vertex].UV = D3DXVECTOR2{ 0.0f, 1.0f };
+			//// Bottom right.
+			//vertices[vertex + 1].UV = D3DXVECTOR2{ 1.0f, 1.0f };
+
 			// Increase the vertex which is our primary point.
 			vertex++;
 		}
