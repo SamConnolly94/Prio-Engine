@@ -22,7 +22,7 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 	mHighestPoint = 0.0f;
 
 	mpTexture = new CTexture();
-	mpTexture->Initialise(device, L"Resources/Textures/Test.dds");
+	mpTexture->Initialise(device, L"Resources/Textures/Dirt.dds");
 }
 
 
