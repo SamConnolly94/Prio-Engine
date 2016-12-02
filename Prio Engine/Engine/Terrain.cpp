@@ -79,7 +79,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
-	D3DXVECTOR3* normals;
 	int index;
 	int vertex;
 
@@ -122,19 +121,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 		// Output failure message to the debug log.
 		gLogger->WriteLine("Failed to create the index array in InitialiseBuffers function, Terrain.cpp.");
 		// Don't continue any further.
-		return false;
-	}
-
-	// Create the normals array.
-	normals = new D3DXVECTOR3[numberOfNormals];
-	// Output the allocation message to the log.
-	gLogger->MemoryAllocWriteLine(typeid(normals).name());
-	// If we failed to allocate memory to the normals array.
-	if (!normals)
-	{
-		// Output error message to the debug log.
-		gLogger->WriteLine("Failed to create the normals array in InitialiseBuffers function, Terrain.cpp.");
-		// Don't continue any more.
 		return false;
 	}
 
@@ -182,7 +168,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	vertex = 0;
-	int norms = 0;
 
 	/// Calculate indices.
 	// Iterate through the height ( - 1 because we'll draw a triangle which uses the vertex above current point, don't want to cause issues when we hit the boundary).
@@ -191,6 +176,8 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 		// Iterate through the width ( - 1 because we'll draw a triangle which uses the vertex to the right of the current point, don't want to cause issue's at the boundary).
 		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
 		{
+			/// Calculate indices.
+
 			/// Triangle 1.
 
 			// Starting point.
@@ -221,36 +208,86 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			// Upper right
 			PrioEngine::Math::VEC3 point3 = { vertices[vertex + mWidth + 1].position.x, vertices[vertex + mWidth + 1].position.y, vertices[vertex + mWidth + 1].position.z };
 			// Upper left
-			PrioEngine::Math::VEC3 point4 = { vertices[vertex + mWidth].position.x, vertices[vertex + mWidth].position.y, vertices[vertex + mWidth].position.z };
 
 			PrioEngine::Math::VEC3 U = PrioEngine::Math::Subtract(point2, point1);
 			PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
 
 			PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
-			normals[norms] = D3DXVECTOR3{ face1Vec.x, -face1Vec.y, face1Vec.z };
-			norms++;
-
-			// Calculate second triangle face normal.
-			U = PrioEngine::Math::Subtract(point2, point1);
-			V = PrioEngine::Math::Subtract(point4, point1);
-			PrioEngine::Math::VEC3 face2Vec = PrioEngine::Math::CrossProduct(U, V);
-			normals[norms] = D3DXVECTOR3{ face2Vec.x, -face2Vec.y, face2Vec.z };
-			norms++;
-
-			///// Calculate texture positions.
-			//// Top left
-			//// Top right
-			//vertices[vertex + mWidth + 1].UV = D3DXVECTOR2{ 1.0f, 0.0f };
-			//// Bottom left.
-			//vertices[vertex].UV = D3DXVECTOR2{ 0.0f, 1.0f };
-			//// Bottom right.
-			//vertices[vertex + 1].UV = D3DXVECTOR2{ 1.0f, 1.0f };
+			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x, -face1Vec.y, face1Vec.z };
+			float length = float(sqrt(vertices[vertex].normal.x * vertices[vertex].normal.x) + (vertices[vertex].normal.y * vertices[vertex].normal.y) + (vertices[vertex].normal.z * vertices[vertex].normal.z));
+			// Normalise the normal.
+			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, -face1Vec.y / length, face1Vec.z / length };
 
 			// Increase the vertex which is our primary point.
 			vertex++;
 		}
 		// We missed 1 off of the width count so auto adjust the vertex count here.
 		vertex++;
+	}
+
+	// Reset vertex one more time, so we can use it in this function.
+	vertex = 0;
+
+	// We next continue by creating a sum of all normals which will touch each normal, to get a final value.
+	for (int height = 0; height < mHeight; height++)
+	{
+		for (int width = 0; width < mWidth; width++)
+		{
+			float sum[3];
+
+			sum[0] = 0.0f;
+			sum[1] = 0.0f;
+			sum[2] = 0.0f;
+
+			// Bottom left face.
+			if (width - 1 >= 0 && height - 1 >= 0)
+			{
+				vertex = (height - 1) * (mWidth - 1) + (width - 1);
+
+				sum[0] += vertices[vertex].normal.x;
+				sum[1] += vertices[vertex].normal.y;
+				sum[2] += vertices[vertex].normal.z;
+			}
+
+			// Bottom right face.
+			if (width < mWidth - 1 && height - 1 >= 0 )
+			{
+				vertex = ((height - 1) * (mWidth- 1)) + width;
+
+				sum[0] += vertices[vertex].normal.x;
+				sum[1] += vertices[vertex].normal.y;
+				sum[2] += vertices[vertex].normal.z;
+			}
+
+			// Upper left face.
+			if (width - 1 >= 0  && height < mHeight - 1)
+			{
+				vertex = (height * (mWidth - 1)) + (width - 1);
+
+				sum[0] += vertices[vertex].normal.x;
+				sum[1] += vertices[vertex].normal.y;
+				sum[2] += vertices[vertex].normal.z;
+			}
+
+			// Upper right face.
+			if (width < mWidth - 1 && height < mHeight - 1)
+			{
+				vertex = (height * (mWidth - 1)) + width;
+
+				sum[0] += vertices[vertex].normal.x;
+				sum[1] += vertices[vertex].normal.y;
+				sum[2] += vertices[vertex].normal.z;
+			}
+
+			// Calculate the length of this normal.
+			float length = (float)sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+
+			vertex = (height * mWidth) + width;
+
+			vertices[vertex].normal.x = (sum[0] / length);
+			vertices[vertex].normal.y = (sum[1] / length);
+			vertices[vertex].normal.z = (sum[2] / length);
+		}
 	}
 
 
@@ -305,8 +342,8 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
 
-	delete[] normals;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	//delete[] normals;
+	//gLogger->MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }
