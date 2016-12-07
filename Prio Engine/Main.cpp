@@ -73,11 +73,10 @@ void GameLoop(CEngine* &engine)
 	// Camera init.
 	myCam = engine->CreateCamera();
 	myCam->SetPosizionY(30.0f);
-	myCam->RotateX(-0.1f);
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
-	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, -0.3f, 1.0f });
+	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, 0.0f, 1.0f });
 	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	ambientLight->SetSpecularPower(32.0f);
 

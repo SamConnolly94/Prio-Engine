@@ -226,10 +226,11 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
 
 			PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
-			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x, -face1Vec.y, face1Vec.z };
-			float length = float(sqrt(vertices[vertex].normal.x * vertices[vertex].normal.x) + (vertices[vertex].normal.y * vertices[vertex].normal.y) + (vertices[vertex].normal.z * vertices[vertex].normal.z));
+			//vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x, face1Vec.y, face1Vec.z };
+			float length = PrioEngine::Math::GetLength(face1Vec);
+			//float length = float(sqrt(vertices[vertex].normal.x * vertices[vertex].normal.x) + (vertices[vertex].normal.y * vertices[vertex].normal.y) + (vertices[vertex].normal.z * vertices[vertex].normal.z));
 			// Normalise the normal.
-			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, -face1Vec.y / length, face1Vec.z / length };
+			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
 
 			// Increase the vertex which is our primary point.
 			vertex++;
@@ -243,68 +244,68 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	index = 0;
 
 	// We next continue by creating a sum of all normals which will touch each normal, to get a final value.
-	for (int j = 0; j < mHeight; j++)
-	{
-		for (int i = 0; i < mWidth; i++)
-		{
-			float sum[3];
+	//for (int j = 0; j < mHeight; j++)
+	//{
+	//	for (int i = 0; i < mWidth; i++)
+	//	{
+	//		float sum[3];
 
-			sum[0] = 0.0f;
-			sum[1] = 0.0f;
-			sum[2] = 0.0f;
+	//		sum[0] = 0.0f;
+	//		sum[1] = 0.0f;
+	//		sum[2] = 0.0f;
 
-			// Bottom left face.
-			if ((i - 1) >= 0 && (j - 1) >= 0)
-			{
-				index = ((j - 1) * (mWidth - 1)) + (i - 1);
+	//		// Bottom left face.
+	//		if ((i - 1) >= 0 && (j - 1) >= 0)
+	//		{
+	//			index = ((j - 1) * (mWidth - 1)) + (i - 1);
 
-				sum[0] += vertices[index].normal.x;
-				sum[1] += vertices[index].normal.y;
-				sum[2] += vertices[index].normal.z;
-			}
+	//			sum[0] += vertices[index].normal.x;
+	//			sum[1] += vertices[index].normal.y;
+	//			sum[2] += vertices[index].normal.z;
+	//		}
 
-			// Bottom right face.
-			if (i<(mWidth - 1) && (j - 1) >= 0)
-			{
-				index = ((j - 1) * (mWidth - 1)) + i;
+	//		// Bottom right face.
+	//		if (i<(mWidth - 1) && (j - 1) >= 0)
+	//		{
+	//			index = ((j - 1) * (mWidth - 1)) + i;
 
-				sum[0] += vertices[index].normal.x;
-				sum[1] += vertices[index].normal.y;
-				sum[2] += vertices[index].normal.z;
-			}
+	//			sum[0] += vertices[index].normal.x;
+	//			sum[1] += vertices[index].normal.y;
+	//			sum[2] += vertices[index].normal.z;
+	//		}
 
-			// Upper left face.
-			if (((i - 1) >= 0) && (j<(mHeight - 1)))
-			{
-				index = (j * (mWidth - 1)) + (i - 1);
+	//		// Upper left face.
+	//		if (((i - 1) >= 0) && (j<(mHeight - 1)))
+	//		{
+	//			index = (j * (mWidth - 1)) + (i - 1);
 
-				sum[0] += vertices[index].normal.x;
-				sum[1] += vertices[index].normal.y;
-				sum[2] += vertices[index].normal.z;
-			}
+	//			sum[0] += vertices[index].normal.x;
+	//			sum[1] += vertices[index].normal.y;
+	//			sum[2] += vertices[index].normal.z;
+	//		}
 
-			// Upper right face.
-			if ((i < (mWidth - 1)) && (j < (mHeight - 1)))
-			{
-				index = (j * (mWidth - 1)) + i;
+	//		// Upper right face.
+	//		if ((i < (mWidth - 1)) && (j < (mHeight - 1)))
+	//		{
+	//			index = (j * (mWidth - 1)) + i;
 
-				sum[0] += vertices[index].normal.x;
-				sum[1] += vertices[index].normal.y;
-				sum[2] += vertices[index].normal.z;
-			}
+	//			sum[0] += vertices[index].normal.x;
+	//			sum[1] += vertices[index].normal.y;
+	//			sum[2] += vertices[index].normal.z;
+	//		}
 
-			// Calculate the length of this normal.
-			float length = (float)sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+	//		// Calculate the length of this normal.
+	//		float length = (float)sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
 
-			//vertex = (height * mWidth) + width;
+	//		//vertex = (height * mWidth) + width;
 
-			vertices[vertex].normal.x = (sum[0] / length);
-			vertices[vertex].normal.y = (sum[1] / length);
-			vertices[vertex].normal.z = (sum[2] / length);
-			vertex++;
-		}
-		//vertex++;
-	}
+	//		vertices[vertex].normal.x = (sum[0] / length);
+	//		vertices[vertex].normal.y = (sum[1] / length);
+	//		vertices[vertex].normal.z = (sum[2] / length);
+	//		vertex++;
+	//	}
+	//	//vertex++;
+	//}
 
 
 	// Set up the descriptor of the static vertex buffer.
