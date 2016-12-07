@@ -64,22 +64,20 @@ void GameLoop(CEngine* &engine)
 	// Variables
 	float frameTime;
 	CCamera* myCam;
-	//CMesh* cubeMesh;
-	//CMesh* houseMesh = nullptr;
 
 	CLight* ambientLight;
-	//CModel* cube = nullptr;
-	//CModel* house = nullptr;
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
+	grid->LoadHeightMapFromFile("Default.map");
 	grid->CreateGrid();
-	//CPrimitive* colourCube = engine->CreatePrimitive(PrioEngine::Colours::red, PrioEngine::Primitives::cube);
 
 	// Camera init.
 	myCam = engine->CreateCamera();
+	myCam->SetPosizionY(30.0f);
+	myCam->RotateX(-0.1f);
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
-	ambientLight->SetDirection(D3DXVECTOR3{ 0.0f, 0.0f, 1.0f });
+	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, -0.3f, 1.0f });
 	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	ambientLight->SetSpecularPower(32.0f);
 
@@ -112,6 +110,8 @@ void GameLoop(CEngine* &engine)
 		// Rotate the model which has been logged on.
 		//cube->RotateY(kRotationSpeed * frameTime);
 	}
+
+	grid->ReleaseHeightMap();
 }
 
 /* Control any user input here, must be called in every tick of the game loop. */

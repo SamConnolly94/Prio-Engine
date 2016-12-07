@@ -10,7 +10,7 @@
 #include "Mesh.h"
 #include "ColourShader.h"
 #include "TextureShader.h"
-#include "DiffuseLightShader.h"
+#include "DirectionalLightShader.h"
 #include "Light.h"
 #include "Terrain.h"
 
@@ -46,7 +46,7 @@ private:
 	CPrimitive* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
-	CDiffuseLightShader* mpDiffuseLightShader;
+	CDirectionalLightShader* mpDiffuseLightShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);

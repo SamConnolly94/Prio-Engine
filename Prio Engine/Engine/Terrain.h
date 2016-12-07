@@ -7,11 +7,14 @@
 #include "ModelControl.h"
 #include "Texture.h"
 
+#include <sstream>
+
 class CTerrainGrid : public CModelControl
 {
 public:
 	CTerrainGrid(ID3D11Device* device);
 	~CTerrainGrid();
+	void ReleaseHeightMap();
 private:
 	struct VertexType
 	{
@@ -57,6 +60,7 @@ public:
 	float GetHighestPoint() { return mHighestPoint; };
 	float GetLowestPoint() { return mLowestPoint; };
 	void LoadHeightMap(double** heightMap);
+	void LoadHeightMapFromFile(std::string filename);
 };
 
 #endif

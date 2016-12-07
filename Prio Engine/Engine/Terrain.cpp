@@ -36,6 +36,19 @@ CTerrainGrid::~CTerrainGrid()
 	ShutdownBuffers();
 }
 
+void CTerrainGrid::ReleaseHeightMap()
+{
+	if (mpHeightMap != nullptr)
+	{
+		for (int i = 0; i < mHeight; ++i) {
+			delete[] mpHeightMap[i];
+			gLogger->MemoryDeallocWriteLine(typeid(mpHeightMap[i]).name());
+		}
+		delete[] mpHeightMap;
+		gLogger->MemoryDeallocWriteLine(typeid(mpHeightMap).name());
+	}
+}
+
 /* Create an instance of the grid so that it is ready to be rendered. */
 bool CTerrainGrid::CreateGrid()
 {
@@ -227,11 +240,12 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 
 	// Reset vertex one more time, so we can use it in this function.
 	vertex = 0;
+	index = 0;
 
 	// We next continue by creating a sum of all normals which will touch each normal, to get a final value.
-	for (int height = 0; height < mHeight; height++)
+	for (int j = 0; j < mHeight; j++)
 	{
-		for (int width = 0; width < mWidth; width++)
+		for (int i = 0; i < mWidth; i++)
 		{
 			float sum[3];
 
@@ -240,54 +254,56 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			sum[2] = 0.0f;
 
 			// Bottom left face.
-			if (width - 1 >= 0 && height - 1 >= 0)
+			if ((i - 1) >= 0 && (j - 1) >= 0)
 			{
-				vertex = (height - 1) * (mWidth - 1) + (width - 1);
+				index = ((j - 1) * (mWidth - 1)) + (i - 1);
 
-				sum[0] += vertices[vertex].normal.x;
-				sum[1] += vertices[vertex].normal.y;
-				sum[2] += vertices[vertex].normal.z;
+				sum[0] += vertices[index].normal.x;
+				sum[1] += vertices[index].normal.y;
+				sum[2] += vertices[index].normal.z;
 			}
 
 			// Bottom right face.
-			if (width < mWidth - 1 && height - 1 >= 0 )
+			if (i<(mWidth - 1) && (j - 1) >= 0)
 			{
-				vertex = ((height - 1) * (mWidth- 1)) + width;
+				index = ((j - 1) * (mWidth - 1)) + i;
 
-				sum[0] += vertices[vertex].normal.x;
-				sum[1] += vertices[vertex].normal.y;
-				sum[2] += vertices[vertex].normal.z;
+				sum[0] += vertices[index].normal.x;
+				sum[1] += vertices[index].normal.y;
+				sum[2] += vertices[index].normal.z;
 			}
 
 			// Upper left face.
-			if (width - 1 >= 0  && height < mHeight - 1)
+			if (((i - 1) >= 0) && (j<(mHeight - 1)))
 			{
-				vertex = (height * (mWidth - 1)) + (width - 1);
+				index = (j * (mWidth - 1)) + (i - 1);
 
-				sum[0] += vertices[vertex].normal.x;
-				sum[1] += vertices[vertex].normal.y;
-				sum[2] += vertices[vertex].normal.z;
+				sum[0] += vertices[index].normal.x;
+				sum[1] += vertices[index].normal.y;
+				sum[2] += vertices[index].normal.z;
 			}
 
 			// Upper right face.
-			if (width < mWidth - 1 && height < mHeight - 1)
+			if ((i < (mWidth - 1)) && (j < (mHeight - 1)))
 			{
-				vertex = (height * (mWidth - 1)) + width;
+				index = (j * (mWidth - 1)) + i;
 
-				sum[0] += vertices[vertex].normal.x;
-				sum[1] += vertices[vertex].normal.y;
-				sum[2] += vertices[vertex].normal.z;
+				sum[0] += vertices[index].normal.x;
+				sum[1] += vertices[index].normal.y;
+				sum[2] += vertices[index].normal.z;
 			}
 
 			// Calculate the length of this normal.
 			float length = (float)sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
 
-			vertex = (height * mWidth) + width;
+			//vertex = (height * mWidth) + width;
 
 			vertices[vertex].normal.x = (sum[0] / length);
 			vertices[vertex].normal.y = (sum[1] / length);
 			vertices[vertex].normal.z = (sum[2] / length);
+			vertex++;
 		}
+		//vertex++;
 	}
 
 
@@ -431,5 +447,113 @@ void CTerrainGrid::LoadHeightMap(double ** heightMap)
 	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
 
 	// We've loaded a map, set the flag!
+	mHeightMapLoaded = true;
+}
+
+void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
+{
+	std::string line;
+	std::ifstream inFile;
+
+	// Open the file.
+	inFile.open(filename);
+
+	// Check we successfully opened.
+	if (!inFile.is_open())
+	{
+		gLogger->WriteLine("Failed to open the map file with name: " + filename);
+		return;
+	}
+
+	int height = 0;
+	int width = 0;
+	// Calculate the array size for now.
+	while (std::getline(inFile, line))
+	{
+		// Reset the width count.
+		width = 0;
+
+		double value;
+		std::stringstream  lineStream(line);
+
+		// Go through this line.
+		while (lineStream >> value)
+		{
+			// One more on the width!
+			width++;
+		}
+
+		// Increment height.
+		height++;
+	}
+
+	// Set width and height.
+	mWidth = width;
+	mHeight = height;
+
+	inFile.close();
+	inFile.open(filename);
+
+	if (!inFile.is_open())
+	{
+		gLogger->WriteLine("Failed to open " + filename + ", but managed to open it the first time.");
+		return;
+	}
+
+	// Create height map.
+	if (!mpHeightMap)
+	{
+		// Allocate memory to this array.
+		mpHeightMap = new double*[mHeight];
+	}
+
+	// Iterate through all the rows.
+	for (int x = 0; x < mHeight; x++)
+	{
+		// Allocate space for the columns.
+		mpHeightMap[x] = new double[mWidth];
+	}
+
+	// Store the lowest point to be the first point.
+	mLowestPoint = static_cast<float>(1000000.0f);
+	// Store the highest point to be the first point.
+	mHighestPoint = static_cast<float>(0.0f);
+
+	// Create a heightmap.
+	for (int y = 0; y < mHeight; y++)
+	{
+		// Get the line of this file.
+		std::getline(inFile, line);
+		std::stringstream  lineStream(line);
+		double value;
+
+		// Iterate through the width.
+		for (int x = 0; x < mWidth; x++)
+		{
+			lineStream >> value;
+			mpHeightMap[y][x] = value;
+
+			/// Perform comparison.
+			// If this point is lower than the one we have on record.
+			if (mpHeightMap[y][x] < mLowestPoint)
+			{
+				// Store this as the lowest point.
+				mLowestPoint = static_cast<float>(mpHeightMap[y][x]);
+			}
+			// If this point is higher than the highest point we have on record.
+			else if (mpHeightMap[y][x] > mHighestPoint)
+			{
+				// Store this as the highest point.
+				mHighestPoint = static_cast<float>(mpHeightMap[y][x]);
+			}
+
+		}
+	}
+
+	// Adjust the Y position of the map model to be equal to the lowest point.
+	SetYPos(0.0f - mLowestPoint);
+	// Set the X position to be half of the width.
+	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
+
 	mHeightMapLoaded = true;
 }

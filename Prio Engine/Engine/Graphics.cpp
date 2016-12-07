@@ -526,7 +526,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		bool successful;
 
 		// Create texture shader.
-		mpDiffuseLightShader = new CDiffuseLightShader();
+		mpDiffuseLightShader = new CDirectionalLightShader();
 		gLogger->MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{

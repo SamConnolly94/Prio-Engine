@@ -129,7 +129,7 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	if (mShaderType == PrioEngine::ShaderType::Diffuse)
 	{
 		// Initialise our directional light shader.
-		mpDirectionalLightShader = new CDiffuseLightShader();
+		mpDirectionalLightShader = new CDirectionalLightShader();
 		gLogger->MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 		// If the directional light shader is not successfully initialised.
 		if (!mpDirectionalLightShader->Initialise(mpDevice, mHwnd))

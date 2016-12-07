@@ -230,7 +230,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\ColourShader.cpp" />
     <ClCompile Include="Engine\Cube.cpp" />
     <ClCompile Include="Engine\D3D11.cpp" />
-    <ClCompile Include="Engine\DiffuseLightShader.cpp" />
+    <ClCompile Include="Engine\DirectionalLightShader.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
     <ClCompile Include="Engine\GameTimer.cpp" />
     <ClCompile Include="Engine\Graphics.cpp" />
@@ -261,7 +261,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\ColourShader.h" />
     <ClInclude Include="Engine\Cube.h" />
     <ClInclude Include="Engine\D3D11.h" />
-    <ClInclude Include="Engine\DiffuseLightShader.h" />
+    <ClInclude Include="Engine\DirectionalLightShader.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Engine\GameTimer.h" />
     <ClInclude Include="Engine\Graphics.h" />

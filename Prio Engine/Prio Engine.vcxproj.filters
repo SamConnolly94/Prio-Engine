@@ -96,9 +96,6 @@
     <ClCompile Include="Engine\ColourShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\DiffuseLightShader.cpp">
-      <Filter>Engine\Source Files\Shader Class</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\TextureShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
@@ -107,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Terrain.cpp">
       <Filter>Engine\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DirectionalLightShader.cpp">
+      <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -201,9 +201,6 @@
     <ClInclude Include="Engine\VertexTypeManager.h">
       <Filter>Engine\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\DiffuseLightShader.h">
-      <Filter>Engine\Header Files\Shader Class</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\ColourShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
@@ -215,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="Engine\Terrain.h">
       <Filter>Engine\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DirectionalLightShader.h">
+      <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
