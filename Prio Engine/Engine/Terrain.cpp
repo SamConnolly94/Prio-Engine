@@ -243,70 +243,68 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	vertex = 0;
 	index = 0;
 
-	// We next continue by creating a sum of all normals which will touch each normal, to get a final value.
-	//for (int j = 0; j < mHeight; j++)
-	//{
-	//	for (int i = 0; i < mWidth; i++)
-	//	{
-	//		float sum[3];
+	/// Calculate average normals..
+	// Iterate through the height.
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	{
+		// Iterate through the width.
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		{
+			PrioEngine::Math::VEC3 averageNormal;
+			averageNormal.x = 0.0f;
+			averageNormal.y = 0.0f;
+			averageNormal.z = 0.0f;
 
-	//		sum[0] = 0.0f;
-	//		sum[1] = 0.0f;
-	//		sum[2] = 0.0f;
+			// Directly above.
+			if (heightCount < mHeight - 1)
+			{
+				int north = vertex + mWidth;
 
-	//		// Bottom left face.
-	//		if ((i - 1) >= 0 && (j - 1) >= 0)
-	//		{
-	//			index = ((j - 1) * (mWidth - 1)) + (i - 1);
+				averageNormal.x += vertices[north].normal.x;
+				averageNormal.y += vertices[north].normal.y;
+				averageNormal.z += vertices[north].normal.z;
+			}
 
-	//			sum[0] += vertices[index].normal.x;
-	//			sum[1] += vertices[index].normal.y;
-	//			sum[2] += vertices[index].normal.z;
-	//		}
+			// Directly to the right.
+			if (widthCount < mWidth - 1)
+			{
+				int east = vertex + 1;
 
-	//		// Bottom right face.
-	//		if (i<(mWidth - 1) && (j - 1) >= 0)
-	//		{
-	//			index = ((j - 1) * (mWidth - 1)) + i;
+				averageNormal.x += vertices[east].normal.x;
+				averageNormal.y += vertices[east].normal.y;
+				averageNormal.z += vertices[east].normal.z;
+			}
 
-	//			sum[0] += vertices[index].normal.x;
-	//			sum[1] += vertices[index].normal.y;
-	//			sum[2] += vertices[index].normal.z;
-	//		}
+			// Directly to the left.
+			if (widthCount > 0)
+			{
+				int west = vertex - 1;
 
-	//		// Upper left face.
-	//		if (((i - 1) >= 0) && (j<(mHeight - 1)))
-	//		{
-	//			index = (j * (mWidth - 1)) + (i - 1);
+				averageNormal.x += vertices[west].normal.x;
+				averageNormal.y += vertices[west].normal.y;
+				averageNormal.z += vertices[west].normal.z;
+			}
 
-	//			sum[0] += vertices[index].normal.x;
-	//			sum[1] += vertices[index].normal.y;
-	//			sum[2] += vertices[index].normal.z;
-	//		}
+			// Below
+			if (heightCount > 0)
+			{
+				int south = vertex - mWidth;
 
-	//		// Upper right face.
-	//		if ((i < (mWidth - 1)) && (j < (mHeight - 1)))
-	//		{
-	//			index = (j * (mWidth - 1)) + i;
+				averageNormal.x += vertices[south].normal.x;
+				averageNormal.y += vertices[south].normal.y;
+				averageNormal.z += vertices[south].normal.z;
+			}
 
-	//			sum[0] += vertices[index].normal.x;
-	//			sum[1] += vertices[index].normal.y;
-	//			sum[2] += vertices[index].normal.z;
-	//		}
+			
+			float length = PrioEngine::Math::GetLength(averageNormal);
 
-	//		// Calculate the length of this normal.
-	//		float length = (float)sqrt((sum[0] * sum[0]) + (sum[1] * sum[1]) + (sum[2] * sum[2]));
+			vertices[vertex].normal.x = averageNormal.x / length;
+			vertices[vertex].normal.y = averageNormal.y / length;
+			vertices[vertex].normal.z = averageNormal.z / length;
 
-	//		//vertex = (height * mWidth) + width;
-
-	//		vertices[vertex].normal.x = (sum[0] / length);
-	//		vertices[vertex].normal.y = (sum[1] / length);
-	//		vertices[vertex].normal.z = (sum[2] / length);
-	//		vertex++;
-	//	}
-	//	//vertex++;
-	//}
-
+			vertex++;
+		}
+	}
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
