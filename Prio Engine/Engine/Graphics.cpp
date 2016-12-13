@@ -58,12 +58,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
 
 	mpText = new CGameText();
-	D3DXMATRIX baseView;
-	if (!mpText->Initialise(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseView))
-	{
-		gLogger->WriteLine("Failed to initailise the text object in graphics.cpp.");
-		return false;
-	}
 
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
@@ -344,7 +338,7 @@ bool CGraphics::RenderText(D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
 {
 	mpD3D->DisableZBuffer();
 	mpD3D->EnableAlphaBlending();
-
+	
 	bool result = mpText->Render(mpD3D->GetDeviceContext(), worldMatrix, orthoMatrix);
 	if (!result)
 	{
@@ -844,6 +838,16 @@ CCamera* CGraphics::CreateCamera()
 
 	// Set the initial camera position.
 	mpCamera->SetPosition(0.0f, 0.0f, 0.0f);
+
+	/// SET UP TEXT FROM CAMERA POS. 
+
+	D3DXMATRIX baseView;
+	mpCamera->GetViewMatrix(baseView);
+	if (!mpText->Initialise(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), mHwnd, mScreenWidth, mScreenHeight, baseView))
+	{
+		gLogger->WriteLine("Failed to initailise the text object in graphics.cpp.");
+		return false;
+	}
 
 	return mpCamera;
 }

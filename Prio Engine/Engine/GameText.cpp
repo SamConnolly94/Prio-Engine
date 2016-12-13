@@ -56,14 +56,14 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 	
 	SentenceType* sentence;
 
-	result = InitialiseSentence(sentence, 300, device);
+	result = InitialiseSentence(sentence, 11, device);
 	if (!result)
 	{
 		gLogger->WriteLine("Failed to initialise sentences.");
 		return false;
 	}
 
-	result = UpdateSentence(sentence, "Hello, is it me yo lookin fo?", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(sentence, "Hello world", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
 
 	if (!result)
 	{
