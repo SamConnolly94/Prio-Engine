@@ -13,6 +13,7 @@
 #include "DirectionalLightShader.h"
 #include "Light.h"
 #include "Terrain.h"
+#include "GameText.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -47,6 +48,7 @@ private:
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
 	CDirectionalLightShader* mpDiffuseLightShader;
+	CGameText* mpText;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -61,6 +63,7 @@ private:
 	bool CreateColourShader(HWND hwnd);
 	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
+	bool RenderText(D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix);
 
 	float mRotation;
 

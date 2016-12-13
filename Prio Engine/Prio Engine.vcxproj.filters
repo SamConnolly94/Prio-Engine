@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{33189332-57ee-4915-96bb-32c2309c4da3}</UniqueIdentifier>
     </Filter>
@@ -31,21 +27,27 @@
     <Filter Include="Engine\Dependencies">
       <UniqueIdentifier>{0db77c1c-45af-45b9-a162-a2560b28cead}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Source Files\Pixel Shaders">
-      <UniqueIdentifier>{a717d5c0-d338-4456-bd95-661875a3885b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Source Files\Vertex Shaders">
-      <UniqueIdentifier>{b6c4ae4f-ff83-49d0-8b0e-7db4c3d1935c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{4eeda362-c921-4d18-a33b-b8ecd8dbb13e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source Files\Primitives">
+      <UniqueIdentifier>{31089f31-02b3-4904-a269-b197abb68d70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source Files\Modelling">
+      <UniqueIdentifier>{fc14af43-ff31-40ef-a1e0-6d89b9fda0db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Header Files\Modelling">
+      <UniqueIdentifier>{529966fe-3741-4cbb-9eac-02a07743a45b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Header Files\Primitives">
+      <UniqueIdentifier>{9c786726-b449-4da0-8d6d-86c8742d3477}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Header Files\Globals">
+      <UniqueIdentifier>{9d7bdf8e-5cbe-407c-9d25-17310e7f1faa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Camera.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Cube.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\D3D11.cpp">
@@ -63,31 +65,7 @@
     <ClCompile Include="Engine\Input.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Light.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Logger.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Mesh.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Model.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\ModelControl.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Primitive.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Texture.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Triangle.cpp">
-      <Filter>Engine\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\VertexTypeManager.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
@@ -108,6 +86,42 @@
     <ClCompile Include="Engine\DirectionalLightShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Cube.cpp">
+      <Filter>Engine\Source Files\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Triangle.cpp">
+      <Filter>Engine\Source Files\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Light.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Mesh.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Model.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\ModelControl.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Texture.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Primitive.cpp">
+      <Filter>Engine\Source Files\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\VertexTypeManager.cpp">
+      <Filter>Engine\Source Files\Modelling</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GameFont.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GameText.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\FontShader.cpp">
+      <Filter>Engine\Source Files\Shader Class</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -116,28 +130,10 @@
     <None Include="Resources\Models\Cube.obj">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Shaders\Colour.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Colour.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseLight.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseLight.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\Texture.ps.hlsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Texture.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Engine\Shaders\SpecularLight.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Engine\Shaders\SpecularLight.ps.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
@@ -151,9 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Camera.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Cube.h">
       <Filter>Engine\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\D3D11.h">
@@ -171,34 +164,7 @@
     <ClInclude Include="Engine\Input.h">
       <Filter>Engine\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Light.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Logger.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Mesh.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Model.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\ModelControl.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Primitive.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\PrioEngineVars.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Texture.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Triangle.h">
-      <Filter>Engine\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\VertexTypeManager.h">
       <Filter>Engine\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\ColourShader.h">
@@ -216,5 +182,58 @@
     <ClInclude Include="Engine\DirectionalLightShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Light.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Mesh.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Model.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\ModelControl.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Texture.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\VertexTypeManager.h">
+      <Filter>Engine\Header Files\Modelling</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Cube.h">
+      <Filter>Engine\Header Files\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Triangle.h">
+      <Filter>Engine\Header Files\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Primitive.h">
+      <Filter>Engine\Header Files\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\PrioEngineVars.h">
+      <Filter>Engine\Header Files\Globals</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\GameText.h">
+      <Filter>Engine\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\GameFont.h">
+      <Filter>Engine\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\FontShader.h">
+      <Filter>Engine\Header Files\Shader Class</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Engine\Shaders\Font.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\Shaders\Font.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Colour.ps.hlsl" />
+    <FxCompile Include="Shaders\Colour.vs.hlsl" />
+    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl" />
+    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl" />
+    <FxCompile Include="Engine\Shaders\SpecularLight.ps.hlsl" />
+    <FxCompile Include="Engine\Shaders\SpecularLight.vs.hlsl" />
   </ItemGroup>
 </Project>

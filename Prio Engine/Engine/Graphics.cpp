@@ -11,6 +11,7 @@ CGraphics::CGraphics()
 	mpDiffuseLightShader = nullptr;
 	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
+	mpText = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -56,6 +57,14 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateTextureShaderForModel(hwnd);
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
 
+	mpText = new CGameText();
+	D3DXMATRIX baseView;
+	if (!mpText->Initialise(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseView))
+	{
+		gLogger->WriteLine("Failed to initailise the text object in graphics.cpp.");
+		return false;
+	}
+
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -63,6 +72,12 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpText)
+	{
+		mpText->Shutdown();
+		delete mpText;
+		mpText = nullptr;
+	}
 
 	if (mpDiffuseLightShader)
 	{
@@ -203,6 +218,8 @@ bool CGraphics::Render()
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX worldMatrix;
 	D3DXMATRIX projMatrix;
+	D3DXMATRIX orthoMatrix;
+	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
 	// Clear buffers so we can begin to render the scene.
 	mpD3D->BeginScene(0.6f, 0.9f, 1.0f, 1.0f);
@@ -218,6 +235,9 @@ bool CGraphics::Render()
 
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
+		return false;
+
+	if (!RenderText(worldMatrix, orthoMatrix))
 		return false;
 
 	// Present the rendered scene to the screen.
@@ -316,6 +336,24 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		}
 		terrainIt++;
 	}
+
+	return true;
+}
+
+bool CGraphics::RenderText(D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
+{
+	mpD3D->DisableZBuffer();
+	mpD3D->EnableAlphaBlending();
+
+	bool result = mpText->Render(mpD3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to render text in graphics.cpp.");
+		return false;
+	}
+
+	mpD3D->EnableZBuffer();
+	mpD3D->DisableAlphaBlending();
 
 	return true;
 }
