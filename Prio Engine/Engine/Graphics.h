@@ -89,6 +89,7 @@ public:
 	CCamera* CreateCamera();
 	void SetCameraPos(float x, float y, float z);
 	void ToggleWireframe();
+	CCamera* GetMainCamera() {return mpCamera;};
 };
 
 #endif

@@ -4,7 +4,7 @@ CD3D11::CD3D11()
 {
 	mGraphicsCardName = "";
 	mpAlphaBlendingStateDisabled = nullptr;
-	mpAlphaBlendingStateEnabled = nullptr;
+	mpAlphaBlendingStateEnabled = nullptr;	
 }
 
 
@@ -29,6 +29,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	ID3D11Texture2D* backBufferPtr;
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilBufferDesc;
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilBufferDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC rasterDesc;
 	D3D11_VIEWPORT viewport;
@@ -225,7 +226,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 		return false;
 	}
 
-	if (!CreateDepthDisabledStencilState(depthStencilBufferDesc))
+	if (!CreateDepthDisabledStencilState(depthDisabledStencilBufferDesc))
 	{
 		return false;
 	}
@@ -266,7 +267,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 
 	// Create an orthographic projection matrix for 2D rendering of things like interfaces and sprites.
 	 D3DXMatrixOrthoLH(&mOrthographicMatrix, static_cast<float>(screenWidth), static_cast<float>(screenHeight), screenNear, screenDepth);
-	 
+
 	 // Create the state using the blend state description.
 	 // Clear memory 
 	 ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));
@@ -297,7 +298,6 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 		 gLogger->WriteLine("Failed to create the alpha blending state disabled from descriptor.");
 		 return false;
 	 }
-
 
 	// Success! We have successfully setup DirectX.
 	return true;
@@ -764,26 +764,21 @@ bool CD3D11::CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBuff
 bool CD3D11::CreateDepthDisabledStencilState(D3D11_DEPTH_STENCIL_DESC& depthStencilBufferDesc)
 {
 	HRESULT result;
+	// Clear the second depth stencil state before setting the parameters.
+	ZeroMemory(&depthStencilBufferDesc, sizeof(depthStencilBufferDesc));
 
-	// Initialise the description of the stencil state.
-	depthStencilBufferDesc = {};
-
-	// Set up the description of the stencil state.
+	// Now create a second depth stencil state which turns off the Z buffer for 2D rendering.  The only difference is 
+	// that DepthEnable is set to false, all other parameters are the same as the other depth stencil state.
 	depthStencilBufferDesc.DepthEnable = false;
 	depthStencilBufferDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	depthStencilBufferDesc.DepthFunc = D3D11_COMPARISON_LESS;
-
 	depthStencilBufferDesc.StencilEnable = true;
 	depthStencilBufferDesc.StencilReadMask = 0xFF;
 	depthStencilBufferDesc.StencilWriteMask = 0xFF;
-
-	// Stencil operations when pixel is front-facing.
 	depthStencilBufferDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilBufferDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
 	depthStencilBufferDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilBufferDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	// Stencil operations if pixel is back facing.
 	depthStencilBufferDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilBufferDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 	depthStencilBufferDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;

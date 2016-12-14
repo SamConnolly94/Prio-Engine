@@ -65,7 +65,7 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 	int numLetters;
 	int index;
 	int letter;
-
+	
 	// Cast the vertices into our VertexType struct.
 	vertexPtr = static_cast<VertexType*>(vertices);
 
@@ -169,7 +169,7 @@ bool CGameFont::LoadFontData(char * dataFile)
 		inFile.get(ch);
 
 		// While we're not equal to space again.
-		while (ch!= ' ')
+		while (ch != ' ')
 		{
 			inFile.get(ch);
 		}

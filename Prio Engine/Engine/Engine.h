@@ -86,6 +86,7 @@ public:
 	bool KeyHit(const unsigned int key);
 	bool KeyHeld(const unsigned int key);
 	void Stop();
+	CCamera* GetMainCamera() { return mpGraphics->GetMainCamera(); };
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

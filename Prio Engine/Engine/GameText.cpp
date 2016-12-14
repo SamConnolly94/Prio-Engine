@@ -6,6 +6,7 @@ CGameText::CGameText()
 {
 	mpFont = nullptr;
 	mpFontShader = nullptr;
+	mpSentence1 = nullptr;
 }
 
 
@@ -54,16 +55,15 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 		return false;
 	}
 	
-	SentenceType* sentence;
-
-	result = InitialiseSentence(sentence, 11, device);
+	// Initialise the first sentence.
+	result = InitialiseSentence(&mpSentence1, 16, device);
 	if (!result)
 	{
 		gLogger->WriteLine("Failed to initialise sentences.");
 		return false;
 	}
 
-	result = UpdateSentence(sentence, "Hello world", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(mpSentence1, "Hello", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
 
 	if (!result)
 	{
@@ -77,13 +77,15 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 void CGameText::Shutdown()
 {
 	// Release all sentences.
-	std::list<SentenceType*>::iterator it = mpSentences.begin();
-	while (it != mpSentences.end())
-	{
-		ReleaseSentence((*it));
-		(*it) = nullptr;
-		it++;
-	}
+	//std::list<SentenceType*>::iterator it = mpSentences.begin();
+	//while (it != mpSentences.end())
+	//{
+	//	ReleaseSentence((*it));
+	//	(*it) = nullptr;
+	//	it++;
+	//}
+	ReleaseSentence(mpSentence1);
+	mpSentence1 = nullptr;
 
 	if (mpFontShader)
 	{
@@ -106,33 +108,40 @@ bool CGameText::Render(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatr
 	// Boolean flag to check whetehr things are succesfully rendered.
 	bool result = false;
 
-	// Go through list and render all sentences.
-	std::list<SentenceType*>::iterator it = mpSentences.begin();
-	
-	// While we haven't hit the end of the list.
-	while (it != mpSentences.end())
+	result = RenderSentence(deviceContext, mpSentence1, worldMatrix, orthoMatrix);
+	if (!result)
 	{
-		// Attempt to render the sentence and track the results.
-		result = RenderSentence(deviceContext, (*it), worldMatrix, orthoMatrix);
-
-		// If we failed the result.
-		if (!result)
-		{
-			// Output error message to the text log.
-			gLogger->WriteLine("Failed to render text.");
-			// Return false.
-			return false;
-		}
-		it++;
+		gLogger->WriteLine("Failed to render text.");
+		return false;
 	}
+
+	//// Go through list and render all sentences.
+	//std::list<SentenceType*>::iterator it = mpSentences.begin();
+	//
+	//// While we haven't hit the end of the list.
+	//while (it != mpSentences.end())
+	//{
+	//	// Attempt to render the sentence and track the results.
+	//	result = RenderSentence(deviceContext, (*it), worldMatrix, orthoMatrix);
+
+	//	// If we failed the result.
+	//	if (!result)
+	//	{
+	//		// Output error message to the text log.
+	//		gLogger->WriteLine("Failed to render text.");
+	//		// Return false.
+	//		return false;
+	//	}
+	//	it++;
+	//}
 
 	// Success!
 	return true;
 }
 
-bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D11Device * device)
+bool CGameText::InitialiseSentence(SentenceType** sentence, int maxLength, ID3D11Device * device)
 {
-	vertexType* vertices;
+	VertexType* vertices;
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	D3D11_BUFFER_DESC indexBufferDesc;
@@ -141,7 +150,7 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 	HRESULT result;
 
 	// Allocate memory to the sentence object.
-	sentence = new SentenceType();
+	*sentence = new SentenceType();
 	if (!sentence)
 	{
 		gLogger->WriteLine("Failed to allocate memory to a sentence object in GameText.cpp.");
@@ -150,23 +159,23 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 	gLogger->MemoryAllocWriteLine(typeid(sentence).name());
 
 	// Track the pointer on our sentences list, don't want to lose this.
-	mpSentences.push_back(sentence);
+	//mpSentences.push_back(sentence);
 
 	// Initialise buffer properties to be null.
-	(sentence)->vertexBuffer = nullptr;
-	(sentence)->indexBuffer = nullptr;
+	(*sentence)->vertexBuffer = nullptr;
+	(*sentence)->indexBuffer = nullptr;
 
 	// Set max length of the sentence.
-	(sentence)->maxLength = maxLength;
+	(*sentence)->maxLength = maxLength;
 
 	// Set number of vertices in vertex array.
-	(sentence)->vertexCount = 6 * maxLength;
+	(*sentence)->vertexCount = 6 * maxLength;
 
 	// Set the number of indexes in the index array to be equal to the number of vertices.
-	(sentence)->indexCount = (sentence)->vertexCount;
+	(*sentence)->indexCount = (*sentence)->vertexCount;
 
 	// Create vertex array.
-	vertices = new vertexType[(sentence)->vertexCount];
+	vertices = new VertexType[(*sentence)->vertexCount];
 	if (!vertices)
 	{
 		gLogger->WriteLine("Failed to allocate memory to the vertices buffer in GameText.cpp.");
@@ -174,24 +183,24 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 	}
 
 	// Create the index array.
-	indices = new unsigned long[(sentence)->indexCount];
+	indices = new unsigned long[(*sentence)->indexCount];
 	if (!indices)
 	{
 		gLogger->WriteLine("Failed to allocate memory to the indices buffer in GameText.cpp.");
 		return false;
 	}
 	// Set vertex array to 0's to begin with.
-	memset(vertices, 0, (sizeof(vertexType) * (sentence)->vertexCount));
+	memset(vertices, 0, (sizeof(VertexType) * (*sentence)->vertexCount));
 
 	// Init index array.
-	for (int i = 0; i < (sentence)->indexCount; i++)
+	for (int i = 0; i < (*sentence)->indexCount; i++)
 	{
 		indices[i] = i;
 	}
 
 	// Set up descriptor for vertex buffer
 	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	vertexBufferDesc.ByteWidth = sizeof(vertexType) * (sentence)->vertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * (*sentence)->vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	vertexBufferDesc.MiscFlags = 0;
@@ -203,7 +212,7 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 	vertexData.SysMemSlicePitch = 0;
 
 	// Create the buffer and store it in sentence objects properties.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &(sentence)->vertexBuffer);
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &(*sentence)->vertexBuffer);
 
 	if (FAILED(result))
 	{
@@ -213,7 +222,7 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 
 	// Set up descriptor for index buffer.
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * (sentence)->indexCount;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * (*sentence)->indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
@@ -225,7 +234,7 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 	indexData.SysMemSlicePitch = 0;
 
 	// Create index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &(sentence)->indexBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &(*sentence)->indexBuffer);
 
 	if (FAILED(result))
 	{
@@ -245,12 +254,12 @@ bool CGameText::InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D1
 bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, int posY, float red, float green, float blue, ID3D11DeviceContext * deviceContext)
 {
 	int numberOfLetters;
-	vertexType* vertices;
-	float x;
-	float y;
+	VertexType* vertices;
+	//float x;
+	//float y;
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	vertexType* verticesPtr;
+	VertexType* verticesPtr;
 
 	// Store the colour which the sentence will be drawn in.
 	sentence->red = red;
@@ -268,7 +277,7 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	}
 
 	// Create vertex array.
-	vertices = new vertexType[sentence->vertexCount];
+	vertices = new VertexType[sentence->vertexCount];
 	
 	// Check vertices array was allocated memory.
 	if (!vertices)
@@ -278,14 +287,14 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	}
 
 	// Initialise the array to be 0.
-	memset(vertices, 0, (sizeof(vertexType) * sentence->vertexCount));
+	memset(vertices, 0, (sizeof(VertexType) * sentence->vertexCount));
 
 	// Calculate positions which we will draw the text.
-	x = static_cast<float>(((mScreenWidth / 2) * -1) + posX);
-	y = static_cast<float>((mScreenHeight / 2) + posY);
+	posX = (float)(((mScreenWidth / 2) * -1) + posX);
+	posY = (float)((mScreenHeight / 2) - posY);
 
 	// Build the vertex array.
-	mpFont->BuildVertexArray(vertices, text, x, y);
+	mpFont->BuildVertexArray((void*)vertices, text, posX, posY);
 
 	// Lock vertex array.
 	result = deviceContext->Map(sentence->vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -297,10 +306,10 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	}
 
 	// Grab pointer to data in vertex buffer.
-	verticesPtr = (vertexType*)mappedResource.pData;
+	verticesPtr = (VertexType*)mappedResource.pData;
 
 	// Copy the data into vertex buffer.
-	memcpy(verticesPtr, (void*)vertices, (sizeof(vertexType) * sentence->vertexCount));
+	memcpy(verticesPtr, (void*)vertices, (sizeof(VertexType) * sentence->vertexCount));
 
 	// Unlock vertex buff.
 	deviceContext->Unmap(sentence->vertexBuffer, 0);
@@ -339,35 +348,35 @@ void CGameText::ReleaseSentence(SentenceType* sentence)
 
 bool CGameText::RenderSentence(ID3D11DeviceContext * deviceContext, SentenceType * sentence, D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
 {
-	unsigned int stride;
-	unsigned int offset;
-	D3DXVECTOR4 pixelColour;
+	unsigned int stride, offset;
+	D3DXVECTOR4 pixelColor;
 	bool result;
 
-	// Set vertex buffer stride.
-	stride = sizeof(vertexType);
+
+	// Set vertex buffer stride and offset.
+	stride = sizeof(VertexType);
 	offset = 0;
 
-	// Set vertex buffer to active in the input assembler so it can be rendered.
+	// Set the vertex buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetVertexBuffers(0, 1, &sentence->vertexBuffer, &stride, &offset);
 
-	// Set index buffer to active in the input assembler so it can be rendered.
+	// Set the index buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetIndexBuffer(sentence->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// Set type of primitives to be used when rendering.
+	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// Create a pixel colour with sentence input colour.
-	pixelColour = D3DXVECTOR4{ sentence->red, sentence->green, sentence->blue, 1.0f };
+	// Create a pixel color vector with the input sentence color.
+	pixelColor = D3DXVECTOR4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
-	// Render using font shader.
-	result = mpFontShader->Render(deviceContext, sentence->indexCount, worldMatrix, mBaseViewMatrix, orthoMatrix, mpFont->GetTexture(), pixelColour);
-
+	// Render the text using the font shader.
+	result = mpFontShader->Render(deviceContext, sentence->indexCount, worldMatrix, mBaseViewMatrix, orthoMatrix, mpFont->GetTexture(),
+		pixelColor);
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to render text in GameText.cpp.");
-		return false;
+		false;
 	}
 
 	return true;
 }
+

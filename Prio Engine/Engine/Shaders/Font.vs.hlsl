@@ -1,14 +1,14 @@
-// Vertex shader for the font which will be used to draw things in game.
-
-// Globals
-cbuffer matrices
+cbuffer PerFrameBuffer
 {
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projectionMatrix;
 };
 
-// Type definitions.
+
+//////////////
+// TYPEDEFS //
+//////////////
 struct VertexInputType
 {
 	float4 position : POSITION;
@@ -21,14 +21,19 @@ struct PixelInputType
 	float2 tex : TEXCOORD0;
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
 PixelInputType FontVertexShader(VertexInputType input)
 {
 	PixelInputType output;
 
-	// Change pos to have a 4th element so can be used in matrix multiplication.
+
+	// Change the position vector to be 4 units for proper matrix calculations.
 	input.position.w = 1.0f;
 
-	// Calculate pos of vertex against world, view and proj matrices.
+	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);

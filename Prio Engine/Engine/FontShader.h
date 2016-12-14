@@ -9,7 +9,7 @@
 class CFontShader
 {
 private:
-	struct MatrixBufferType
+	struct ConstantBufferType
 	{
 		D3DXMATRIX world;
 		D3DXMATRIX view;

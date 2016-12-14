@@ -19,7 +19,7 @@ private:
 		float blue;
 	};
 
-	struct vertexType
+	struct VertexType
 	{
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 texture;
@@ -33,7 +33,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix);
 private:
-	bool InitialiseSentence(SentenceType* &sentence, int maxLength, ID3D11Device * device);
+	bool InitialiseSentence(SentenceType** sentence, int maxLength, ID3D11Device * device);
 	bool UpdateSentence(SentenceType* sentence, char* text, int posX, int posY, float red, float green, float blue, ID3D11DeviceContext* deviceContext);
 	void ReleaseSentence(SentenceType* sentence);
 	bool RenderSentence(ID3D11DeviceContext* deviceContext, SentenceType* sentence, D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix);
@@ -44,7 +44,8 @@ private:
 	int mScreenHeight;
 	D3DXMATRIX mBaseViewMatrix;
 
-	std::list<SentenceType*> mpSentences;
+	//std::list<SentenceType*> mpSentences;
+	SentenceType* mpSentence1;
 };
 
 #endif

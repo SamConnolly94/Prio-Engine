@@ -64,6 +64,7 @@ void GameLoop(CEngine* &engine)
 	// Variables
 	float frameTime;
 	CCamera* myCam;
+	myCam = engine->GetMainCamera();
 
 	CLight* ambientLight;
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
@@ -71,8 +72,8 @@ void GameLoop(CEngine* &engine)
 	grid->CreateGrid();
 
 	// Camera init.
-	myCam = engine->CreateCamera();
-	myCam->SetPosizionY(30.0f);
+	//myCam = engine->CreateCamera();
+	//myCam->SetPosizionY(30.0f);
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });

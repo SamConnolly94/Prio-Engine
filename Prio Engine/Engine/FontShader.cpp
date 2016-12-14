@@ -151,7 +151,8 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), 
+		vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
 		gLogger->WriteLine("Failed to create polygon layout.");
@@ -167,16 +168,14 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	constantBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+	constantBufferDesc.ByteWidth = sizeof(ConstantBufferType);
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDesc.MiscFlags = 0;
 	constantBufferDesc.StructureByteStride = 0;
 
-
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&constantBufferDesc, NULL, &mpConstantBuffer);
-
 
 	if (FAILED(result))
 	{
@@ -301,14 +300,9 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
+	ConstantBufferType* dataPtr;
 	unsigned int bufferNumber;
 	PixelBufferType* dataPtr2;
-
-	// Transpose the matrices so they are ready for the shader.
-	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projMatrix, &projMatrix);
 
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(mpConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -319,7 +313,12 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	dataPtr = (ConstantBufferType*)mappedResource.pData;
+
+	// Transpose the matrices so they are ready for the shader.
+	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
+	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
+	D3DXMatrixTranspose(&projMatrix, &projMatrix);
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;
@@ -348,7 +347,7 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	}
 
 	// Get a pointer to the data in the pixel constant buffer.
-	dataPtr2 = static_cast<PixelBufferType*>(mappedResource.pData);
+	dataPtr2 = (PixelBufferType*)(mappedResource.pData);
 
 	// Copy pixel colour over to the constant buffer.
 	dataPtr2->pixelColour = pixelColour;
