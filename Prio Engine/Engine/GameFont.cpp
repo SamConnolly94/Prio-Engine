@@ -36,7 +36,7 @@ bool CGameFont::Initialise(ID3D11Device * device, char * fontDataFile, WCHAR * f
 	if (!result)
 	{
 		// Output a message informing the user to the log.
-		gLogger->WriteLine("Failed to load the text file for a font.");
+		gLogger->WriteLine("Failed to load the texture for a font.");
 		// Tell whatever called this that we failed.
 		return false;
 	}
@@ -74,6 +74,7 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 
 	// Initialise the index of a vertex array.
 	index = 0;
+	const float fontHeight = 40.0f;
 
 	// Draw each letter.
 	for (int i = 0; i < numLetters; i++)
@@ -83,20 +84,20 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 		// If the letter is a space then just move over three pixels.
 		if (letter == 0)
 		{
-			xPos = xPos + 3.0f;
+			xPos = xPos + 6.0f;
 		}
 		else
 		{
 			// First triangle in quad.
-			vertexPtr[index].position = D3DXVECTOR3(xPos, xPos, 0.0f);  // Top left.
+			vertexPtr[index].position = D3DXVECTOR3(xPos, yPos, 0.0f);  // Top left.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].left, 0.0f);
 			index++;
 
-			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - 16), 0.0f);  // Bottom right.
+			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - fontHeight), 0.0f);  // Bottom right.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 1.0f);
 			index++;
 
-			vertexPtr[index].position = D3DXVECTOR3(xPos, (yPos - 16), 0.0f);  // Bottom left.
+			vertexPtr[index].position = D3DXVECTOR3(xPos, (yPos - fontHeight), 0.0f);  // Bottom left.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].left, 1.0f);
 			index++;
 
@@ -109,7 +110,7 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 0.0f);
 			index++;
 
-			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - 16), 0.0f);  // Bottom right.
+			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - fontHeight), 0.0f);  // Bottom right.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 1.0f);
 			index++;
 

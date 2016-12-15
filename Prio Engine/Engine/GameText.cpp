@@ -33,8 +33,8 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 		return false;
 	}
 	gLogger->MemoryAllocWriteLine(typeid(mpFont).name());
-	char* fontDataFile = "Resources/Fonts/defaultFontData.txt";
-	WCHAR* fontTextureFile = L"Resources/Fonts/font.dds";
+	char* fontDataFile = "Resources/Fonts/font01.txt";
+	WCHAR* fontTextureFile = L"Resources/Fonts/font01.dds";
 
 	// Initailise the font.
 	result = mpFont->Initialise(device, fontDataFile, fontTextureFile);
@@ -56,14 +56,14 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 	}
 	
 	// Initialise the first sentence.
-	result = InitialiseSentence(&mpSentence1, 16, device);
+	result = InitialiseSentence(&mpSentence1, 32, device);
 	if (!result)
 	{
 		gLogger->WriteLine("Failed to initialise sentences.");
 		return false;
 	}
 
-	result = UpdateSentence(mpSentence1, "Hello", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(mpSentence1, "Hello darkness my old friend.", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
 
 	if (!result)
 	{
@@ -339,7 +339,7 @@ bool CGameText::RenderSentence(ID3D11DeviceContext * deviceContext, SentenceType
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create a pixel color vector with the input sentence color.
-	pixelColor = D3DXVECTOR4(sentence->red, /*sentence->green*/0.0f, /*sentence->blue*/0.0f, 1.0f);
+	pixelColor = D3DXVECTOR4(sentence->red, sentence->green, sentence->blue, 1.0f);
 
 	// Render the text using the font shader.
 	result = mpFontShader->Render(deviceContext, sentence->indexCount, worldMatrix, mBaseViewMatrix, orthoMatrix, mpFont->GetTexture(),
