@@ -107,6 +107,9 @@ void GameLoop(CEngine* &engine)
 	// Start the game timer running.
 	engine->StartTimer();
 
+	const float kTextUpdateInterval = 0.2f;
+	float timeSinceTextUpdate = kTextUpdateInterval;
+
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{
@@ -117,8 +120,13 @@ void GameLoop(CEngine* &engine)
 		Control(engine, myCam, grid, frameTime);
 
 		// Update the text on our game.
-		engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
-		engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), FPSPosX, FPSPosY, { 1.0f, 1.0f, 0.0f });
+		if (timeSinceTextUpdate >= kTextUpdateInterval)
+		{
+			engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
+			engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), FPSPosX, FPSPosY, { 1.0f, 1.0f, 0.0f });
+			timeSinceTextUpdate = 0.0f;
+		}
+		timeSinceTextUpdate += frameTime;
 
 	}
 
