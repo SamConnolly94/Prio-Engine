@@ -366,16 +366,16 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 
 void CFontShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
-	// Set the vertex input layout
+	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
 
-	// Set the vertex and pixel shaders that will be used to render this triangle.
+	// Set the vertex and pixel shaders that will be used to render the triangles.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
 	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
 
-	// Set the sampler state in pixel shader.
+	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
 
-	// Render the triangle.
+	// Render the triangles.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }

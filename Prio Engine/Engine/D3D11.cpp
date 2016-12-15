@@ -28,7 +28,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	D3D_FEATURE_LEVEL featureLevel;
 	ID3D11Texture2D* backBufferPtr;
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
-	D3D11_DEPTH_STENCIL_DESC depthStencilBufferDesc;
+	D3D11_DEPTH_STENCIL_DESC depthEnabledStencilBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilBufferDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC rasterDesc;
@@ -221,7 +221,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 
 	/* Create depth stencil buffer. */
 
-	if (!CreateDepthStencilBuffer(depthStencilBufferDesc))
+	if (!CreateDepthStencilBuffer(depthEnabledStencilBufferDesc))
 	{
 		return false;
 	}
@@ -232,7 +232,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	}
 
 	// Put the depth stencil buffer into effect!
-	mpDeviceContext->OMSetDepthStencilState(mpDepthStencilState, 1);
+	mpDeviceContext->OMSetDepthStencilState(mpDepthEnabledStencilState, 1);
 
 	/* Create the depth stencil view. */
 
@@ -266,7 +266,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	/* Create orthographic projection matrix. */
 
 	// Create an orthographic projection matrix for 2D rendering of things like interfaces and sprites.
-	 D3DXMatrixOrthoLH(&mOrthographicMatrix, static_cast<float>(screenWidth), static_cast<float>(screenHeight), screenNear, screenDepth);
+	D3DXMatrixOrthoLH(&mOrthoMatrix, (float)screenWidth, (float)screenHeight, screenNear, screenDepth);
 
 	 // Create the state using the blend state description.
 	 // Clear memory 
@@ -348,11 +348,17 @@ void CD3D11::Shutdown()
 	}
 
 	// If depth stencil state has been initialised.
-	if (mpDepthStencilState)
+	if (mpDepthEnabledStencilState)
 	{
 		// Release the depth stencil state.
-		mpDepthStencilState->Release();
-		mpDepthStencilState = nullptr;
+		mpDepthEnabledStencilState->Release();
+		mpDepthEnabledStencilState = nullptr;
+	}
+
+	if (mpDepthDisabledStencilState)
+	{
+		mpDepthDisabledStencilState->Release();
+		mpDepthDisabledStencilState = nullptr;
 	}
 
 	// If depth stencil buffer has been initialised.
@@ -462,7 +468,7 @@ void CD3D11::GetWorldMatrix(D3DMATRIX & worldMatrix)
 
 void CD3D11::GetOrthogonalMatrix(D3DMATRIX & orthogMatrix)
 {
-	orthogMatrix = mOrthographicMatrix;
+	orthogMatrix = mOrthoMatrix;
 	return;
 }
 
@@ -558,7 +564,7 @@ void CD3D11::DisableZBuffer()
 void CD3D11::EnableZBuffer()
 {
 	// Create the stencil buffer from the descriptor.
-	mpDeviceContext->OMSetDepthStencilState(mpDepthStencilState, 1);
+	mpDeviceContext->OMSetDepthStencilState(mpDepthEnabledStencilState, 1);
 }
 
 /* Gets information about the graphics card that DirectX is using. */
@@ -749,7 +755,7 @@ bool CD3D11::CreateDepthStencilBuffer(D3D11_DEPTH_STENCIL_DESC& depthStencilBuff
 	depthStencilBufferDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	// Create the stencil buffer from the descriptor.
-	result = mpDevice->CreateDepthStencilState(&depthStencilBufferDesc, &mpDepthStencilState);
+	result = mpDevice->CreateDepthStencilState(&depthStencilBufferDesc, &mpDepthEnabledStencilState);
 	if (FAILED(result))
 	{
 		// Log the error message.

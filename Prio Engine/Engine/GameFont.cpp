@@ -78,50 +78,42 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 	// Draw each letter.
 	for (int i = 0; i < numLetters; i++)
 	{
-		letter = static_cast<int>(text[i]) - 32;
+		letter = ((int)text[i]) - 32;
 
-		// If the letter is a space then skip 3 pixels.
+		// If the letter is a space then just move over three pixels.
 		if (letter == 0)
 		{
-			xPos += 3.0f;
+			xPos = xPos + 3.0f;
 		}
 		else
 		{
-			/// First triangle in quad.
-
-			// Top left.
-			vertexPtr[index].position = D3DXVECTOR3(xPos, yPos, 0.0f);
+			// First triangle in quad.
+			vertexPtr[index].position = D3DXVECTOR3(xPos, xPos, 0.0f);  // Top left.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].left, 0.0f);
 			index++;
 
-			// Bottom right.
-			vertexPtr[index].position = D3DXVECTOR3(xPos + mpFont[letter].size, (yPos - 16.0f), 0.0f);
+			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - 16), 0.0f);  // Bottom right.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 1.0f);
 			index++;
 
-			// Bottom left.
-			vertexPtr[index].position = D3DXVECTOR3(xPos, (yPos - 16.0f), 0.0f);
+			vertexPtr[index].position = D3DXVECTOR3(xPos, (yPos - 16), 0.0f);  // Bottom left.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].left, 1.0f);
 			index++;
 
-			/// Second triangle in quad.
-
-			// Top left.
-			vertexPtr[index].position = D3DXVECTOR3(xPos, yPos, 0.0f);
+			// Second triangle in quad.
+			vertexPtr[index].position = D3DXVECTOR3(xPos, yPos, 0.0f);  // Top left.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].left, 0.0f);
 			index++;
 
-			// Top right.
-			vertexPtr[index].position = D3DXVECTOR3(xPos + mpFont[letter].size, yPos, 0.0f);
+			vertexPtr[index].position = D3DXVECTOR3(xPos + mpFont[letter].size, yPos, 0.0f);  // Top right.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 0.0f);
 			index++;
 
-			// Bottom right.
-			vertexPtr[index].position = D3DXVECTOR3(xPos + mpFont[letter].size, (yPos - 16.0f), 0.0f);
+			vertexPtr[index].position = D3DXVECTOR3((xPos + mpFont[letter].size), (yPos - 16), 0.0f);  // Bottom right.
 			vertexPtr[index].texture = D3DXVECTOR2(mpFont[letter].right, 1.0f);
 			index++;
 
-			// Update the draw position by our character width + 1 pixel of padding.
+			// Update the x location for drawing by the size of the letter and one pixel.
 			xPos = xPos + mpFont[letter].size + 1.0f;
 		}
 	}
@@ -130,7 +122,7 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 bool CGameFont::LoadFontData(char * dataFile)
 {
 	std::ifstream inFile;
-	char ch;
+	char ch, temp;
 
 	inFile.open(dataFile);
 
@@ -154,27 +146,20 @@ bool CGameFont::LoadFontData(char * dataFile)
 		return false;
 	}
 
-	// Go through the text data file and filter out what we don't need.
-	for (int i = 0; i < 95; i++)
+	// Read in the 95 used ascii characters for text.
+	for (int i = 0; i<95; i++)
 	{
-		// Get the character and put it in our char var.
-		inFile.get(ch);
-
-		// While the character is not a space.
-		while (ch != ' ')
+		inFile.get(temp);
+		while (temp != ' ')
 		{
-			inFile.get(ch);
+			inFile.get(temp);
 		}
-		// Get the next character.
-		inFile.get(ch);
-
-		// While we're not equal to space again.
-		while (ch != ' ')
+		inFile.get(temp);
+		while (temp != ' ')
 		{
-			inFile.get(ch);
+			inFile.get(temp);
 		}
 
-		// Last three vars is what we need out of this file. So after we've filtered, copy over the font into the correct 
 		inFile >> mpFont[i].left;
 		inFile >> mpFont[i].right;
 		inFile >> mpFont[i].size;

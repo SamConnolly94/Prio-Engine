@@ -251,6 +251,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\Triangle.cpp" />
     <ClCompile Include="Engine\VertexTypeManager.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="2DSprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TestTex.dds" />
@@ -285,6 +286,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
+    <ClInclude Include="2DSprite.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Models\Cube.obj">

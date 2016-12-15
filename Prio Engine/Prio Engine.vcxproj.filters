@@ -122,6 +122,9 @@
     <ClCompile Include="Engine\FontShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
+    <ClCompile Include="2DSprite.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -221,6 +224,7 @@
     <ClInclude Include="Engine\FontShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
+    <ClInclude Include="2DSprite.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">

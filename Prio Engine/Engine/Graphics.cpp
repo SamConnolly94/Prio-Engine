@@ -12,6 +12,7 @@ CGraphics::CGraphics()
 	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 	mpText = nullptr;
+	mpBitmap = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -57,8 +58,19 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateTextureShaderForModel(hwnd);
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
 
-	mpCamera = CreateCamera();
+	/// Set up sprite.
 
+	mpBitmap = new C2DSprite();
+	successful = mpBitmap->Initialise(mpD3D->GetDevice(), screenWidth, screenHeight, L"Resources/Textures/seafloor.dds", 256, 256);
+	if (!successful)
+	{
+		gLogger->WriteLine("Failed to initialise C2DSprite in Graphics.cpp.");
+		return false;
+	}
+	gLogger->MemoryAllocWriteLine(typeid(mpBitmap).name());
+
+	mpCamera = CreateCamera();
+	mpCamera->Render();
 
 	/// SET UP TEXT FROM CAMERA POS.
 	mpText = new CGameText();
@@ -76,7 +88,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		gLogger->WriteLine("Failed to initailise the text object in graphics.cpp.");
 		return false;
 	}
-
+	mBaseView = baseView;
 
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
@@ -90,6 +102,15 @@ void CGraphics::Shutdown()
 		mpText->Shutdown();
 		delete mpText;
 		mpText = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpText).name());
+	}
+
+	if (mpBitmap)
+	{
+		mpBitmap->Shutdown();
+		delete mpBitmap;
+		mpBitmap = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpBitmap).name());
 	}
 
 	if (mpDiffuseLightShader)
@@ -244,13 +265,18 @@ bool CGraphics::Render()
 	mpCamera->GetViewMatrix(viewMatrix);
 	mpD3D->GetWorldMatrix(worldMatrix);
 	mpD3D->GetProjectionMatrix(projMatrix);
+	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
 
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
 		return false;
 
-	if (!RenderText(worldMatrix, orthoMatrix))
+	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix))
+		return false;
+
+	
+	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
 		return false;
 
 	// Present the rendered scene to the screen.
@@ -353,16 +379,51 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	return true;
 }
 
-bool CGraphics::RenderText(D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix)
+bool CGraphics::RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho)
 {
 	mpD3D->DisableZBuffer();
 	mpD3D->EnableAlphaBlending();
-	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
-	bool result = mpText->Render(mpD3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	bool result = mpText->Render(mpD3D->GetDeviceContext(), world, ortho);
+
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to render text in graphics.cpp.");
+		gLogger->WriteLine("Failed to render text.");
+		return false;
+	}
+
+
+	mpD3D->EnableZBuffer();
+	mpD3D->DisableAlphaBlending();
+
+	return true;
+}
+
+bool CGraphics::RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho)
+{
+	mpD3D->DisableZBuffer();
+	mpD3D->EnableAlphaBlending();
+
+	//bool result = mpText->Render(mpD3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	//if (!result)
+	//{
+	//	gLogger->WriteLine("Failed to render text in graphics.cpp.");
+	//	return false;
+	//}
+
+	bool result = mpBitmap->Render(mpD3D->GetDeviceContext(), 100, 100);
+
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to render.");
+		return false;
+	}
+
+	result = mpTextureShader->Render(mpD3D->GetDeviceContext(), mpBitmap->GetNumberOfIndices(), world, view, ortho, mpBitmap->GetTexture());
+
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to render with texture shader.");
 		return false;
 	}
 

@@ -14,6 +14,7 @@
 #include "Light.h"
 #include "Terrain.h"
 #include "GameText.h"
+#include "../2DSprite.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -49,6 +50,8 @@ private:
 	CTextureShader* mpTextureShader;
 	CDirectionalLightShader* mpDiffuseLightShader;
 	CGameText* mpText;
+	C2DSprite* mpBitmap;
+	D3DXMATRIX mBaseView;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -63,7 +66,8 @@ private:
 	bool CreateColourShader(HWND hwnd);
 	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
-	bool RenderText(D3DXMATRIX worldMatrix, D3DXMATRIX orthoMatrix);
+	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
+	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 
 	float mRotation;
 

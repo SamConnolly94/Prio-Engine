@@ -30,13 +30,13 @@ private:
 	ID3D11DeviceContext* mpDeviceContext;
 	ID3D11RenderTargetView* mpRenderTargetView;
 	ID3D11Texture2D* mpDepthStencilBuffer;
-	ID3D11DepthStencilState* mpDepthStencilState;
+	ID3D11DepthStencilState* mpDepthEnabledStencilState;
 	ID3D11DepthStencilState* mpDepthDisabledStencilState;
 	ID3D11DepthStencilView* mpDepthStencilView;
 	ID3D11RasterizerState* mpRasterizerState;
 	D3DXMATRIX mProjectionMatrix;
 	D3DXMATRIX mWorldMatrix;
-	D3DXMATRIX mOrthographicMatrix;
+	D3DXMATRIX mOrthoMatrix;
 	std::string mGraphicsCardName;
 	ID3D11BlendState* mpAlphaBlendingStateEnabled;
 	ID3D11BlendState* mpAlphaBlendingStateDisabled;

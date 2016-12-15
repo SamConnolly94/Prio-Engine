@@ -76,14 +76,6 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 
 void CGameText::Shutdown()
 {
-	// Release all sentences.
-	//std::list<SentenceType*>::iterator it = mpSentences.begin();
-	//while (it != mpSentences.end())
-	//{
-	//	ReleaseSentence((*it));
-	//	(*it) = nullptr;
-	//	it++;
-	//}
 	ReleaseSentence(mpSentence1);
 	mpSentence1 = nullptr;
 
@@ -114,26 +106,6 @@ bool CGameText::Render(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatr
 		gLogger->WriteLine("Failed to render text.");
 		return false;
 	}
-
-	//// Go through list and render all sentences.
-	//std::list<SentenceType*>::iterator it = mpSentences.begin();
-	//
-	//// While we haven't hit the end of the list.
-	//while (it != mpSentences.end())
-	//{
-	//	// Attempt to render the sentence and track the results.
-	//	result = RenderSentence(deviceContext, (*it), worldMatrix, orthoMatrix);
-
-	//	// If we failed the result.
-	//	if (!result)
-	//	{
-	//		// Output error message to the text log.
-	//		gLogger->WriteLine("Failed to render text.");
-	//		// Return false.
-	//		return false;
-	//	}
-	//	it++;
-	//}
 
 	// Success!
 	return true;
@@ -255,8 +227,8 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 {
 	int numberOfLetters;
 	VertexType* vertices;
-	//float x;
-	//float y;
+	float x;
+	float y;
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	VertexType* verticesPtr;
@@ -290,11 +262,11 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	memset(vertices, 0, (sizeof(VertexType) * sentence->vertexCount));
 
 	// Calculate positions which we will draw the text.
-	posX = (float)(((mScreenWidth / 2) * -1) + posX);
-	posY = (float)((mScreenHeight / 2) - posY);
+	x = (float)(((mScreenWidth / 2) * -1) + posX);
+	y = (float)((mScreenHeight / 2) - posY);
 
 	// Build the vertex array.
-	mpFont->BuildVertexArray((void*)vertices, text, posX, posY);
+	mpFont->BuildVertexArray((void*)vertices, text, x, y);
 
 	// Lock vertex array.
 	result = deviceContext->Map(sentence->vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -367,7 +339,7 @@ bool CGameText::RenderSentence(ID3D11DeviceContext * deviceContext, SentenceType
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Create a pixel color vector with the input sentence color.
-	pixelColor = D3DXVECTOR4(sentence->red, sentence->green, sentence->blue, 1.0f);
+	pixelColor = D3DXVECTOR4(sentence->red, /*sentence->green*/0.0f, /*sentence->blue*/0.0f, 1.0f);
 
 	// Render the text using the font shader.
 	result = mpFontShader->Render(deviceContext, sentence->indexCount, worldMatrix, mBaseViewMatrix, orthoMatrix, mpFont->GetTexture(),

@@ -44,7 +44,6 @@ private:
 	int mScreenHeight;
 	D3DXMATRIX mBaseViewMatrix;
 
-	//std::list<SentenceType*> mpSentences;
 	SentenceType* mpSentence1;
 };
 
