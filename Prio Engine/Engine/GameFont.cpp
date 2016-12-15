@@ -59,7 +59,7 @@ ID3D11ShaderResourceView * CGameFont::GetTexture()
 	return mpTexture->GetTexture();
 }
 
-void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float yPos)
+void CGameFont::BuildVertexArray(void * vertices, std::string text, float xPos, float yPos)
 {
 	VertexType* vertexPtr;
 	int numLetters;
@@ -70,7 +70,7 @@ void CGameFont::BuildVertexArray(void * vertices, char * text, float xPos, float
 	vertexPtr = static_cast<VertexType*>(vertices);
 
 	// Get the number of letters in the sentence we want to draw.
-	numLetters = static_cast<int>(std::strlen(text));
+	numLetters = static_cast<int>(std::strlen(text.c_str()));
 
 	// Initialise the index of a vertex array.
 	index = 0;

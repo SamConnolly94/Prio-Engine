@@ -395,6 +395,16 @@ void CEngine::ToggleWireframe()
 	mpGraphics->ToggleWireframe();
 }
 
+SentenceType * CEngine::CreateText(std::string text, int posX, int posY, int maxLength)
+{
+	return mpGraphics->CreateSentence(text, posX, posY, maxLength);
+}
+
+bool CEngine::UpdateText(SentenceType *& sentence, std::string text, int posX, int posY, PrioEngine::RGB colour)
+{
+	return mpGraphics->UpdateSentence(sentence, text, posX, posY, colour);
+}
+
 /* Detects if a key has been pressed once. 
 You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)

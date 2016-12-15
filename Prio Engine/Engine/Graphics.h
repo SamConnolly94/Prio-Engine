@@ -20,7 +20,7 @@
 // Will the window run in full screen?
 const bool FULL_SCREEN = false;
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
-const bool VSYNC_ENABLED = true;
+const bool VSYNC_ENABLED = false;
 // Far clip
 const float SCREEN_DEPTH = 1000.0f;
 // Near clip
@@ -94,6 +94,8 @@ public:
 	void SetCameraPos(float x, float y, float z);
 	void ToggleWireframe();
 	CCamera* GetMainCamera() {return mpCamera;};
+	SentenceType* CreateSentence(std::string text, int posX, int posY, int maxLength);
+	bool UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
 };
 
 #endif

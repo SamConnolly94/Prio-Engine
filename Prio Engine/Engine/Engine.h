@@ -81,6 +81,9 @@ public:
 
 	void ToggleWireframe();
 
+	SentenceType* CreateText(std::string text, int posX, int posY, int maxLength);
+	bool UpdateText(SentenceType *& sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
+
 	// Control user input.
 public:
 	bool KeyHit(const unsigned int key);

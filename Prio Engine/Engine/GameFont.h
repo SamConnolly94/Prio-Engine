@@ -31,7 +31,7 @@ public:
 	void Shutdown();
 
 	ID3D11ShaderResourceView* GetTexture();
-	void BuildVertexArray(void* vertices, char* text, float xPos, float yPos);
+	void BuildVertexArray(void* vertices, std::string text, float xPos, float yPos);
 private:
 	bool LoadFontData(char* dataFile);
 	void ReleaseFontData();

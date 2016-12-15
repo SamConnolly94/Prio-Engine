@@ -6,7 +6,6 @@ CGameText::CGameText()
 {
 	mpFont = nullptr;
 	mpFontShader = nullptr;
-	mpSentence1 = nullptr;
 }
 
 
@@ -54,30 +53,28 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 		gLogger->WriteLine("Failed to initialise the font object in GameText.cpp.");
 		return false;
 	}
-	
-	// Initialise the first sentence.
-	result = InitialiseSentence(&mpSentence1, 32, device);
-	if (!result)
-	{
-		gLogger->WriteLine("Failed to initialise sentences.");
-		return false;
-	}
-
-	result = UpdateSentence(mpSentence1, "Hello darkness my old friend.", 100, 100, 1.0f, 1.0f, 1.0f, deviceContext);
-
-	if (!result)
-	{
-		gLogger->WriteLine("Failed to update sentence.");
-		return false;
-	}
 
 	return true;
 }
 
 void CGameText::Shutdown()
 {
-	ReleaseSentence(mpSentence1);
-	mpSentence1 = nullptr;
+
+	// Iterate through all of the sentences.
+	for (auto sentence : mpSentences)
+	{
+		// If the sentence has had memory allocated to it.
+		if (sentence)
+		{
+			// Release the memory.
+			ReleaseSentence(sentence);
+			// Remove the pointer from the sentence.
+			sentence = nullptr;
+		}
+	}
+
+	// Empty the list.
+	mpSentences.clear();
 
 	if (mpFontShader)
 	{
@@ -100,11 +97,20 @@ bool CGameText::Render(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatr
 	// Boolean flag to check whetehr things are succesfully rendered.
 	bool result = false;
 
-	result = RenderSentence(deviceContext, mpSentence1, worldMatrix, orthoMatrix);
-	if (!result)
+	// Iterate through the sentences list.
+	for (auto sentence : mpSentences)
 	{
-		gLogger->WriteLine("Failed to render text.");
-		return false;
+		// Render each sentence on the list.
+		result = RenderSentence(deviceContext, sentence, worldMatrix, orthoMatrix);
+		
+		// If we failed to render.
+		if (!result)
+		{
+			// Output error message to the log.
+			gLogger->WriteLine("Failed to render text.");
+			// Failure! Stop processing.
+			return false;
+		}
 	}
 
 	// Success!
@@ -223,7 +229,7 @@ bool CGameText::InitialiseSentence(SentenceType** sentence, int maxLength, ID3D1
 	return true;
 }
 
-bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, int posY, float red, float green, float blue, ID3D11DeviceContext * deviceContext)
+bool CGameText::UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, float red, float green, float blue, ID3D11DeviceContext* deviceContext)
 {
 	int numberOfLetters;
 	VertexType* vertices;
@@ -239,7 +245,7 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	sentence->blue = blue;
 
 	// Get the number of letters in the sentence.
-	numberOfLetters = static_cast<int>(strlen(text));
+	numberOfLetters = static_cast<int>(strlen(text.c_str()));
 	
 	// Check for buffer overflow.
 	if (numberOfLetters > sentence->maxLength)
@@ -291,6 +297,35 @@ bool CGameText::UpdateSentence(SentenceType * sentence, char * text, int posX, i
 	vertices = nullptr;
 
 	return true;
+}
+
+/* Defines and allocates memory to a sentence object. 
+*  Please note that this sentence will be stored in a list, all rendering will be done for you, all you need to do is update it.
+* @Returns pointer to the sentence object of type SentenceType. 
+*/
+SentenceType* CGameText::CreateSentence(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::string text, int posX, int posY, int maxLength)
+{
+	// Define a sentence.
+	SentenceType* sentence;
+
+	bool result = InitialiseSentence(&sentence, maxLength, device);
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to initialise sentences.");
+		return nullptr;
+	}
+
+	result = UpdateSentence(sentence, text, posX, posY, 1.0f, 1.0f, 1.0f, deviceContext);
+
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to update sentence.");
+		return nullptr;
+	}
+
+	mpSentences.push_back(sentence);
+
+	return sentence;
 }
 
 void CGameText::ReleaseSentence(SentenceType* sentence)

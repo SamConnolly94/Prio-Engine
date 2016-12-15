@@ -3,7 +3,7 @@
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
-void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid);
+void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid, float frameTime);
 
 // Globals
 CLogger* gLogger;
@@ -57,6 +57,11 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 /* Controls any gameplay and things that should happen when we play the game. */
 void GameLoop(CEngine* &engine)
 {
+	const int frameTimePosX = 10.0f;
+	const int frameTimePosY = 10.0f;
+	const int FPSPosX = 10.0f;
+	const int FPSPosY = 50.0f;
+
 	// Constants.
 	const float kRotationSpeed = 100.0f;
 	const float kMovementSpeed = 1.0f;
@@ -70,6 +75,10 @@ void GameLoop(CEngine* &engine)
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
 	grid->LoadHeightMapFromFile("Default.map");
 	grid->CreateGrid();
+	char* fpsChar = new char[5];
+
+	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
+	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);
 
 	// Camera init.
 	//myCam = engine->CreateCamera();
@@ -105,22 +114,23 @@ void GameLoop(CEngine* &engine)
 		frameTime = engine->GetFrameTime();
 
 		// Process any keys pressed this frame.
-		Control(engine, myCam, grid);
+		Control(engine, myCam, grid, frameTime);
 
-		// Rotate the model which has been logged on.
-		//cube->RotateY(kRotationSpeed * frameTime);
+		// Update the text on our game.
+		engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
+		engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), FPSPosX, FPSPosY, { 1.0f, 1.0f, 0.0f });
+
 	}
 
 	grid->ReleaseHeightMap();
 }
 
 /* Control any user input here, must be called in every tick of the game loop. */
-void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid)
+void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid, float frameTime)
 {
 	const float kMoveSpeed = 25.0f;
 	const float kRotationSpeed = 10.0f;
 	const float kCamRotationSpeed = 2.5f;
-	float frameTime = engine->GetFrameTime();
 	
 	/// Camera control.
 	// Move backwards
