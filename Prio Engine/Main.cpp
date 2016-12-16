@@ -67,7 +67,7 @@ void GameLoop(CEngine* &engine)
 	const float kMovementSpeed = 1.0f;
 
 	C2DSprite* ptr = engine->CreateUIImages(L"Resources/Textures/Seafloor.dds", 256, 256, 100, 100);
-	engine->RemoveUIImage(ptr);
+	//engine->RemoveUIImage(ptr);
 
 	// Variables
 	float frameTime;
@@ -85,7 +85,7 @@ void GameLoop(CEngine* &engine)
 
 	// Camera init.
 	//myCam = engine->CreateCamera();
-	//myCam->SetPosizionY(30.0f);
+	myCam->SetPosizionY(30.0f);
 
 	// Light init
 	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
