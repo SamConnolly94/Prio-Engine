@@ -122,7 +122,7 @@
     <ClCompile Include="Engine\FontShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
-    <ClCompile Include="2DSprite.cpp">
+    <ClCompile Include="Engine\2DImage.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -224,7 +224,9 @@
     <ClInclude Include="Engine\FontShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
-    <ClInclude Include="2DSprite.h" />
+    <ClInclude Include="Engine\2DImage.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">

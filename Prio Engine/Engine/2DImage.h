@@ -3,9 +3,9 @@
 
 #include <d3d11.h>
 #include <d3dx10math.h>
-#include "Engine\Texture.h"
+#include "Texture.h"
 
-class C2DSprite
+class C2DImage
 {
 private:
 	struct VertexType
@@ -14,8 +14,8 @@ private:
 		D3DXVECTOR2 texture;
 	};
 public:
-	C2DSprite();
-	~C2DSprite();
+	C2DImage();
+	~C2DImage();
 
 	// Graphics functions.
 	bool Initialise(ID3D11Device* device, int screenWidth, int screenHeight, WCHAR* textureFilename, int width, int height);

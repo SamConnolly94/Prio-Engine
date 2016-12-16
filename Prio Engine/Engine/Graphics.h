@@ -14,7 +14,7 @@
 #include "Light.h"
 #include "Terrain.h"
 #include "GameText.h"
-#include "../2DSprite.h"
+#include "2DImage.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -60,7 +60,7 @@ private:
 	std::list<CMesh*> mpMeshes;
 	std::list<CLight*> mpLights;
 	std::list<CTerrainGrid*> mpTerrainGrids;
-	std::list<C2DSprite*> mpUIImages;
+	std::list<C2DImage*> mpUIImages;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
@@ -96,8 +96,8 @@ public:
 	CCamera* GetMainCamera() {return mpCamera;};
 	SentenceType* CreateSentence(std::string text, int posX, int posY, int maxLength);
 	bool UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
-	C2DSprite* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
-	bool RemoveUIImage(C2DSprite* &element);
+	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
+	bool RemoveUIImage(C2DImage* &element);
 };
 
 #endif

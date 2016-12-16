@@ -66,9 +66,6 @@ void GameLoop(CEngine* &engine)
 	const float kRotationSpeed = 100.0f;
 	const float kMovementSpeed = 1.0f;
 
-	C2DSprite* ptr = engine->CreateUIImages(L"Resources/Textures/Seafloor.dds", 256, 256, 100, 100);
-	//engine->RemoveUIImage(ptr);
-
 	// Variables
 	float frameTime;
 	CCamera* myCam;

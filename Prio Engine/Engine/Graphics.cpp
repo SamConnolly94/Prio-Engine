@@ -434,11 +434,11 @@ bool CGraphics::UpdateSentence(SentenceType *& sentence, std::string text, int p
 	return mpText->UpdateSentence(sentence, text, posX, posY, colour.r, colour.g, colour.b, mpD3D->GetDeviceContext());
 }
 
-C2DSprite * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
+C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
 {
 	/// Set up image.
 
-	C2DSprite* image = new C2DSprite();
+	C2DImage* image = new C2DImage();
 
 	bool successful = image->Initialise(mpD3D->GetDevice(), mScreenWidth, mScreenHeight, filename, width, height);
 	
@@ -459,9 +459,9 @@ C2DSprite * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, in
 	
 }
 
-bool CGraphics::RemoveUIImage(C2DSprite *& element)
+bool CGraphics::RemoveUIImage(C2DImage *& element)
 {
-	std::list<C2DSprite*>::iterator it = mpUIImages.begin();
+	std::list<C2DImage*>::iterator it = mpUIImages.begin();
 
 	while (it != mpUIImages.end())
 	{

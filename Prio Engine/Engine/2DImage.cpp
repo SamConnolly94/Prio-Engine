@@ -1,7 +1,7 @@
-#include "2DSprite.h"
+#include "2DImage.h"
 
 
-C2DSprite::C2DSprite()
+C2DImage::C2DImage()
 {
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
@@ -20,14 +20,14 @@ C2DSprite::C2DSprite()
 }
 
 
-C2DSprite::~C2DSprite()
+C2DImage::~C2DImage()
 {
 }
 
 /* Prepares the object for use in other classes. 
 * @Returns bool - false if failed, true if successfully initialised. 
 */
-bool C2DSprite::Initialise(ID3D11Device * device, int screenWidth, int screenHeight, WCHAR * textureFilename, int width, int height)
+bool C2DImage::Initialise(ID3D11Device * device, int screenWidth, int screenHeight, WCHAR * textureFilename, int width, int height)
 {
 	bool result = false;
 
@@ -72,7 +72,7 @@ bool C2DSprite::Initialise(ID3D11Device * device, int screenWidth, int screenHei
 }
 
 /* Cleans up all allocated memory to resources. */
-void C2DSprite::Shutdown()
+void C2DImage::Shutdown()
 {
 	// Get rid of the texture and any memory allocated to it.
 	ReleaseTexture();
@@ -82,7 +82,7 @@ void C2DSprite::Shutdown()
 }
 
 /* Prepare the buffers for rendering. */
-bool C2DSprite::Render(ID3D11DeviceContext * deviceContext, int posX, int posY)
+bool C2DImage::Render(ID3D11DeviceContext * deviceContext, int posX, int posY)
 {
 	bool result = false;
 
@@ -106,19 +106,19 @@ bool C2DSprite::Render(ID3D11DeviceContext * deviceContext, int posX, int posY)
 }
 
 /* Returns however many indices there are in the index array. */
-int C2DSprite::GetNumberOfIndices()
+int C2DImage::GetNumberOfIndices()
 {
 	return mIndexCount;
 }
 
 /* Returns the shader resource view (Direct X Texture obj) that is being used as a texture.*/
-ID3D11ShaderResourceView * C2DSprite::GetTexture()
+ID3D11ShaderResourceView * C2DImage::GetTexture()
 {
 	return mpTexture->GetTexture();
 }
 
 /* Set up the vertex and index buffers to be used for this bitmap. */
-bool C2DSprite::InitialiseBuffers(ID3D11Device * device)
+bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -233,7 +233,7 @@ bool C2DSprite::InitialiseBuffers(ID3D11Device * device)
 }
 
 /* Deallocates any memory which may have been assigned to vertex or index buffers. */
-void C2DSprite::ShutdownBuffers()
+void C2DImage::ShutdownBuffers()
 {
 	// If vertex buffer had memory allocated.
 	if (mpVertexBuffer)
@@ -254,7 +254,7 @@ void C2DSprite::ShutdownBuffers()
 	}
 }
 
-bool C2DSprite::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int posY)
+bool C2DImage::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int posY)
 {
 	float left = 0.0f, right = 0.0f, top = 0.0f, bottom = 0.0f;
 	VertexType* vertices = nullptr;
@@ -356,7 +356,7 @@ bool C2DSprite::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int
 	return true;
 }
 
-void C2DSprite::RenderBuffers(ID3D11DeviceContext * deviceContext)
+void C2DImage::RenderBuffers(ID3D11DeviceContext * deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
@@ -378,7 +378,7 @@ void C2DSprite::RenderBuffers(ID3D11DeviceContext * deviceContext)
 }
 
 /* Allocates memory to the texture object and initialises it. */
-bool C2DSprite::LoadTexture(ID3D11Device * device, WCHAR * textureFilename)
+bool C2DImage::LoadTexture(ID3D11Device * device, WCHAR * textureFilename)
 {
 	bool result = false;
 
@@ -412,7 +412,7 @@ bool C2DSprite::LoadTexture(ID3D11Device * device, WCHAR * textureFilename)
 	return true;
 }
 
-void C2DSprite::ReleaseTexture()
+void C2DImage::ReleaseTexture()
 {
 	// If texture object was allocated memory.
 	if (mpTexture)

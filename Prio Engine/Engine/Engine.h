@@ -90,8 +90,8 @@ public:
 	bool KeyHeld(const unsigned int key);
 	void Stop();
 	CCamera* GetMainCamera() { return mpGraphics->GetMainCamera(); };
-	C2DSprite* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
-	bool RemoveUIImage(C2DSprite *& element);
+	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
+	bool RemoveUIImage(C2DImage *& element);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

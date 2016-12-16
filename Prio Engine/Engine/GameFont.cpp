@@ -123,7 +123,7 @@ void CGameFont::BuildVertexArray(void * vertices, std::string text, float xPos, 
 bool CGameFont::LoadFontData(char * dataFile)
 {
 	std::ifstream inFile;
-	char ch, temp;
+	char temp;
 
 	inFile.open(dataFile);
 

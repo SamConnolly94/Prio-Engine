@@ -449,12 +449,12 @@ void CEngine::Stop()
 	mStopped = true;
 }
 
-C2DSprite * CEngine::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
+C2DImage * CEngine::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
 {
 	return mpGraphics->CreateUIImages(filename, width, height, posX, posY);
 }
 
-bool CEngine::RemoveUIImage(C2DSprite *& element)
+bool CEngine::RemoveUIImage(C2DImage *& element)
 {
 	return mpGraphics->RemoveUIImage(element);
 }

@@ -226,6 +226,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\2DImage.cpp" />
     <ClCompile Include="Engine\Camera.cpp" />
     <ClCompile Include="Engine\ColourShader.cpp" />
     <ClCompile Include="Engine\Cube.cpp" />
@@ -251,7 +252,6 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\Triangle.cpp" />
     <ClCompile Include="Engine\VertexTypeManager.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="2DSprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TestTex.dds" />
@@ -261,6 +261,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <None Include="Resources\Textures\Triangle.sam" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\2DImage.h" />
     <ClInclude Include="Engine\Camera.h" />
     <ClInclude Include="Engine\ColourShader.h" />
     <ClInclude Include="Engine\Cube.h" />
@@ -286,7 +287,6 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
-    <ClInclude Include="2DSprite.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Models\Cube.obj">
