@@ -449,6 +449,16 @@ void CEngine::Stop()
 	mStopped = true;
 }
 
+C2DSprite * CEngine::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
+{
+	return mpGraphics->CreateUIImages(filename, width, height, posX, posY);
+}
+
+bool CEngine::RemoveUIImage(C2DSprite *& element)
+{
+	return mpGraphics->RemoveUIImage(element);
+}
+
 /* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/
 CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape)
 {

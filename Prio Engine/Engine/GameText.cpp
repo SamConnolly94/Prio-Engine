@@ -53,6 +53,7 @@ bool CGameText::Initialise(ID3D11Device * device, ID3D11DeviceContext * deviceCo
 		gLogger->WriteLine("Failed to initialise the font object in GameText.cpp.");
 		return false;
 	}
+	gLogger->MemoryAllocWriteLine(typeid(mpFontShader).name());
 
 	return true;
 }
@@ -81,6 +82,7 @@ void CGameText::Shutdown()
 		mpFontShader->Shutdown();
 		delete mpFontShader;
 		mpFontShader = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpFontShader).name());
 	}
 
 	if (mpFont)
@@ -88,6 +90,7 @@ void CGameText::Shutdown()
 		mpFont->Shutdown();
 		delete mpFont;
 		mpFont = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpFont).name());
 	}
 }
 
@@ -350,6 +353,7 @@ void CGameText::ReleaseSentence(SentenceType* sentence)
 
 		delete (sentence);
 		(sentence) = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(sentence).name());
 	}
 }
 

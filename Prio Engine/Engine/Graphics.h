@@ -50,7 +50,6 @@ private:
 	CTextureShader* mpTextureShader;
 	CDirectionalLightShader* mpDiffuseLightShader;
 	CGameText* mpText;
-	C2DSprite* mpBitmap;
 	D3DXMATRIX mBaseView;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
@@ -61,6 +60,7 @@ private:
 	std::list<CMesh*> mpMeshes;
 	std::list<CLight*> mpLights;
 	std::list<CTerrainGrid*> mpTerrainGrids;
+	std::list<C2DSprite*> mpUIImages;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
@@ -96,6 +96,8 @@ public:
 	CCamera* GetMainCamera() {return mpCamera;};
 	SentenceType* CreateSentence(std::string text, int posX, int posY, int maxLength);
 	bool UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
+	C2DSprite* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
+	bool RemoveUIImage(C2DSprite* &element);
 };
 
 #endif

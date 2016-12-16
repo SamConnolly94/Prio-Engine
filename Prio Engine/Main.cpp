@@ -59,12 +59,15 @@ void GameLoop(CEngine* &engine)
 {
 	const int frameTimePosX = 10.0f;
 	const int frameTimePosY = 10.0f;
-	const int FPSPosX = 10.0f;
-	const int FPSPosY = 50.0f;
+	const float FPSPosX = 10.0f;
+	const float FPSPosY = 50.0f;
 
 	// Constants.
 	const float kRotationSpeed = 100.0f;
 	const float kMovementSpeed = 1.0f;
+
+	C2DSprite* ptr = engine->CreateUIImages(L"Resources/Textures/Seafloor.dds", 256, 256, 100, 100);
+	engine->RemoveUIImage(ptr);
 
 	// Variables
 	float frameTime;

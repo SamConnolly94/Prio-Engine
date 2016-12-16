@@ -12,7 +12,6 @@ CGraphics::CGraphics()
 	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 	mpText = nullptr;
-	mpBitmap = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -58,17 +57,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateTextureShaderForModel(hwnd);
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
 
-	/// Set up sprite.
-
-	mpBitmap = new C2DSprite();
-	successful = mpBitmap->Initialise(mpD3D->GetDevice(), screenWidth, screenHeight, L"Resources/Textures/seafloor.dds", 256, 256);
-	if (!successful)
-	{
-		gLogger->WriteLine("Failed to initialise C2DSprite in Graphics.cpp.");
-		return false;
-	}
-	gLogger->MemoryAllocWriteLine(typeid(mpBitmap).name());
-
 	mpCamera = CreateCamera();
 	mpCamera->Render();
 
@@ -105,13 +93,15 @@ void CGraphics::Shutdown()
 		gLogger->MemoryDeallocWriteLine(typeid(mpText).name());
 	}
 
-	if (mpBitmap)
+	for (auto image : mpUIImages)
 	{
-		mpBitmap->Shutdown();
-		delete mpBitmap;
-		mpBitmap = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpBitmap).name());
+		image->Shutdown();
+		delete image;
+		image = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(image).name());
 	}
+
+	mpUIImages.clear();
 
 	if (mpDiffuseLightShader)
 	{
@@ -404,27 +394,28 @@ bool CGraphics::RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX orth
 	mpD3D->DisableZBuffer();
 	mpD3D->EnableAlphaBlending();
 
-	//bool result = mpText->Render(mpD3D->GetDeviceContext(), worldMatrix, orthoMatrix);
-	//if (!result)
-	//{
-	//	gLogger->WriteLine("Failed to render text in graphics.cpp.");
-	//	return false;
-	//}
-
-	bool result = mpBitmap->Render(mpD3D->GetDeviceContext(), 100, 100);
-
-	if (!result)
+	bool result;
+	
+	for (auto image : mpUIImages)
 	{
-		gLogger->WriteLine("Failed to render.");
-		return false;
+		result = image->Render(mpD3D->GetDeviceContext(), image->GetX(), image->GetY());
+
+		if (!result)
+		{
+			gLogger->WriteLine("Failed to render.");
+			return false;
+		}
 	}
 
-	result = mpTextureShader->Render(mpD3D->GetDeviceContext(), mpBitmap->GetNumberOfIndices(), world, view, ortho, mpBitmap->GetTexture());
-
-	if (!result)
+	for (auto image : mpUIImages)
 	{
-		gLogger->WriteLine("Failed to render with texture shader.");
-		return false;
+		result = mpTextureShader->Render(mpD3D->GetDeviceContext(), image->GetNumberOfIndices(), world, view, ortho, image->GetTexture());
+
+		if (!result)
+		{
+			gLogger->WriteLine("Failed to render with texture shader.");
+			return false;
+		}
 	}
 
 	mpD3D->EnableZBuffer();
@@ -441,6 +432,52 @@ SentenceType * CGraphics::CreateSentence(std::string text, int posX, int posY, i
 bool CGraphics::UpdateSentence(SentenceType *& sentence, std::string text, int posX, int posY, PrioEngine::RGB colour)
 {
 	return mpText->UpdateSentence(sentence, text, posX, posY, colour.r, colour.g, colour.b, mpD3D->GetDeviceContext());
+}
+
+C2DSprite * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
+{
+	/// Set up image.
+
+	C2DSprite* image = new C2DSprite();
+
+	bool successful = image->Initialise(mpD3D->GetDevice(), mScreenWidth, mScreenHeight, filename, width, height);
+	
+	image->SetX(posX);
+	image->SetY(posY);
+
+	if (!successful)
+	{
+		gLogger->WriteLine("Failed to initialise C2DSprite in Graphics.cpp.");
+		return false;
+	}
+	gLogger->MemoryAllocWriteLine(typeid(image).name());
+
+	// Push image to the list.
+	mpUIImages.push_back(image);
+
+	return image;
+	
+}
+
+bool CGraphics::RemoveUIImage(C2DSprite *& element)
+{
+	std::list<C2DSprite*>::iterator it = mpUIImages.begin();
+
+	while (it != mpUIImages.end())
+	{
+		if ((*it) == element)
+		{
+			(*it)->Shutdown();
+			delete (*it);
+			gLogger->MemoryDeallocWriteLine(typeid(*it).name());
+			(*it) = nullptr;
+			mpUIImages.erase(it);
+			element = nullptr;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)

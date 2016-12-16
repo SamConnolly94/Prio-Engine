@@ -50,6 +50,14 @@ private:
 	
 	int mPreviousPosX;
 	int mPreviousPoxY;
+private:
+	int mPosX;
+	int mPosY;
+public:
+	int GetX() { return mPosX; };
+	int GetY() { return mPosY; };
+	void SetX(int x) { mPosX = x; };
+	void SetY(int y) { mPosY = y; };
 };
 
 #endif
