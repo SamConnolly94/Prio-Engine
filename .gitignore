@@ -1,7 +1,12 @@
 #Exclude Directories
-"Prio Engine/Debug"
-"Prio Engine/Release"
-"Prio Engine/x64"
+"Prio Engine/Debug/"
+"Prio Engine/Release/"
+"Prio Engine/x64/"
+bin/
+Debug/
+Release/
+"Prio Engine/Shaders/"
+"Prio Engine/bin/"
 
 #Exclude filetypes.
 *.exe
