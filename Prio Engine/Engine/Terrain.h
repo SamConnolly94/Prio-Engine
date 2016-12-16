@@ -33,6 +33,7 @@ private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext* context);
+	PrioEngine::Math::VEC3 CalculateNormal(VertexType* vertices, int index);
 private:
 	int mWidth;
 	int mHeight;

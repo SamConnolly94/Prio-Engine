@@ -214,28 +214,45 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 
 			/// Calculate normals.
 
-			// Bottom left
-			PrioEngine::Math::VEC3 point1 = { vertices[vertex].position.x, vertices[vertex].position.y, vertices[vertex].position.z };
-			// Bottom right
-			PrioEngine::Math::VEC3 point2 = { vertices[vertex + 1].position.x, vertices[vertex + 1].position.y, vertices[vertex + 1].position.z };
-			// Upper right
-			PrioEngine::Math::VEC3 point3 = { vertices[vertex + mWidth + 1].position.x, vertices[vertex + mWidth + 1].position.y, vertices[vertex + mWidth + 1].position.z };
-			// Upper left
-
-			PrioEngine::Math::VEC3 U = PrioEngine::Math::Subtract(point2, point1);
-			PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
-
-			PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
-			//vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x, face1Vec.y, face1Vec.z };
+			PrioEngine::Math::VEC3 face1Vec = CalculateNormal(vertices, vertex);
 			float length = PrioEngine::Math::GetLength(face1Vec);
-			//float length = float(sqrt(vertices[vertex].normal.x * vertices[vertex].normal.x) + (vertices[vertex].normal.y * vertices[vertex].normal.y) + (vertices[vertex].normal.z * vertices[vertex].normal.z));
+
 			// Normalise the normal.
 			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
 
 			// Increase the vertex which is our primary point.
 			vertex++;
 		}
+
+		PrioEngine::Math::VEC3 face1Vec = CalculateNormal(vertices, vertex);
+		float length = PrioEngine::Math::GetLength(face1Vec);
+
+		// Normalise the normal.
+		vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
 		// We missed 1 off of the width count so auto adjust the vertex count here.
+		vertex++;
+	}
+
+	// Add the final top row.
+	for (int widthCount = 0; widthCount < mWidth; widthCount++)
+	{
+		// Bottom left
+		PrioEngine::Math::VEC3 point1 = { vertices[vertex].position.x, vertices[vertex].position.y, vertices[vertex].position.z };
+		// Bottom right
+		PrioEngine::Math::VEC3 point2 = { vertices[vertex - 1].position.x, vertices[vertex - 1].position.y, vertices[vertex - 1].position.z };
+		// Upper right
+		PrioEngine::Math::VEC3 point3 = { vertices[vertex - mWidth - 1].position.x, vertices[vertex - mWidth - 1].position.y, vertices[vertex - mWidth - 1].position.z };
+		// Upper left
+
+		PrioEngine::Math::VEC3 U = PrioEngine::Math::Subtract(point2, point1);
+		PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
+
+		PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
+
+		float length = PrioEngine::Math::GetLength(face1Vec);
+		// Normalise the normal.
+		vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
+		// Next vertex.
 		vertex++;
 	}
 
@@ -398,6 +415,24 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	// Tell directx we've passed it a triangle list in the form of indices.
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+}
+
+PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int index)
+{
+	// Bottom left
+	PrioEngine::Math::VEC3 point1 = { vertices[index].position.x, vertices[index].position.y, vertices[index].position.z };
+	// Bottom right
+	PrioEngine::Math::VEC3 point2 = { vertices[index + 1].position.x, vertices[index + 1].position.y, vertices[index + 1].position.z };
+	// Upper right
+	PrioEngine::Math::VEC3 point3 = { vertices[index + mWidth + 1].position.x, vertices[index + mWidth + 1].position.y, vertices[index + mWidth + 1].position.z };
+	// Upper left
+
+	PrioEngine::Math::VEC3 U = PrioEngine::Math::Subtract(point2, point1);
+	PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
+
+	PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
+
+	return face1Vec;
 }
 
 /* LoadHeightMap - Loads in a height map (usually from a perlin noise function) and stores ptrs to the data. 
