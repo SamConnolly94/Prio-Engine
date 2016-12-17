@@ -92,6 +92,7 @@ public:
 	CCamera* GetMainCamera() { return mpGraphics->GetMainCamera(); };
 	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
 	bool RemoveUIImage(C2DImage *& element);
+	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

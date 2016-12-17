@@ -480,6 +480,11 @@ bool CGraphics::RemoveUIImage(C2DImage *& element)
 	return false;
 }
 
+bool CGraphics::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
+{
+	return grid->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap);
+}
+
 bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;

@@ -98,6 +98,7 @@ public:
 	bool UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
 	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
 	bool RemoveUIImage(C2DImage* &element);
+	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap);
 };
 
 #endif

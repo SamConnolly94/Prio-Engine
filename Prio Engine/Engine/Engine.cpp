@@ -459,6 +459,11 @@ bool CEngine::RemoveUIImage(C2DImage *& element)
 	return mpGraphics->RemoveUIImage(element);
 }
 
+bool CEngine::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
+{
+	return mpGraphics->UpdateTerrainBuffers(grid, heightmap);
+}
+
 /* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/
 CPrimitive* CEngine::CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape)
 {

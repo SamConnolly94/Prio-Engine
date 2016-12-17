@@ -324,10 +324,10 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	// Set up the descriptor of the static vertex buffer.
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mVertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
@@ -345,10 +345,10 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	// Set up the description of the static index buffer.
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	indexBufferDesc.ByteWidth = sizeof(unsigned long) * mIndexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
@@ -373,9 +373,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	delete[] indices;
 	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
-
-	//delete[] normals;
-	//gLogger->MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }
@@ -414,7 +411,6 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	
 	// Tell directx we've passed it a triangle list in the form of indices.
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 }
 
 PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int index)
@@ -442,6 +438,7 @@ PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int 
 */
 void CTerrainGrid::LoadHeightMap(double ** heightMap)
 {
+
 	// Copy the pointers to the 2D array and store them in memory.
 	mpHeightMap = heightMap;
 
@@ -488,6 +485,11 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 {
 	std::string line;
 	std::ifstream inFile;
+
+	if (mpHeightMap)
+	{
+		delete[] mpHeightMap;
+	}
 
 	// Open the file.
 	inFile.open(filename);
@@ -590,4 +592,236 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
 
 	mHeightMapLoaded = true;
+}
+
+bool CTerrainGrid::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceContext, double ** heightMap)
+{
+	if (mpHeightMap)
+	{
+		ReleaseHeightMap();
+	}
+
+	// Load the new data into our member vars.
+	LoadHeightMap(heightMap);
+
+	// Define an array to store all of our vertices in.
+	VertexType* vertices = new VertexType[mVertexCount];
+
+	// Init all elements in the array to be 0.
+	memset(vertices, 0, (sizeof(VertexType) * mVertexCount));
+
+	// Reset the index and vertex we're starting from to 0.
+	int vertex = 0;
+
+	/// Plot the vertices of the grid.
+	float U = 0.0f;
+	float V = 0.0f;
+
+	// For the height of our height map.
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	{
+		// For the width of our height map.
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		{
+			// Calculate the positions the X and Z of this vertex (Only the height varies for now).
+			float posX = static_cast<float>(widthCount);
+			float posZ = static_cast<float>(heightCount);
+
+			// If we've loaded in a height map.
+			if (mHeightMapLoaded)
+			{
+				// Set the height to whatever we found in this coordinate of our array.
+				vertices[vertex].position = D3DXVECTOR3{ posX, static_cast<float>(mpHeightMap[heightCount][widthCount]), posZ };
+			}
+			else
+			{
+				// Set the position to a default of 0.0f.
+				vertices[vertex].position = D3DXVECTOR3{ posX, 0.0f, posZ };
+			}
+
+			U = widthCount;
+			V = heightCount;
+
+			vertices[vertex].UV = { U, V };
+			// Set the default colour.
+			//vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+			// Onto the next vertex.
+			vertex++;
+		}
+		V += 1.0f;
+	}
+
+	vertex = 0;
+
+	/// Calculate indices.
+	// Iterate through the height ( - 1 because we'll draw a triangle which uses the vertex above current point, don't want to cause issues when we hit the boundary).
+	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
+	{
+		// Iterate through the width ( - 1 because we'll draw a triangle which uses the vertex to the right of the current point, don't want to cause issue's at the boundary).
+		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
+		{
+			/// Calculate normals.
+
+			PrioEngine::Math::VEC3 face1Vec = CalculateNormal(vertices, vertex);
+			float length = PrioEngine::Math::GetLength(face1Vec);
+
+			// Normalise the normal.
+			vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
+
+			// Increase the vertex which is our primary point.
+			vertex++;
+		}
+
+		PrioEngine::Math::VEC3 face1Vec = CalculateNormal(vertices, vertex);
+		float length = PrioEngine::Math::GetLength(face1Vec);
+
+		// Normalise the normal.
+		vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
+		// We missed 1 off of the width count so auto adjust the vertex count here.
+		vertex++;
+	}
+
+	// Add the final top row.
+	for (int widthCount = 0; widthCount < mWidth; widthCount++)
+	{
+		// Bottom left
+		PrioEngine::Math::VEC3 point1 = { vertices[vertex].position.x, vertices[vertex].position.y, vertices[vertex].position.z };
+		// Bottom right
+		PrioEngine::Math::VEC3 point2 = { vertices[vertex - 1].position.x, vertices[vertex - 1].position.y, vertices[vertex - 1].position.z };
+		// Upper right
+		PrioEngine::Math::VEC3 point3 = { vertices[vertex - mWidth - 1].position.x, vertices[vertex - mWidth - 1].position.y, vertices[vertex - mWidth - 1].position.z };
+		// Upper left
+
+		PrioEngine::Math::VEC3 U = PrioEngine::Math::Subtract(point2, point1);
+		PrioEngine::Math::VEC3 V = PrioEngine::Math::Subtract(point3, point1);
+
+		PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
+
+		float length = PrioEngine::Math::GetLength(face1Vec);
+		// Normalise the normal.
+		vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
+		// Next vertex.
+		vertex++;
+	}
+
+	// Reset vertex one more time, so we can use it in this function.
+	vertex = 0;
+
+	/// Calculate average normals..
+	// Iterate through the height.
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	{
+		// Iterate through the width.
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		{
+			PrioEngine::Math::VEC3 averageNormal;
+			averageNormal.x = 0.0f;
+			averageNormal.y = 0.0f;
+			averageNormal.z = 0.0f;
+
+			// Directly above.
+			if (heightCount < mHeight - 1)
+			{
+				int north = vertex + mWidth;
+
+				averageNormal.x += vertices[north].normal.x;
+				averageNormal.y += vertices[north].normal.y;
+				averageNormal.z += vertices[north].normal.z;
+			}
+
+			// Directly to the right.
+			if (widthCount < mWidth - 1)
+			{
+				int east = vertex + 1;
+
+				averageNormal.x += vertices[east].normal.x;
+				averageNormal.y += vertices[east].normal.y;
+				averageNormal.z += vertices[east].normal.z;
+			}
+
+			// Directly to the left.
+			if (widthCount > 0)
+			{
+				int west = vertex - 1;
+
+				averageNormal.x += vertices[west].normal.x;
+				averageNormal.y += vertices[west].normal.y;
+				averageNormal.z += vertices[west].normal.z;
+			}
+
+			// Below
+			if (heightCount > 0)
+			{
+				int south = vertex - mWidth;
+
+				averageNormal.x += vertices[south].normal.x;
+				averageNormal.y += vertices[south].normal.y;
+				averageNormal.z += vertices[south].normal.z;
+			}
+
+
+			float length = PrioEngine::Math::GetLength(averageNormal);
+
+			vertices[vertex].normal.x = averageNormal.x / length;
+			vertices[vertex].normal.y = averageNormal.y / length;
+			vertices[vertex].normal.z = averageNormal.z / length;
+
+			vertex++;
+		}
+	}
+
+	// Variables for mapping resources.
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT result;
+	VertexType* verticesPtr;
+	unsigned long* indicesPtr;
+
+	/// Update vertex buffer.
+
+	// Map the vertex buffer.
+	result = deviceContext->Map(mpVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	// Check if we successfully mapped.
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to lock vertex buffer so we could write to it when updating terrain.");
+		return false;
+	}
+
+	// Get the vertex data out of the buffer.
+	verticesPtr = (VertexType*)mappedResource.pData;
+
+	// Copy the new vertex info into the already existing buffer.
+	memcpy(verticesPtr, (void*)vertices, (sizeof(VertexType) * mVertexCount));
+
+	// Release the mapped resource.
+	deviceContext->Unmap(mpVertexBuffer, 0);
+
+	///// Update index buffer.
+
+	//// Map the index buffer.
+	//result = deviceContext->Map(mpIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//
+	//// Check if we successfully mapped the index buffer.
+	//if (FAILED(result))
+	//{
+	//	gLogger->WriteLine("Failed to lock index buffer so we could write to it when updating terrain.");
+	//	return false;
+	//}
+
+	//// Get a pointer to the data in the buffer.
+	//indicesPtr = (unsigned long*)mappedResource.pData;
+
+	//// Copy the new index info into the already existing buffer.
+	//memcpy(verticesPtr, (void*)indices, (sizeof(unsigned long) * mIndexCount));
+
+	//// Release the mapped resource.
+	//deviceContext->Unmap(mpIndexBuffer, 0);
+
+	// Clean up memory we used.
+	delete[] vertices;
+	//delete[] indices;
+
+	return true;
 }
