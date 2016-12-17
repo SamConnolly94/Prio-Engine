@@ -78,6 +78,11 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	mBaseView = baseView;
 
+	gLogger->WriteLine("Setting up AntTweakBar.");
+	TwInit(TW_DIRECT3D11, mpD3D->GetDevice());
+	TwWindowSize(mScreenWidth, mScreenHeight);
+	gLogger->WriteLine("AntTweakBar successfully initialised. ");
+
 	// Success!
 	gLogger->WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -268,6 +273,8 @@ bool CGraphics::Render()
 	
 	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
 		return false;
+
+	TwDraw();
 
 	// Present the rendered scene to the screen.
 	mpD3D->EndScene();

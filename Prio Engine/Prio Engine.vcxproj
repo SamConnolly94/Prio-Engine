@@ -71,28 +71,28 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
-    <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
+    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
+    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Debug</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Debug</OutDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
-    <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
+    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
+    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
-    <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Release</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Release</OutDir>
-    <IncludePath>Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
-    <LibraryPath>Engine\Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x64;</LibraryPath>
+    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x64;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +108,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AntTweakBar.lib;assimp_debug.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -139,7 +139,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AntTweakBar64.lib;assimp_debug.lib;%(AdditionalDependencies);</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ProjectReference>
@@ -179,7 +179,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies);AntTweakBar.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
@@ -210,7 +210,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp_release.lib;%(AdditionalDependencies);AntTweakBar64.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

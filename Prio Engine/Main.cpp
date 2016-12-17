@@ -110,25 +110,14 @@ void GameLoop(CEngine* &engine)
 	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	ambientLight->SetSpecularPower(32.0f);
 
-	// Mesh init
-	//cubeMesh = engine->LoadMesh("Resources/Models/Cube.obj", L"Resources/Textures/seafloor.dds", PrioEngine::ShaderType::Specular);
-	//houseMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png", PrioEngine::ShaderType::Diffuse);
-
-	// Model init.
-	//cube = cubeMesh->CreateModel();
-	//house = houseMesh->CreateModel();
-	//cube->SetZPos(-20.0f);
-
-	//house->SetXPos(0.0f);
-	//house->SetXPos(5.0f);
-	//house->SetRotationX(90.0f);
-	//house->SetScale(10.0f);
-
 	// Start the game timer running.
 	engine->StartTimer();
 
 	const float kTextUpdateInterval = 0.2f;
 	float timeSinceTextUpdate = kTextUpdateInterval;
+	TwBar* tweakBar = TwNewBar("My Tweak Bar");
+	int noVar = 0;
+	TwAddVarRW(tweakBar, "NameOfMyVariable", TW_TYPE_INT32, &noVar, "");
 
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
@@ -147,7 +136,6 @@ void GameLoop(CEngine* &engine)
 			timeSinceTextUpdate = 0.0f;
 		}
 		timeSinceTextUpdate += frameTime;
-
 	}
 	grid->ReleaseHeightMap();
 }

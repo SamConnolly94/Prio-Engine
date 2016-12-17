@@ -15,6 +15,7 @@
 #include "Terrain.h"
 #include "GameText.h"
 #include "2DImage.h"
+#include <AntTweakBar.h>
 
 // Global variables.
 // Will the window run in full screen?
