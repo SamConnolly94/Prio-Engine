@@ -488,9 +488,9 @@ bool CGraphics::RemoveUIImage(C2DImage *& element)
 	return false;
 }
 
-bool CGraphics::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
+bool CGraphics::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap, int width, int height)
 {
-	return grid->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap);
+	return grid->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap, width, height);
 }
 
 bool CGraphics::IsFullscreen()

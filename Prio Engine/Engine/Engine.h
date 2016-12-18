@@ -92,7 +92,7 @@ public:
 	CCamera* GetMainCamera() { return mpGraphics->GetMainCamera(); };
 	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
 	bool RemoveUIImage(C2DImage *& element);
-	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap);
+	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap, int width, int height);
 	bool ToggleFullscreen(unsigned int fullscreenKey);
 };
 

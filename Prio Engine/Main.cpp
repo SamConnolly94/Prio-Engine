@@ -95,7 +95,7 @@ void GameLoop(CEngine* &engine)
 		}
 	}
 
-	engine->UpdateTerrainBuffers(grid, blankMap);
+	engine->UpdateTerrainBuffers(grid, blankMap, grid->GetHeight(), grid->GetWidth());
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);

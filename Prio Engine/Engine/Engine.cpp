@@ -448,9 +448,9 @@ bool CEngine::RemoveUIImage(C2DImage *& element)
 	return mpGraphics->RemoveUIImage(element);
 }
 
-bool CEngine::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
+bool CEngine::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap, int width, int height)
 {
-	return mpGraphics->UpdateTerrainBuffers(grid, heightmap);
+	return mpGraphics->UpdateTerrainBuffers(grid, heightmap, width, height);
 }
 
 bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)

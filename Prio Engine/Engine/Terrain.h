@@ -37,6 +37,8 @@ private:
 private:
 	int mWidth;
 	int mHeight;
+	int mMaxWidth;
+	int mMaxHeight;
 	int mVertexCount;
 	int mIndexCount;
 	double** mpHeightMap;
@@ -62,7 +64,7 @@ public:
 	float GetLowestPoint() { return mLowestPoint; };
 	void LoadHeightMap(double** heightMap);
 	void LoadHeightMapFromFile(std::string filename);
-	bool UpdateBuffers(ID3D11Device* device, ID3D11DeviceContext* deviceContext, double** heightMap);
+	bool UpdateBuffers(ID3D11Device* device, ID3D11DeviceContext* deviceContext, double** heightMap, int newWidth, int newHeight);
 };
 
 #endif
