@@ -8,7 +8,10 @@ CEngine::CEngine()
 	mTimer = new CGameTimer();
 	gLogger->MemoryAllocWriteLine(typeid(mTimer).name());
 	mStopped = false;
-	mKeyRecentlyHit = false;
+	for (int i = 0; i < 256; i++)
+	{
+		mKeyRecentlyHit[i] = false;
+	}
 	mTimeSinceLastKeyPress = 0.0f;
 	mWireframeEnabled = false;
 }
@@ -30,6 +33,9 @@ bool CEngine::Initialise()
 	// Boolean to store the result of attempting to initialise DirectX in our application.
 	bool result;
 
+	// Our graphics object will need to be created so we can check for fullscreen, if not it will cause errors.
+	mpGraphics = new CGraphics();
+
 	// Initialise the windows API.
 	InitialiseWindows(screenWidth, screenHeight);
 
@@ -50,8 +56,6 @@ bool CEngine::Initialise()
 	
 	// Set up the input object for use.
 	mpInput->Initialise();
-
-	mpGraphics = new CGraphics();
 	// Check to see if graphics object was created successfully.
 	if (!mpGraphics)
 	{
@@ -90,18 +94,6 @@ bool CEngine::Initialise()
 /* Clean up and free any memory our program has claimed. */
 void CEngine::Shutdown()
 {
-	// Release the graphics object.
-	if (mpGraphics)
-	{
-		// Run the shutdown function for graphics.
-		mpGraphics->Shutdown();
-		// Deallocate the memory given to the graphics object.
-		delete mpGraphics;
-		// Reset the pointer to the graphics object to null.
-		mpGraphics = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpGraphics).name());
-	}
-
 	// Release the input object.
 	if (mpInput)
 	{
@@ -122,6 +114,18 @@ void CEngine::Shutdown()
 
 	// Shutdown the window.
 	ShutdownWindows();
+
+	// Release the graphics object.
+	if (mpGraphics)
+	{
+		// Run the shutdown function for graphics.
+		mpGraphics->Shutdown();
+		// Deallocate the memory given to the graphics object.
+		delete mpGraphics;
+		// Reset the pointer to the graphics object to null.
+		mpGraphics = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpGraphics).name());
+	}
 
 	return;
 }
@@ -247,7 +251,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 	// Setup the screen settings for either full screen or windowed.
-	if (FULL_SCREEN)
+	if (mpGraphics->IsFullscreen())
 	{
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
@@ -308,7 +312,7 @@ void CEngine::ShutdownWindows()
 	ShowCursor(true);
 
 	// Fix display settings when leaving full screen mode.
-	if (FULL_SCREEN)
+	if (mpGraphics->IsFullscreen())
 	{
 		ChangeDisplaySettings(NULL, 0);
 		gLogger->WriteLine("Full screen display settings reset to defaults.");
@@ -411,27 +415,10 @@ bool CEngine::UpdateText(SentenceType *& sentence, std::string text, int posX, i
 You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)
 {
-	// If the key was hit and hadn't been hit before.
-	if (mpInput->KeyHit(key) && !mKeyRecentlyHit)
+	if (mpInput->KeyHit(key))
 	{
-		// Set a boolean flag to let us know that the key has been recently hit.
-		mKeyRecentlyHit = true;
+		mpInput->KeyUp(key);
 		return true;
-	}
-
-	// If the key was recently hit.
-	if (mKeyRecentlyHit)
-	{
-		// Add the frametime to our amount of time since last key press.
-		mTimeSinceLastKeyPress += GetFrameTime();
-	}
-
-	// If an appropriate amount of time has passed since the last key was hit.
-	if (mTimeSinceLastKeyPress > kKeyPressIntervalTime)
-	{
-		// Reset our tracking variables.
-		mTimeSinceLastKeyPress = 0.0f;
-		mKeyRecentlyHit = false;
 	}
 
 	// Key wasn't hit or had been pressed too soon since the last time it was hit.
@@ -464,6 +451,12 @@ bool CEngine::RemoveUIImage(C2DImage *& element)
 bool CEngine::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
 {
 	return mpGraphics->UpdateTerrainBuffers(grid, heightmap);
+}
+
+bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)
+{
+	mpInput->KeyUp(fullscreenKey);
+	return mpGraphics->SetFullscreen(!mpGraphics->IsFullscreen());
 }
 
 /* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/

@@ -19,9 +19,9 @@
 
 // Global variables.
 // Will the window run in full screen?
-const bool FULL_SCREEN = true;
+
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
-const bool VSYNC_ENABLED = false;
+const bool VSYNC_ENABLED = true;
 // Far clip
 const float SCREEN_DEPTH = 1000.0f;
 // Near clip
@@ -33,6 +33,8 @@ private:
 	int mScreenWidth, mScreenHeight;
 	float mFieldOfView;
 	bool mWireframeEnabled;
+
+	bool mFullScreen = false;
 public:
 	CGraphics();
 	~CGraphics();
@@ -100,6 +102,8 @@ public:
 	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
 	bool RemoveUIImage(C2DImage* &element);
 	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap);
+	bool IsFullscreen();
+	bool SetFullscreen(bool enabled);
 };
 
 #endif

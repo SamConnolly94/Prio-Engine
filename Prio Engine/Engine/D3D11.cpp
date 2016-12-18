@@ -636,7 +636,7 @@ void CD3D11::CreateSwapChainDesc(HWND hwnd, DXGI_SWAP_CHAIN_DESC& swapChainDesc,
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	// Don't set any of the advanced flags.
-	swapChainDesc.Flags = 0;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 }
 
 /* Creates the swap and chain which is used to switch between the front and back buffers, allowing one to present and one to render. */
@@ -865,4 +865,18 @@ void CD3D11::CreateProjMatrix(float screenDepth, float screenNear)
 
 	// Create the projection matrix for 3D rendering.
 	D3DXMatrixPerspectiveFovLH(&mProjectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+}
+
+bool CD3D11::ToggleFullscreen(bool fullscreenEnabled)
+{
+	HRESULT result;
+	result = mpSwapChain->SetFullscreenState(fullscreenEnabled, NULL);
+
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to swap to fullscreen using the swapchain in D3D11.cpp.");
+		return false;
+	}
+
+	return true;
 }

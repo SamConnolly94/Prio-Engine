@@ -64,6 +64,7 @@ public:
 
 	void DisableZBuffer();
 	void EnableZBuffer();
+	bool ToggleFullscreen(bool fullscreenEnabled);
 
 	//void GetGraphicsCardInfo(char* cardName, int& memory);
 /* Setup functions. */

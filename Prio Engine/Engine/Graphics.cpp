@@ -12,6 +12,7 @@ CGraphics::CGraphics()
 	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 	mpText = nullptr;
+	mFullScreen = false;
 }
 
 CGraphics::~CGraphics()
@@ -40,7 +41,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	gLogger->MemoryAllocWriteLine(typeid(mpD3D).name());
 
 	// Initialise the D3D object.
-	successful = mpD3D->Initialise(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+	successful = mpD3D->Initialise(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, mFullScreen, SCREEN_DEPTH, SCREEN_NEAR);
 	// If failed to init D3D, then output error.
 	if (!successful)
 	{
@@ -490,6 +491,22 @@ bool CGraphics::RemoveUIImage(C2DImage *& element)
 bool CGraphics::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap)
 {
 	return grid->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap);
+}
+
+bool CGraphics::IsFullscreen()
+{
+	return mFullScreen;
+}
+
+bool CGraphics::SetFullscreen(bool isEnabled)
+{
+	mFullScreen = isEnabled;
+
+	// Set to windowed mode before shutting down or swap chain throws an exception.
+	if (!mpD3D->ToggleFullscreen(mFullScreen))
+		return false;
+
+	return true;
 }
 
 bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)

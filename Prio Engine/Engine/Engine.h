@@ -13,7 +13,7 @@ class CEngine
 {
 private:
 	const float kKeyPressIntervalTime = 0.5f;
-	bool mKeyRecentlyHit;
+	bool mKeyRecentlyHit[256];
 	float mTimeSinceLastKeyPress;
 	bool mWireframeEnabled;
 public:
@@ -93,6 +93,7 @@ public:
 	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
 	bool RemoveUIImage(C2DImage *& element);
 	bool UpdateTerrainBuffers(CTerrainGrid* &grid, double** heightmap);
+	bool ToggleFullscreen(unsigned int fullscreenKey);
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

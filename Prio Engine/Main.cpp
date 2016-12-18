@@ -203,4 +203,8 @@ void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid, float frameTime
 	{
 		engine->ToggleWireframe();
 	}
+	else if (engine->KeyHit(PrioEngine::Key::kF2))
+	{
+		engine->ToggleFullscreen(PrioEngine::Key::kF2);
+	}
 }
