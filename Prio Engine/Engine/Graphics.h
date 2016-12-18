@@ -19,7 +19,7 @@
 
 // Global variables.
 // Will the window run in full screen?
-const bool FULL_SCREEN = false;
+const bool FULL_SCREEN = true;
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
 const bool VSYNC_ENABLED = false;
 // Far clip

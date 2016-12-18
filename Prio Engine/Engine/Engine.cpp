@@ -374,6 +374,8 @@ bool CEngine::ProcessWindowsMessages()
 	{
 		return false;
 	}
+	if (TwEventWin(mMsg.hwnd, mMsg.message, mMsg.wParam, mMsg.lParam))
+		return true; // Event has been handled by AntTweakBar
 
 	return true;
 }
