@@ -411,6 +411,11 @@ bool CEngine::UpdateText(SentenceType *& sentence, std::string text, int posX, i
 	return mpGraphics->UpdateSentence(sentence, text, posX, posY, colour);
 }
 
+bool CEngine::RemoveText(SentenceType *& sentence)
+{
+	return mpGraphics->RemoveSentence(sentence);
+}
+
 /* Detects if a key has been pressed once. 
 You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)

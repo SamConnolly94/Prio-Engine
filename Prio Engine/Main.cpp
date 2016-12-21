@@ -97,6 +97,14 @@ void GameLoop(CEngine* &engine)
 
 	engine->UpdateTerrainBuffers(grid, blankMap, grid->GetHeight(), grid->GetWidth());
 
+	for (int i = 0; i < grid->GetHeight(); ++i) {
+		delete[] blankMap[i];
+		gLogger->MemoryDeallocWriteLine(typeid(blankMap[i]).name());
+		blankMap[i] = nullptr;
+	}
+	delete[] blankMap;
+	blankMap = nullptr;
+
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);
 
@@ -137,7 +145,7 @@ void GameLoop(CEngine* &engine)
 		}
 		timeSinceTextUpdate += frameTime;
 	}
-	grid->ReleaseHeightMap();
+	//grid->ReleaseHeightMap();
 }
 
 /* Control any user input here, must be called in every tick of the game loop. */

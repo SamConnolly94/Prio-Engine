@@ -302,6 +302,24 @@ bool CGameText::UpdateSentence(SentenceType* &sentence, std::string text, int po
 	return true;
 }
 
+bool CGameText::RemoveSentence(SentenceType *& sentence)
+{
+	std::list<SentenceType*>::iterator it = mpSentences.begin();
+
+	while (it != mpSentences.end())
+	{
+		if (*it == sentence)
+		{
+			delete sentence;
+			mpSentences.erase(it);
+			sentence = nullptr;
+			return true;
+		}
+		it++;
+	}
+	return false;
+}
+
 /* Defines and allocates memory to a sentence object. 
 *  Please note that this sentence will be stored in a list, all rendering will be done for you, all you need to do is update it.
 * @Returns pointer to the sentence object of type SentenceType. 

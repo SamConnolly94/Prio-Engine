@@ -443,16 +443,19 @@ void CTerrainGrid::LoadHeightMap(double ** heightMap)
 {
 	// Copy the pointers to the 2D array and store them in memory.
 	//mpHeightMap = heightMap;
-	mpHeightMap = new double*[mHeight];
-
-	for (int y = 0; y < mHeight; y++)
+	if (mpHeightMap == nullptr)
 	{
-		// Allocate space for the columns.
-		mpHeightMap[y] = new double[mWidth];
+		mpHeightMap = new double*[mHeight];
 
-		for (int x = 0; x < mWidth; x++)
+		for (int y = 0; y < mHeight; y++)
 		{
-			mpHeightMap[y][x] = heightMap[y][x];
+			// Allocate space for the columns.
+			mpHeightMap[y] = new double[mWidth];
+
+			for (int x = 0; x < mWidth; x++)
+			{
+				mpHeightMap[y][x] = heightMap[y][x];
+			}
 		}
 	}
 
@@ -502,7 +505,7 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 
 	if (mpHeightMap)
 	{
-		delete[] mpHeightMap;
+		ReleaseHeightMap();
 	}
 
 	// Open the file.

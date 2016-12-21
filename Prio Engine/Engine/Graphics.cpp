@@ -442,6 +442,11 @@ bool CGraphics::UpdateSentence(SentenceType *& sentence, std::string text, int p
 	return mpText->UpdateSentence(sentence, text, posX, posY, colour.r, colour.g, colour.b, mpD3D->GetDeviceContext());
 }
 
+bool CGraphics::RemoveSentence(SentenceType *& sentence)
+{
+	return mpText->RemoveSentence(sentence);
+}
+
 C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
 {
 	/// Set up image.
