@@ -32,6 +32,8 @@ CTerrainGrid::~CTerrainGrid()
 	gLogger->MemoryDeallocWriteLine(typeid(this).name());
 
 	delete mpTexture;
+	
+	ReleaseHeightMap();
 
 	ShutdownBuffers();
 }
@@ -439,9 +441,20 @@ PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int 
 */
 void CTerrainGrid::LoadHeightMap(double ** heightMap)
 {
-
 	// Copy the pointers to the 2D array and store them in memory.
-	mpHeightMap = heightMap;
+	//mpHeightMap = heightMap;
+	mpHeightMap = new double*[mHeight];
+
+	for (int y = 0; y < mHeight; y++)
+	{
+		// Allocate space for the columns.
+		mpHeightMap[y] = new double[mWidth];
+
+		for (int x = 0; x < mWidth; x++)
+		{
+			mpHeightMap[y][x] = heightMap[y][x];
+		}
+	}
 
 	// Store the lowest point to be the first point.
 	mLowestPoint = static_cast<float>(mpHeightMap[0][0]);
