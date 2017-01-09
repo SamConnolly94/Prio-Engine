@@ -9,6 +9,7 @@ CGraphics::CGraphics()
 	mpColourShader = nullptr;
 	mpTextureShader = nullptr;
 	mpDiffuseLightShader = nullptr;
+	mpTerrainShader = nullptr;
 	mWireframeEnabled = false;
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 	mpText = nullptr;
@@ -57,6 +58,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateColourShader(hwnd);
 	CreateTextureShaderForModel(hwnd);
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
+	CreateTerrainShader(hwnd);
 
 	mpCamera = CreateCamera();
 	mpCamera->Render();
@@ -115,6 +117,14 @@ void CGraphics::Shutdown()
 		delete mpDiffuseLightShader;
 		mpDiffuseLightShader = nullptr;
 		gLogger->MemoryDeallocWriteLine(typeid(mpDiffuseLightShader).name());
+	}
+
+	if (mpTerrainShader)
+	{
+		mpTerrainShader->Shutdown();
+		delete mpTerrainShader;
+		mpTerrainShader = nullptr;
+		gLogger->MemoryDeallocWriteLine(typeid(mpTerrainShader).name());
 	}
 
 	if (mpTextureShader)
@@ -368,7 +378,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		while (lightIt != mpLights.end())
 		{
 			
-			mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTexture()->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
+			mpTerrainShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTexture()->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
 			lightIt++;
 		}
 		terrainIt++;
@@ -720,7 +730,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		bool successful;
 
 		// Create texture shader.
-		mpDiffuseLightShader = new CDirectionalLightShader();
+		mpDiffuseLightShader = new CDiffuseLightShader();
 		gLogger->MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{
@@ -734,6 +744,34 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		{
 			gLogger->WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
+			return false;
+		}
+
+	}
+	return true;
+}
+
+bool CGraphics::CreateTerrainShader(HWND hwnd)
+{
+	if (mpTerrainShader == nullptr)
+	{
+		bool successful;
+
+		// Create texture shader.
+		mpTerrainShader = new CTerrainShader();
+		gLogger->MemoryAllocWriteLine(typeid(mpTerrainShader).name());
+		if (!mpTerrainShader)
+		{
+			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			return false;
+		}
+
+		// Initialise the texture shader object.
+		successful = mpTerrainShader->Initialise(mpD3D->GetDevice(), hwnd);
+		if (!successful)
+		{
+			gLogger->WriteLine("Failed to initialise the mpTerrainShader shader object in graphics.cpp.");
+			MessageBox(hwnd, L"Could not initialise the mpTerrainShader shader object.", L"Error", MB_OK);
 			return false;
 		}
 

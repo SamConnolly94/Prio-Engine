@@ -76,35 +76,6 @@ void GameLoop(CEngine* &engine)
 	grid->LoadHeightMapFromFile("Default.map");
 	grid->CreateGrid();
 
-	// Test updating vertices.
-	double** blankMap;
-	// Allocate memory to this array.
-	blankMap = new double*[grid->GetHeight()];
-	// Iterate through all the rows.
-	for (int x = 0; x < grid->GetHeight(); x++)
-	{
-		// Allocate space for the columns.
-		blankMap[x] = new double[grid->GetWidth()];
-	}
-
-	for (int i = 0; i < grid->GetHeight(); i++)
-	{
-		for (int j = 0; j < grid->GetWidth(); j++)
-		{
-			blankMap[i][j] = 0.0;
-		}
-	}
-
-	engine->UpdateTerrainBuffers(grid, blankMap, grid->GetHeight(), grid->GetWidth());
-
-	for (int i = 0; i < grid->GetHeight(); ++i) {
-		delete[] blankMap[i];
-		gLogger->MemoryDeallocWriteLine(typeid(blankMap[i]).name());
-		blankMap[i] = nullptr;
-	}
-	delete[] blankMap;
-	blankMap = nullptr;
-
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);
 

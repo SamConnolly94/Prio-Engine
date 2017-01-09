@@ -231,7 +231,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\ColourShader.cpp" />
     <ClCompile Include="Engine\Cube.cpp" />
     <ClCompile Include="Engine\D3D11.cpp" />
-    <ClCompile Include="Engine\DirectionalLightShader.cpp" />
+    <ClCompile Include="Engine\DiffuseLightShader.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
     <ClCompile Include="Engine\FontShader.cpp" />
     <ClCompile Include="Engine\GameFont.cpp" />
@@ -247,6 +247,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\Primitive.cpp" />
     <ClCompile Include="Engine\SpecularLightingShader.cpp" />
     <ClCompile Include="Engine\Terrain.cpp" />
+    <ClCompile Include="Engine\TerrainShader.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\TextureShader.cpp" />
     <ClCompile Include="Engine\Triangle.cpp" />
@@ -266,7 +267,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\ColourShader.h" />
     <ClInclude Include="Engine\Cube.h" />
     <ClInclude Include="Engine\D3D11.h" />
-    <ClInclude Include="Engine\DirectionalLightShader.h" />
+    <ClInclude Include="Engine\DiffuseLightShader.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Engine\FontShader.h" />
     <ClInclude Include="Engine\GameFont.h" />
@@ -283,6 +284,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\PrioEngineVars.h" />
     <ClInclude Include="Engine\SpecularLightingShader.h" />
     <ClInclude Include="Engine\Terrain.h" />
+    <ClInclude Include="Engine\TerrainShader.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
@@ -322,6 +324,14 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <None Include="Shaders\TerrainDiffuseLight.ps.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\TerrainDiffuseLight.vs.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
     <None Include="Shaders\Texture.ps.hlsl">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

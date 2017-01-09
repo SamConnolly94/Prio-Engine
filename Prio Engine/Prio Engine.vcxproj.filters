@@ -83,9 +83,6 @@
     <ClCompile Include="Engine\Terrain.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\DirectionalLightShader.cpp">
-      <Filter>Engine\Source Files\Shader Class</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Cube.cpp">
       <Filter>Engine\Source Files\Primitives</Filter>
     </ClCompile>
@@ -124,6 +121,12 @@
     </ClCompile>
     <ClCompile Include="Engine\2DImage.cpp">
       <Filter>Engine\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DiffuseLightShader.cpp">
+      <Filter>Engine\Source Files\Shader Class</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\TerrainShader.cpp">
+      <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -182,9 +185,6 @@
     <ClInclude Include="Engine\Terrain.h">
       <Filter>Engine\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\DirectionalLightShader.h">
-      <Filter>Engine\Header Files\Shader Class</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Light.h">
       <Filter>Engine\Header Files\Modelling</Filter>
     </ClInclude>
@@ -227,6 +227,12 @@
     <ClInclude Include="Engine\2DImage.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\DiffuseLightShader.h">
+      <Filter>Engine\Header Files\Shader Class</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\TerrainShader.h">
+      <Filter>Engine\Header Files\Shader Class</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">
@@ -241,5 +247,11 @@
     <FxCompile Include="Shaders\DiffuseLight.vs.hlsl" />
     <FxCompile Include="Engine\Shaders\SpecularLight.ps.hlsl" />
     <FxCompile Include="Engine\Shaders\SpecularLight.vs.hlsl" />
+    <FxCompile Include="Shaders\TerrainDiffuseLight.ps.hlsl">
+      <Filter>Source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\TerrainDiffuseLight.vs.hlsl">
+      <Filter>Source Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

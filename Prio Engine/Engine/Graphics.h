@@ -10,7 +10,8 @@
 #include "Mesh.h"
 #include "ColourShader.h"
 #include "TextureShader.h"
-#include "DirectionalLightShader.h"
+#include "DiffuseLightShader.h"
+#include "TerrainShader.h"
 #include "Light.h"
 #include "Terrain.h"
 #include "GameText.h"
@@ -51,7 +52,8 @@ private:
 	CPrimitive* mpTriangle;
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
-	CDirectionalLightShader* mpDiffuseLightShader;
+	CDiffuseLightShader* mpDiffuseLightShader;
+	CTerrainShader* mpTerrainShader;
 	CGameText* mpText;
 	D3DXMATRIX mBaseView;
 	
@@ -68,6 +70,7 @@ private:
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
 	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
+	bool CreateTerrainShader(HWND hwnd);
 	bool RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj);
 	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
