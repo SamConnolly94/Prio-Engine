@@ -39,20 +39,33 @@ void CTerrainShader::Shutdown()
 }
 
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+	D3DXMATRIX projMatrix, CTexture** textures, unsigned int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
+	// Place our textures into a shader resource view array.
+	ID3D11ShaderResourceView** texArray = new ID3D11ShaderResourceView*[numberOfTextures];
+	gLogger->MemoryAllocWriteLine(typeid(texArray).name());
+	for (unsigned int i = 0; i < numberOfTextures; i++)
+	{
+		texArray[i] = textures[i]->GetTexture();
+	}
+
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour, ambientColour);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texArray, numberOfTextures, lightDirection, diffuseColour, ambientColour);
 	if (!result)
 	{
+		delete[] texArray;
+		gLogger->MemoryDeallocWriteLine(typeid(texArray).name());
+
 		return false;
 	}
 
 	// Now render the prepared buffers with the shader.
 	RenderShader(deviceContext, indexCount);
 
+	delete[] texArray;
+	gLogger->MemoryDeallocWriteLine(typeid(texArray).name());
 	return true;
 }
 
@@ -307,7 +320,7 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView** textures, unsigned int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -346,7 +359,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

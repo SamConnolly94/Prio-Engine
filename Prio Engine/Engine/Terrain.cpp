@@ -21,8 +21,17 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 	mLowestPoint = 0.0f;
 	mHighestPoint = 0.0f;
 
-	mpTexture = new CTexture();
-	mpTexture->Initialise(device, L"Resources/Textures/Dirt.dds");
+	// Deffine an array equal to the number of textures we want to store.
+	mpTextures = new CTexture*[kmNumberOfTextures];
+	// Dirt
+	mpTextures[0] = new CTexture();
+	mpTextures[0]->Initialise(device, L"Resources/Textures/Dirt.dds");
+	// Rock
+	mpTextures[1] = new CTexture();
+	mpTextures[1]->Initialise(device, L"Resources/Textures/Rock.dds");
+	// Yellow grass.
+	mpTextures[2] = new CTexture();
+	mpTextures[2]->Initialise(device, L"Resources/Textures/YellowGrass.dds");
 }
 
 
@@ -31,7 +40,13 @@ CTerrainGrid::~CTerrainGrid()
 	// Output dealloc message to memory log.
 	gLogger->MemoryDeallocWriteLine(typeid(this).name());
 
-	delete mpTexture;
+	for (unsigned int i = 0; i < kmNumberOfTextures; i++)
+	{
+		mpTextures[i]->Shutdown();
+		delete mpTextures[i];
+	}
+
+	delete[] mpTextures;
 	
 	ReleaseHeightMap();
 

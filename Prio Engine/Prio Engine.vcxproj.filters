@@ -142,6 +142,12 @@
     <None Include="Shaders\Texture.vs.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\TerrainDiffuseLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\TerrainDiffuseLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TriangleTex.dds">
@@ -241,17 +247,23 @@
     <FxCompile Include="Engine\Shaders\Font.vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Colour.ps.hlsl" />
-    <FxCompile Include="Shaders\Colour.vs.hlsl" />
-    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl" />
-    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl" />
-    <FxCompile Include="Engine\Shaders\SpecularLight.ps.hlsl" />
-    <FxCompile Include="Engine\Shaders\SpecularLight.vs.hlsl" />
-    <FxCompile Include="Shaders\TerrainDiffuseLight.ps.hlsl">
-      <Filter>Source Files</Filter>
+    <FxCompile Include="Shaders\Colour.ps.hlsl">
+      <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\TerrainDiffuseLight.vs.hlsl">
-      <Filter>Source Files</Filter>
+    <FxCompile Include="Shaders\Colour.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\Shaders\SpecularLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\Shaders\SpecularLight.vs.hlsl">
+      <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

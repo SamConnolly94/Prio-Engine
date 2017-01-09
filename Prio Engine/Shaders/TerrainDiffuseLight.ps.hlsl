@@ -1,5 +1,5 @@
 // Globals.
-Texture2D shaderTexture;
+Texture2D shaderTextures[3];
 SamplerState SampleType;
 
 cbuffer LightBuffer
@@ -25,9 +25,8 @@ float3 lightDir;
 float lightIntensity;
 float4 colour;
 
-
 // Sample the pixel color from the texture using the sampler at this texture coordinate location.
-textureColour = shaderTexture.Sample(SampleType, input.tex);
+textureColour = shaderTextures[0].Sample(SampleType, input.tex);
 
 // Set the colour to the ambient colour.
 colour = ambientColour;

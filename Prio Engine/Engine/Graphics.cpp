@@ -378,7 +378,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		while (lightIt != mpLights.end())
 		{
 			
-			mpTerrainShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTexture()->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
+			mpTerrainShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTextureArray(), (*terrainIt)->GetNumberOfTextures(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
 			lightIt++;
 		}
 		terrainIt++;

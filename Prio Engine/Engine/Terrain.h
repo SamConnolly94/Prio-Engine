@@ -22,13 +22,15 @@ private:
 		D3DXVECTOR3 normal;
 	};
 	void ReleaseHeightMap();
-	CTexture* mpTexture;
+	CTexture** mpTextures;
+	const unsigned int kmNumberOfTextures = 3;
 	float mLowestPoint;
 	float mHighestPoint;
 public:
 	bool CreateGrid();
 	void Render(ID3D11DeviceContext* context);
-	CTexture* GetTexture() { return mpTexture; };
+	CTexture** GetTextureArray() { return mpTextures; };
+	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
