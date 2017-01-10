@@ -24,9 +24,9 @@
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
 const bool VSYNC_ENABLED = true;
 // Far clip
-const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_DEPTH = 500.0f;
 // Near clip
-const float SCREEN_NEAR = 0.1f;
+const float SCREEN_NEAR = 0.01f;
 
 class CGraphics
 {

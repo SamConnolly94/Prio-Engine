@@ -128,6 +128,9 @@
     <ClCompile Include="Engine\TerrainShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
+    <ClCompile Include="TerrainTile.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -239,6 +242,7 @@
     <ClInclude Include="Engine\TerrainShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainTile.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">

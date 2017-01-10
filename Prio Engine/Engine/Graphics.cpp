@@ -377,10 +377,19 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		std::list<CLight*>::iterator lightIt = mpLights.begin();
 		while (lightIt != mpLights.end())
 		{
-			
 			mpTerrainShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTextureArray(), (*terrainIt)->GetNumberOfTextures(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
 			lightIt++;
 		}
+
+		/// After doing the rendering of this terrain, I'll need to layer on effects on top. E.g., if it's snowy.
+
+		for (auto tile : (*terrainIt)->GetTiles())
+		{
+			tile.Render(mpD3D->GetDeviceContext());
+			mpColourShader->Render(mpD3D->GetDeviceContext(), 3, world, view, proj);
+			
+		}
+
 		terrainIt++;
 	}
 

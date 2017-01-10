@@ -6,7 +6,9 @@
 #include "PrioEngineVars.h"
 #include "ModelControl.h"
 #include "Texture.h"
+#include "../TerrainTile.h"
 
+#include <vector>
 #include <sstream>
 
 class CTerrainGrid : public CModelControl
@@ -26,11 +28,14 @@ private:
 	const unsigned int kmNumberOfTextures = 3;
 	float mLowestPoint;
 	float mHighestPoint;
+	std::vector<CTerrainTile> mTiles;
 public:
 	bool CreateGrid();
 	void Render(ID3D11DeviceContext* context);
 	CTexture** GetTextureArray() { return mpTextures; };
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
+public:
+	std::vector<CTerrainTile> GetTiles() { return mTiles; };
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
