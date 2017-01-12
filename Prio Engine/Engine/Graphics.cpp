@@ -302,6 +302,7 @@ bool CGraphics::Render()
 	return true;
 }
 
+/* Renders any primitive shapes on the scene. */
 bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
 	std::list<CPrimitive*>::iterator primitivesIt;
@@ -356,6 +357,7 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 	return true;
 }
 
+/* Render any meshes / instances of meshes which we have created on the scene. */
 bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
 	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
@@ -372,6 +374,7 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	return true;
 }
 
+/* Render the terrain and all areas inside of it. */
 bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
 	// Render any terrains.
@@ -399,12 +402,15 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 
 		for (auto area : (*terrainIt)->GetAreas())
 		{
-			auto renderLambda = [](auto area, auto mpD3D, auto world, auto view, auto proj, auto mpColourShader) {
+			auto renderLambda = [](auto area, auto mpD3D, auto world, auto view, auto proj, auto mpShader, auto lightList) {
 				area->Render(mpD3D->GetDeviceContext());
-				mpColourShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj);
+				for (auto light : lightList)
+				{
+					mpShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj, area->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour());
+				}
 			};
 
-			terrainAreaThreads[count] = std::thread(renderLambda, area, mpD3D, world, view, proj, mpColourShader);
+			terrainAreaThreads[count] = std::thread(renderLambda, area, mpD3D, world, view, proj, mpDiffuseLightShader, mpLights);
 			count++;
 		}
 
@@ -421,6 +427,7 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 
 }
 
+/* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 {
 	RenderPrimitives(world, view, proj);

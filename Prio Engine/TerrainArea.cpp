@@ -9,11 +9,27 @@ CTerrainArea::CTerrainArea()
 
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
+
+	mpTexture = new CTexture();
+	gLogger->MemoryAllocWriteLine(typeid(mpTexture).name());
 }
 
 
 CTerrainArea::~CTerrainArea()
 {
+	delete mpTexture;
+	gLogger->MemoryDeallocWriteLine(typeid(mpTexture).name());
+}
+
+bool CTerrainArea::LoadTexture(ID3D11Device * device, WCHAR * filename)
+{
+	if (!mpTexture->Initialise(device, filename))
+	{
+		gLogger->WriteLine("Failed to initialise a texture in TerrainArea.cpp.");
+		return false;
+	}
+
+	return true;
 }
 
 void CTerrainArea::AddTile(CTerrainTile tile)
@@ -54,7 +70,7 @@ bool CTerrainArea::SetBuffers(ID3D11Device* device)
 	mNumberOfVertices = mpTiles.size() * 3;
 	mNumberOfIndices = mNumberOfVertices;
 
-	VertexType* vertices = new VertexType[mNumberOfVertices];
+	CTerrainTile::VertexType* vertices = new CTerrainTile::VertexType[mNumberOfVertices];
 	unsigned long* indices = new unsigned long[mNumberOfIndices];
 
 	int count = 0;
@@ -64,8 +80,7 @@ bool CTerrainArea::SetBuffers(ID3D11Device* device)
 	{
 		for (int vertex = 0; vertex < 3; vertex++)
 		{
-			vertices[count].position = mpTiles[i].mVertices[vertex];
-			vertices[count].colour = mColour;
+			vertices[count] = mpTiles[i].mVertices[vertex];
 
 			count++;
 		}
@@ -84,7 +99,7 @@ bool CTerrainArea::SetBuffers(ID3D11Device* device)
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mNumberOfVertices;
+	vertexBufferDesc.ByteWidth = sizeof(CTerrainTile::VertexType) * mNumberOfVertices;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -154,7 +169,7 @@ void CTerrainArea::RenderBuffers(ID3D11DeviceContext * context)
 	unsigned int offset;
 
 	// Set the vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+	stride = sizeof(CTerrainTile::VertexType);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler.

@@ -119,7 +119,7 @@ void CTerrainGrid::Render(ID3D11DeviceContext * context)
 */
 bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 {
-	VertexType* vertices;
+	CTerrainTile::VertexType* vertices;
 	unsigned long* indices;
 	int index;
 	int vertex;
@@ -141,7 +141,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	numberOfNormals = ((mWidth - 1) * (mHeight - 1)) * 2;
 
 	// Create the vertex array.
-	vertices = new VertexType[mVertexCount];
+	vertices = new CTerrainTile::VertexType[mVertexCount];
 	// Output the allocation message to the log.
 	gLogger->MemoryAllocWriteLine(typeid(vertices).name());
 	// If we failed to allocate memory to the vertices array.
@@ -210,14 +210,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	}
 
 	vertex = 0;
-	const float kSnowHeightFromTop = 5.0f;
-
-	CTerrainArea* snow = new CTerrainArea();
-	gLogger->MemoryAllocWriteLine(typeid(snow).name());
-	CTerrainArea* grass = new CTerrainArea();
-	gLogger->MemoryAllocWriteLine(typeid(grass).name());
-	snow->SetColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
-	grass->SetColour(D3DXVECTOR4{ 0.0f, 1.0f, 0.0f, 1.0f });
 
 	/// Calculate indices.
 	// Iterate through the height ( - 1 because we'll draw a triangle which uses the vertex above current point, don't want to cause issues when we hit the boundary).
@@ -237,32 +229,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			// Directly to the right.
 			indices[index + 2] = vertex + 1;
 
-			// Define a tile.
-			CTerrainTile tile1;
-
-			tile1.mVertices[0] = { vertices[vertex].position.x,vertices[vertex].position.y + 0.1f,vertices[vertex].position.z };
-			tile1.mVertices[1] = { vertices[vertex + mWidth].position.x,vertices[vertex + mWidth].position.y + 0.1f,vertices[vertex + mWidth].position.z };
-			tile1.mVertices[2] = { vertices[vertex + 1].position.x,vertices[vertex + 1].position.y + 0.1f,vertices[vertex + 1].position.z };
-
-			float averageHeight = (tile1.mVertices[0].y + tile1.mVertices[1].y + tile1.mVertices[2].y) / 3.0f;
-
-			// If the vertex is high up.
-			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
-			{
-				// Make the tile type snow.
-				tile1.terrainType = CTerrainTile::TerrainType::Snow;
-				snow->AddTile(tile1);
-			}
-			else
-			{
-				// Make it grass.
-				tile1.terrainType = CTerrainTile::TerrainType::Grass;
-				grass->AddTile(tile1);
-			}
-
-			// Define the tile.
-			mTiles.push_back(tile1);
-
 			/// Triangle 2.
 
 			// Directly to the right.
@@ -271,31 +237,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			indices[index + 4] = vertex + mWidth;
 			// Above and to the right.
 			indices[index + 5] = vertex + mWidth + 1;
-
-			// Define a tile.
-			CTerrainTile tile2;
-
-			tile2.mVertices[0] = { vertices[vertex + 1].position.x,vertices[vertex + 1].position.y + 0.1f,vertices[vertex + 1].position.z };
-			tile2.mVertices[1] = { vertices[vertex + mWidth].position.x,vertices[vertex + mWidth].position.y + 0.1f,vertices[vertex + mWidth].position.z };
-			tile2.mVertices[2] = { vertices[vertex + mWidth + 1].position.x,vertices[vertex + mWidth + 1].position.y + 0.1f,vertices[vertex + mWidth + 1].position.z };
-
-			averageHeight = (tile2.mVertices[0].y + tile2.mVertices[1].y + tile2.mVertices[2].y) / 3.0f;
-
-			// If the vertex is high up.
-			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
-			{
-				// Make the tile type snow.
-				tile2.terrainType = CTerrainTile::TerrainType::Snow;
-				snow->AddTile(tile2);
-			}
-			else
-			{
-				// Make it grass.
-				tile2.terrainType = CTerrainTile::TerrainType::Grass;
-				grass->AddTile(tile2);
-			}
-
-			mTiles.push_back(tile2);
 
 			// We've added 6 indices so increment the count by 6.
 			index += 6;
@@ -319,13 +260,6 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 		vertices[vertex].normal = D3DXVECTOR3{ face1Vec.x / length, face1Vec.y / length, face1Vec.z / length };
 		// We missed 1 off of the width count so auto adjust the vertex count here.
 		vertex++;
-	}
-	
-	mAreas.push_back(snow);
-	mAreas.push_back(grass);
-	for (auto area : mAreas)
-	{
-		area->SetBuffers(device);
 	}
 
 
@@ -418,9 +352,12 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			vertex++;
 		}
 	}
+
+	SplitTiles(device, vertices);
+
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mVertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(CTerrainTile::VertexType) * mVertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -495,7 +432,7 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	unsigned int offset;
 
 	// Set the vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+	stride = sizeof(CTerrainTile::VertexType);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler.
@@ -508,7 +445,7 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int index)
+PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(CTerrainTile::VertexType * vertices, int index)
 {
 	// Bottom left
 	PrioEngine::Math::VEC3 point1 = { vertices[index].position.x, vertices[index].position.y, vertices[index].position.z };
@@ -524,6 +461,100 @@ PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(VertexType * vertices, int 
 	PrioEngine::Math::VEC3 face1Vec = PrioEngine::Math::CrossProduct(U, V);
 
 	return face1Vec;
+}
+
+void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* vertices)
+{
+	// Initialise the snow area.
+	CTerrainArea* snow = new CTerrainArea();
+	gLogger->MemoryAllocWriteLine(typeid(snow).name());
+	snow->LoadTexture(device, L"Resources/Textures/ice.dds");
+
+	// Initialise the grass area.
+	CTerrainArea* grass = new CTerrainArea();
+	gLogger->MemoryAllocWriteLine(typeid(grass).name());
+	grass->LoadTexture(device, L"Resources/Textures/YellowGrass.dds");
+
+	// Set the colour of the areas.
+	snow->SetColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	grass->SetColour(D3DXVECTOR4{ 0.0f, 1.0f, 0.0f, 1.0f });
+
+	const float kSnowHeightFromTop = 5.0f;
+	int vertex = 0;
+
+	/// Copy data out of tiles. 
+	// Iterate through the height ( - 1 because we'll draw a triangle which uses the vertex above current point, don't want to cause issues when we hit the boundary).
+	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
+	{
+		// Iterate through the width ( - 1 because we'll draw a triangle which uses the vertex to the right of the current point, don't want to cause issue's at the boundary).
+		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
+		{
+			/// First triangle tile.
+			// Define a tile.
+			CTerrainTile tile1;
+
+			tile1.mVertices[0] = vertices[vertex];
+			tile1.mVertices[1] = vertices[vertex + mWidth];
+			tile1.mVertices[2] = vertices[vertex + 1];
+
+			float averageHeight = (tile1.mVertices[0].position.y + tile1.mVertices[1].position.y + tile1.mVertices[2].position.y) / 3.0f;
+
+			// If the vertex is high up.
+			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
+			{
+				// Make the tile type snow.
+				tile1.terrainType = CTerrainTile::TerrainType::Snow;
+				snow->AddTile(tile1);
+			}
+			else
+			{
+				// Make it grass.
+				tile1.terrainType = CTerrainTile::TerrainType::Grass;
+				grass->AddTile(tile1);
+			}
+
+			/// Second triangle tile.
+
+			// Define a tile.
+			CTerrainTile tile2;
+
+			tile2.mVertices[0] = vertices[vertex + 1]; 
+			tile2.mVertices[1] = vertices[vertex + mWidth];
+			tile2.mVertices[2] = vertices[vertex + mWidth + 1];
+
+			averageHeight = (tile2.mVertices[0].position.y + tile2.mVertices[1].position.y + tile2.mVertices[2].position.y) / 3.0f;
+
+			// If the vertex is high up.
+			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
+			{
+				// Make the tile type snow.
+				tile2.terrainType = CTerrainTile::TerrainType::Snow;
+				snow->AddTile(tile2);
+			}
+			else
+			{
+				// Make it grass.
+				tile2.terrainType = CTerrainTile::TerrainType::Grass;
+				grass->AddTile(tile2);
+			}
+
+			// Define the tile.
+			mTiles.push_back(tile1);
+			mTiles.push_back(tile2);
+			// Increase the vertex which is our primary point.
+			vertex++;
+		}
+		// Increase the vertex which is our primary point.
+		vertex++;
+	}
+
+	mAreas.push_back(snow);
+	mAreas.push_back(grass);
+
+	for (auto area : mAreas)
+	{
+		area->SetBuffers(device);
+	}
 }
 
 /* LoadHeightMap - Loads in a height map (usually from a perlin noise function) and stores ptrs to the data. 

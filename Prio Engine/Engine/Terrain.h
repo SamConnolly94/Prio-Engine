@@ -18,12 +18,6 @@ public:
 	CTerrainGrid(ID3D11Device* device);
 	~CTerrainGrid();
 private:
-	struct VertexType
-	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 UV;
-		D3DXVECTOR3 normal;
-	};
 	void ReleaseHeightMap();
 	CTexture** mpTextures;
 	const unsigned int kmNumberOfTextures = 3;
@@ -43,7 +37,8 @@ private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext* context);
-	PrioEngine::Math::VEC3 CalculateNormal(VertexType* vertices, int index);
+	PrioEngine::Math::VEC3 CalculateNormal(CTerrainTile::VertexType* vertices, int index);
+	void SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* vertices);
 private:
 	int mWidth;
 	int mHeight;
