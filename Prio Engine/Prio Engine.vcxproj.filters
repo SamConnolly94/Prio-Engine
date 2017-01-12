@@ -131,6 +131,12 @@
     <ClCompile Include="TerrainTile.cpp">
       <Filter>Engine\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainArea.cpp">
+      <Filter>Engine\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Textures\Triangle.sam">
@@ -243,6 +249,8 @@
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
     <ClInclude Include="TerrainTile.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="TerrainArea.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">

@@ -14,6 +14,7 @@ CGraphics::CGraphics()
 	mFieldOfView = static_cast<float>(D3DX_PI / 4);
 	mpText = nullptr;
 	mFullScreen = false;
+	mpFrustum = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -59,6 +60,8 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	CreateTextureShaderForModel(hwnd);
 	CreateTextureAndDiffuseLightShaderFromModel(hwnd);
 	CreateTerrainShader(hwnd);
+
+	mpFrustum = new CFrustum();
 
 	mpCamera = CreateCamera();
 	mpCamera->Render();
@@ -107,6 +110,11 @@ void CGraphics::Shutdown()
 		delete image;
 		image = nullptr;
 		gLogger->MemoryDeallocWriteLine(typeid(image).name());
+	}
+
+	if (mpFrustum != nullptr)
+	{
+		delete mpFrustum;
 	}
 
 	mpUIImages.clear();
@@ -273,6 +281,7 @@ bool CGraphics::Render()
 	mpD3D->GetProjectionMatrix(projMatrix);
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
+	mpFrustum->ConstructFrustum(SCREEN_DEPTH, projMatrix, viewMatrix);
 
 	// Render model using texture shader.
 	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
@@ -295,8 +304,9 @@ bool CGraphics::Render()
 
 bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 {
-	std::list<CPrimitive*>::iterator it;
-	it = mpPrimitives.begin();
+
+	std::list<CPrimitive*>::iterator primitivesIt;
+	primitivesIt = mpPrimitives.begin();
 	
 	D3DXMATRIX modelWorld;
 	// Define three matrices to hold x, y and z rotations.
@@ -304,44 +314,44 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 	D3DXMATRIX rotY;
 	D3DXMATRIX rotZ;
 
-	while (it != mpPrimitives.end())
+	while (primitivesIt != mpPrimitives.end())
 	{
-		D3DXMatrixTranslation(&modelWorld, (*it)->GetPosX(), (*it)->GetPosY(), (*it)->GetPosZ());
+		D3DXMatrixTranslation(&modelWorld, (*primitivesIt)->GetPosX(), (*primitivesIt)->GetPosY(), (*primitivesIt)->GetPosZ());
 
 		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-		D3DXMatrixRotationX(&rotX, (*it)->GetRotationX());
-		D3DXMatrixRotationY(&rotY, (*it)->GetRotationY());
-		D3DXMatrixRotationZ(&rotZ, (*it)->GetRotationZ());
+		D3DXMatrixRotationX(&rotX, (*primitivesIt)->GetRotationX());
+		D3DXMatrixRotationY(&rotY, (*primitivesIt)->GetRotationY());
+		D3DXMatrixRotationZ(&rotZ, (*primitivesIt)->GetRotationZ());
 		world = modelWorld * rotX * rotY * rotZ;
 
 		// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
-		(*it)->Render(mpD3D->GetDeviceContext());
+		(*primitivesIt)->Render(mpD3D->GetDeviceContext());
 
 		// Render texture with no light.
-		if ((*it)->HasTexture() && !(*it)->UseDiffuseLight())
+		if ((*primitivesIt)->HasTexture() && !(*primitivesIt)->UseDiffuseLight())
 		{
-			if (!RenderPrimitiveWithTexture((*it), world, view, proj))
+			if (!RenderPrimitiveWithTexture((*primitivesIt), world, view, proj))
 			{
 				return false;
 			}
 		}
 		// Render texture with light.
-		else if ((*it)->HasTexture() && (*it)->UseDiffuseLight())
+		else if ((*primitivesIt)->HasTexture() && (*primitivesIt)->UseDiffuseLight())
 		{
-			if (!RenderPrimitiveWithTextureAndDiffuseLight((*it), world, view, proj))
+			if (!RenderPrimitiveWithTextureAndDiffuseLight((*primitivesIt), world, view, proj))
 			{
 				return false;
 			}
 		}
 		// Render colour.
-		else if ((*it)->HasColour())
+		else if ((*primitivesIt)->HasColour())
 		{
-			if (!RenderPrimitiveWithColour((*it), world, view, proj))
+			if (!RenderPrimitiveWithColour((*primitivesIt), world, view, proj))
 			{
 				return false;
 			}
 		}
-		it++;
+		primitivesIt++;
 	}
 
 
@@ -362,8 +372,6 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 
 	while (terrainIt != mpTerrainGrids.end())
 	{
-		(*terrainIt)->Render(mpD3D->GetDeviceContext());
-
 		D3DXMatrixTranslation(&modelWorld, (*terrainIt)->GetPosX(), (*terrainIt)->GetPosY(), (*terrainIt)->GetPosZ());
 
 		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
@@ -372,23 +380,26 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		D3DXMatrixRotationZ(&rotZ, (*terrainIt)->GetRotationZ());
 		world = modelWorld * rotX * rotY * rotZ;
 
-		// Render the terrain model using the colour shader.
-		//mpColourShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj);
-		std::list<CLight*>::iterator lightIt = mpLights.begin();
-		while (lightIt != mpLights.end())
+		int numOfAreas = (*terrainIt)->GetAreas().size();
+		std::thread* terrainAreaThreads = new std::thread[numOfAreas];
+		int count = 0;
+
+		for (auto area : (*terrainIt)->GetAreas())
 		{
-			mpTerrainShader->Render(mpD3D->GetDeviceContext(), (*terrainIt)->GetIndexCount(), world, view, proj, (*terrainIt)->GetTextureArray(), (*terrainIt)->GetNumberOfTextures(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour());
-			lightIt++;
+			auto renderLambda = [](auto area, auto mpD3D, auto world, auto view, auto proj, auto mpColourShader) {
+				area->Render(mpD3D->GetDeviceContext());
+				mpColourShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj); 
+			};
+
+			terrainAreaThreads[count] = std::thread(renderLambda, area, mpD3D, world, view, proj, mpColourShader);
+			count++;
 		}
 
-		/// After doing the rendering of this terrain, I'll need to layer on effects on top. E.g., if it's snowy.
-
-		for (auto tile : (*terrainIt)->GetTiles())
+		for (int i = 0; i < numOfAreas; i++)
 		{
-			tile.Render(mpD3D->GetDeviceContext());
-			mpColourShader->Render(mpD3D->GetDeviceContext(), 3, world, view, proj);
-			
+			terrainAreaThreads[i].join();
 		}
+		delete[] terrainAreaThreads;
 
 		terrainIt++;
 	}

@@ -17,6 +17,9 @@
 #include "GameText.h"
 #include "2DImage.h"
 #include <AntTweakBar.h>
+#include "../Frustum.h"
+#include <thread>
+#include <functional>
 
 // Global variables.
 // Will the window run in full screen?
@@ -24,7 +27,7 @@
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
 const bool VSYNC_ENABLED = true;
 // Far clip
-const float SCREEN_DEPTH = 500.0f;
+const float SCREEN_DEPTH = 1000.0f;
 // Near clip
 const float SCREEN_NEAR = 0.01f;
 
@@ -34,7 +37,7 @@ private:
 	int mScreenWidth, mScreenHeight;
 	float mFieldOfView;
 	bool mWireframeEnabled;
-
+	CFrustum* mpFrustum;
 	bool mFullScreen = false;
 public:
 	CGraphics();

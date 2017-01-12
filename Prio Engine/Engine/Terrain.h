@@ -7,6 +7,7 @@
 #include "ModelControl.h"
 #include "Texture.h"
 #include "../TerrainTile.h"
+#include "../TerrainArea.h"
 
 #include <vector>
 #include <sstream>
@@ -29,6 +30,7 @@ private:
 	float mLowestPoint;
 	float mHighestPoint;
 	std::vector<CTerrainTile> mTiles;
+	std::vector<CTerrainArea*> mAreas;
 public:
 	bool CreateGrid();
 	void Render(ID3D11DeviceContext* context);
@@ -36,6 +38,7 @@ public:
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 public:
 	std::vector<CTerrainTile> GetTiles() { return mTiles; };
+	std::vector<CTerrainArea*> GetAreas() { return mAreas; };
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();

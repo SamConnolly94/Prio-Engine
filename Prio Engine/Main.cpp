@@ -75,6 +75,19 @@ void GameLoop(CEngine* &engine)
 	CTerrainGrid* grid = engine->CreateTerrainGrid();
 	grid->LoadHeightMapFromFile("Default.map");
 	grid->CreateGrid();
+	
+	//double** blankMap = new double*[100];
+	//for (int i = 0; i < 100; i++)
+	//{
+	//	blankMap[i] = new double[100];
+
+	//	for (int j = 0; j < 100; j++)
+	//	{
+	//		blankMap[i][j] = 0;
+	//	}
+	//}
+
+	//engine->UpdateTerrainBuffers(grid, blankMap, 100, 100);
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);
@@ -116,6 +129,15 @@ void GameLoop(CEngine* &engine)
 		}
 		timeSinceTextUpdate += frameTime;
 	}
+
+	//for (int i = 0; i < grid->GetHeight(); ++i) {
+	//	delete[] blankMap[i];
+	//	gLogger->MemoryDeallocWriteLine(typeid(blankMap[i]).name());
+	//	blankMap[i] = nullptr;
+
+	//}
+	//delete[] blankMap;
+	//blankMap = nullptr;
 	//grid->ReleaseHeightMap();
 }
 

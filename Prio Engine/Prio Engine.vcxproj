@@ -252,7 +252,9 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\TextureShader.cpp" />
     <ClCompile Include="Engine\Triangle.cpp" />
     <ClCompile Include="Engine\VertexTypeManager.cpp" />
+    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TerrainArea.cpp" />
     <ClCompile Include="TerrainTile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -290,6 +292,8 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="TerrainArea.h" />
     <ClInclude Include="TerrainTile.h" />
   </ItemGroup>
   <ItemGroup>
