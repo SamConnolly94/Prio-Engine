@@ -73,7 +73,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
     <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
-    <OutDir>$(SolutionDir)\Prio Engine\bin\Debug</OutDir>
+    <OutDir>$(SolutionDir)\Prio Engine\bin\Debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>

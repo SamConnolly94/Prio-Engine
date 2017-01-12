@@ -57,8 +57,8 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 /* Controls any gameplay and things that should happen when we play the game. */
 void GameLoop(CEngine* &engine)
 {
-	const int frameTimePosX = 10.0f;
-	const int frameTimePosY = 10.0f;
+	const int frameTimePosX = 10;
+	const int frameTimePosY = 10;
 	const float FPSPosX = 10.0f;
 	const float FPSPosY = 50.0f;
 
@@ -90,7 +90,7 @@ void GameLoop(CEngine* &engine)
 	//engine->UpdateTerrainBuffers(grid, blankMap, 100, 100);
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
-	SentenceType* FPSText = engine->CreateText("FPS: ", FPSPosX, FPSPosY, 32);
+	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
 
 	// Camera init.
 	//myCam = engine->CreateCamera();
@@ -124,7 +124,7 @@ void GameLoop(CEngine* &engine)
 		if (timeSinceTextUpdate >= kTextUpdateInterval)
 		{
 			engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
-			engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), FPSPosX, FPSPosY, { 1.0f, 1.0f, 0.0f });
+			engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), { 1.0f, 1.0f, 0.0f });
 			timeSinceTextUpdate = 0.0f;
 		}
 		timeSinceTextUpdate += frameTime;

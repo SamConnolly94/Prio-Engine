@@ -196,8 +196,8 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 				vertices[vertex].position = D3DXVECTOR3{ posX, 0.0f, posZ };
 			}
 
-			U = widthCount;
-			V = heightCount;
+			U = static_cast<float>(widthCount);
+			V = static_cast<float>(heightCount);
 
 			vertices[vertex].UV = { U, V };
 			// Set the default colour.
