@@ -48,7 +48,11 @@ public:
 	bool Frame();
 private:
 	bool Render();
-
+private:
+	bool RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+private:
 	CD3D11* mpD3D;
 
 	CCamera* mpCamera;

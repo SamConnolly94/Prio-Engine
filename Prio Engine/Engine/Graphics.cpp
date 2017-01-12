@@ -302,12 +302,11 @@ bool CGraphics::Render()
 	return true;
 }
 
-bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
+bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-
 	std::list<CPrimitive*>::iterator primitivesIt;
 	primitivesIt = mpPrimitives.begin();
-	
+
 	D3DXMATRIX modelWorld;
 	// Define three matrices to hold x, y and z rotations.
 	D3DXMATRIX rotX;
@@ -354,7 +353,11 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		primitivesIt++;
 	}
 
+	return true;
+}
 
+bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
 	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
 
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
@@ -366,7 +369,17 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		meshIt++;
 	}
 
+	return true;
+}
+
+bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
 	// Render any terrains.
+	D3DXMATRIX modelWorld;
+	// Define three matrices to hold x, y and z rotations.
+	D3DXMATRIX rotX;
+	D3DXMATRIX rotY;
+	D3DXMATRIX rotZ;
 
 	std::list<CTerrainGrid*>::iterator terrainIt = mpTerrainGrids.begin();
 
@@ -388,7 +401,7 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 		{
 			auto renderLambda = [](auto area, auto mpD3D, auto world, auto view, auto proj, auto mpColourShader) {
 				area->Render(mpD3D->GetDeviceContext());
-				mpColourShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj); 
+				mpColourShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj);
 			};
 
 			terrainAreaThreads[count] = std::thread(renderLambda, area, mpD3D, world, view, proj, mpColourShader);
@@ -403,6 +416,18 @@ bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 
 		terrainIt++;
 	}
+
+	return true;
+
+}
+
+bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
+{
+	RenderPrimitives(world, view, proj);
+
+	RenderMeshes(world, view, proj);
+
+	RenderTerrains(world, view, proj);
 
 	return true;
 }
