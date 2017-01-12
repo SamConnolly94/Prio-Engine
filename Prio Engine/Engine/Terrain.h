@@ -70,6 +70,7 @@ public:
 	void LoadHeightMap(double** heightMap);
 	void LoadHeightMapFromFile(std::string filename);
 	bool UpdateBuffers(ID3D11Device* device, ID3D11DeviceContext* deviceContext, double** heightMap, int newWidth, int newHeight);
+	void UpdateMatrices(D3DXMATRIX& world);
 };
 
 #endif

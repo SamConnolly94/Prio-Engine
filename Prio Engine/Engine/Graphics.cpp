@@ -290,7 +290,7 @@ bool CGraphics::Render()
 	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix))
 		return false;
 
-	
+
 	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
 		return false;
 
@@ -308,21 +308,9 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 	std::list<CPrimitive*>::iterator primitivesIt;
 	primitivesIt = mpPrimitives.begin();
 
-	D3DXMATRIX modelWorld;
-	// Define three matrices to hold x, y and z rotations.
-	D3DXMATRIX rotX;
-	D3DXMATRIX rotY;
-	D3DXMATRIX rotZ;
-
 	while (primitivesIt != mpPrimitives.end())
 	{
-		D3DXMatrixTranslation(&modelWorld, (*primitivesIt)->GetPosX(), (*primitivesIt)->GetPosY(), (*primitivesIt)->GetPosZ());
-
-		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-		D3DXMatrixRotationX(&rotX, (*primitivesIt)->GetRotationX());
-		D3DXMatrixRotationY(&rotY, (*primitivesIt)->GetRotationY());
-		D3DXMatrixRotationZ(&rotZ, (*primitivesIt)->GetRotationZ());
-		world = modelWorld * rotX * rotY * rotZ;
+		(*primitivesIt)->UpdateMatrices(world);
 
 		// put the model vertex and index buffers on the graphics pipleline to prepare them for dawing.
 		(*primitivesIt)->Render(mpD3D->GetDeviceContext());
@@ -377,52 +365,32 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 /* Render the terrain and all areas inside of it. */
 bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-	// Render any terrains.
-	D3DXMATRIX modelWorld;
-	// Define three matrices to hold x, y and z rotations.
-	D3DXMATRIX rotX;
-	D3DXMATRIX rotY;
-	D3DXMATRIX rotZ;
-
-	std::list<CTerrainGrid*>::iterator terrainIt = mpTerrainGrids.begin();
-
-	while (terrainIt != mpTerrainGrids.end())
+	// Iterate through each terrain that has been created.
+	for (auto terrain : mpTerrainGrids)
 	{
-		D3DXMatrixTranslation(&modelWorld, (*terrainIt)->GetPosX(), (*terrainIt)->GetPosY(), (*terrainIt)->GetPosZ());
+		// Update the world matrix and perform operations on the world matrix of this object.
+		terrain->UpdateMatrices(world);
 
-		// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-		D3DXMatrixRotationX(&rotX, (*terrainIt)->GetRotationX());
-		D3DXMatrixRotationY(&rotY, (*terrainIt)->GetRotationY());
-		D3DXMatrixRotationZ(&rotZ, (*terrainIt)->GetRotationZ());
-		world = modelWorld * rotX * rotY * rotZ;
-
-		int numOfAreas = (*terrainIt)->GetAreas().size();
-		std::thread* terrainAreaThreads = new std::thread[numOfAreas];
-		int count = 0;
-
-		for (auto area : (*terrainIt)->GetAreas())
+		// Iterate through each area of terrain in this terrain.
+		for (auto area : terrain->GetAreas())
 		{
-			auto renderLambda = [](auto area, auto mpD3D, auto world, auto view, auto proj, auto mpShader, auto lightList) {
-				area->Render(mpD3D->GetDeviceContext());
-				for (auto light : lightList)
+			// Render this area.
+			area->Render(mpD3D->GetDeviceContext());
+			
+			// Iterate through each light that we have on our scene.
+			for (auto light : mpLights)
+			{
+				// Render the terrain area with the diffuse light shader.
+				if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj, area->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
 				{
-					mpShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj, area->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour());
+					// If we failed to render, return false.
+					return false;
 				}
-			};
-
-			terrainAreaThreads[count] = std::thread(renderLambda, area, mpD3D, world, view, proj, mpDiffuseLightShader, mpLights);
-			count++;
+			}
 		}
-
-		for (int i = 0; i < numOfAreas; i++)
-		{
-			terrainAreaThreads[i].join();
-		}
-		delete[] terrainAreaThreads;
-
-		terrainIt++;
 	}
 
+	// Successfully rendered the terrain.
 	return true;
 
 }
@@ -430,11 +398,14 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 /* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
 {
-	RenderPrimitives(world, view, proj);
+	if (!RenderPrimitives(world, view, proj))
+		return false;
 
-	RenderMeshes(world, view, proj);
+	if (!RenderMeshes(world, view, proj))
+		return false;
 
-	RenderTerrains(world, view, proj);
+	if (!RenderTerrains(world, view, proj))
+		return false;
 
 	return true;
 }
@@ -465,7 +436,7 @@ bool CGraphics::RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX orth
 	mpD3D->EnableAlphaBlending();
 
 	bool result;
-	
+
 	for (auto image : mpUIImages)
 	{
 		result = image->Render(mpD3D->GetDeviceContext(), image->GetX(), image->GetY());
@@ -516,7 +487,7 @@ C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int
 	C2DImage* image = new C2DImage();
 
 	bool successful = image->Initialise(mpD3D->GetDevice(), mScreenWidth, mScreenHeight, filename, width, height);
-	
+
 	image->SetX(posX);
 	image->SetY(posY);
 
@@ -531,7 +502,7 @@ C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int
 	mpUIImages.push_back(image);
 
 	return image;
-	
+
 }
 
 bool CGraphics::RemoveUIImage(C2DImage *& element)
@@ -587,7 +558,7 @@ bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3D
 	// Render each diffuse light in the list.
 	do
 	{
-		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(),(*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
+		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(), (*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
 		it++;
 	} while (it != mpLights.end());
 
@@ -612,7 +583,7 @@ bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatr
 		gLogger->WriteLine("Failed to render the model using the colour shader object.");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -1027,7 +998,7 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientCo
 	light->SetDiffuseColour(diffuseColour);
 	light->SetAmbientColour(ambientColour);
 	light->SetDirection({ 1.0f, 1.0f, 1.0f });
-	
+
 	// Stick the new instance on a list so we can track it, we can then ensure there are no memory leaks.
 	mpLights.push_back(light);
 

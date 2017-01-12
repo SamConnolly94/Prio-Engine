@@ -12,7 +12,8 @@ public:
 	enum TerrainType
 	{
 		Grass,
-		Snow
+		Snow,
+		Sand
 	};
 	struct VertexType
 	{

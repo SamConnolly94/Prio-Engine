@@ -475,11 +475,16 @@ void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* ve
 	gLogger->MemoryAllocWriteLine(typeid(grass).name());
 	grass->LoadTexture(device, L"Resources/Textures/YellowGrass.dds");
 
+	CTerrainArea* sand = new CTerrainArea();
+	gLogger->MemoryAllocWriteLine(typeid(sand).name());
+	sand->LoadTexture(device, L"Resources/Textures/Sand.dds");
+
 	// Set the colour of the areas.
 	snow->SetColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	grass->SetColour(D3DXVECTOR4{ 0.0f, 1.0f, 0.0f, 1.0f });
 
 	const float kSnowHeightFromTop = 5.0f;
+	const float kSandHeightFromBottom = 10.0f;
 	int vertex = 0;
 
 	/// Copy data out of tiles. 
@@ -506,6 +511,12 @@ void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* ve
 				tile1.terrainType = CTerrainTile::TerrainType::Snow;
 				snow->AddTile(tile1);
 			}
+			else if (averageHeight < (mLowestPoint + kSandHeightFromBottom))
+			{
+				// Make the tile type sand.
+				tile1.terrainType = CTerrainTile::TerrainType::Sand;
+				sand->AddTile(tile1);
+			}
 			else
 			{
 				// Make it grass.
@@ -531,6 +542,12 @@ void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* ve
 				tile2.terrainType = CTerrainTile::TerrainType::Snow;
 				snow->AddTile(tile2);
 			}
+			else if (averageHeight < (mLowestPoint + kSandHeightFromBottom))
+			{
+				// Make the tile type sand.
+				tile2.terrainType = CTerrainTile::TerrainType::Sand;
+				sand->AddTile(tile2);
+			}
 			else
 			{
 				// Make it grass.
@@ -550,6 +567,7 @@ void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* ve
 
 	mAreas.push_back(snow);
 	mAreas.push_back(grass);
+	mAreas.push_back(sand);
 
 	for (auto area : mAreas)
 	{
@@ -768,4 +786,23 @@ bool CTerrainGrid::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* dev
 
 	InitialiseBuffers(device);
 	return true;
+}
+
+void CTerrainGrid::UpdateMatrices(D3DXMATRIX & world)
+{
+	// Render any terrains.
+	D3DXMATRIX modelWorld;
+	// Define three matrices to hold x, y and z rotations.
+	D3DXMATRIX rotX;
+	D3DXMATRIX rotY;
+	D3DXMATRIX rotZ;
+
+	D3DXMatrixTranslation(&modelWorld, GetPosX(), GetPosY(), GetPosZ());
+
+	// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
+	D3DXMatrixRotationX(&rotX, GetRotationX());
+	D3DXMatrixRotationY(&rotY, GetRotationY());
+	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
+	world = modelWorld * rotX * rotY * rotZ;
+
 }
