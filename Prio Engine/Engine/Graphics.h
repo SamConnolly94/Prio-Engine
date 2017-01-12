@@ -17,7 +17,7 @@
 #include "GameText.h"
 #include "2DImage.h"
 #include <AntTweakBar.h>
-#include "../Frustum.h"
+#include "Frustum.h"
 #include <thread>
 #include <functional>
 

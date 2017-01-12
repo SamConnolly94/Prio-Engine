@@ -6,8 +6,8 @@
 #include "PrioEngineVars.h"
 #include "ModelControl.h"
 #include "Texture.h"
-#include "../TerrainTile.h"
-#include "../TerrainArea.h"
+#include "TerrainTile.h"
+#include "TerrainArea.h"
 
 #include <vector>
 #include <sstream>

@@ -128,14 +128,14 @@
     <ClCompile Include="Engine\TerrainShader.cpp">
       <Filter>Engine\Source Files\Shader Class</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainTile.cpp">
-      <Filter>Engine\Source Files</Filter>
+    <ClCompile Include="Engine\Frustum.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Frustum.cpp">
-      <Filter>Engine\Source Files</Filter>
+    <ClCompile Include="Engine\TerrainArea.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainArea.cpp">
-      <Filter>Engine\Source Files</Filter>
+    <ClCompile Include="Engine\TerrainTile.cpp">
+      <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -248,9 +248,15 @@
     <ClInclude Include="Engine\TerrainShader.h">
       <Filter>Engine\Header Files\Shader Class</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainTile.h" />
-    <ClInclude Include="Frustum.h" />
-    <ClInclude Include="TerrainArea.h" />
+    <ClInclude Include="Engine\Frustum.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\TerrainArea.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\TerrainTile.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Engine\Shaders\Font.ps.hlsl">

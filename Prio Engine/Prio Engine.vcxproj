@@ -234,6 +234,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\DiffuseLightShader.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
     <ClCompile Include="Engine\FontShader.cpp" />
+    <ClCompile Include="Engine\Frustum.cpp" />
     <ClCompile Include="Engine\GameFont.cpp" />
     <ClCompile Include="Engine\GameText.cpp" />
     <ClCompile Include="Engine\GameTimer.cpp" />
@@ -247,15 +248,14 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClCompile Include="Engine\Primitive.cpp" />
     <ClCompile Include="Engine\SpecularLightingShader.cpp" />
     <ClCompile Include="Engine\Terrain.cpp" />
+    <ClCompile Include="Engine\TerrainArea.cpp" />
     <ClCompile Include="Engine\TerrainShader.cpp" />
+    <ClCompile Include="Engine\TerrainTile.cpp" />
     <ClCompile Include="Engine\Texture.cpp" />
     <ClCompile Include="Engine\TextureShader.cpp" />
     <ClCompile Include="Engine\Triangle.cpp" />
     <ClCompile Include="Engine\VertexTypeManager.cpp" />
-    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="TerrainArea.cpp" />
-    <ClCompile Include="TerrainTile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\TestTex.dds" />
@@ -273,6 +273,7 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\DiffuseLightShader.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Engine\FontShader.h" />
+    <ClInclude Include="Engine\Frustum.h" />
     <ClInclude Include="Engine\GameFont.h" />
     <ClInclude Include="Engine\GameText.h" />
     <ClInclude Include="Engine\GameTimer.h" />
@@ -287,14 +288,13 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <ClInclude Include="Engine\PrioEngineVars.h" />
     <ClInclude Include="Engine\SpecularLightingShader.h" />
     <ClInclude Include="Engine\Terrain.h" />
+    <ClInclude Include="Engine\TerrainArea.h" />
     <ClInclude Include="Engine\TerrainShader.h" />
+    <ClInclude Include="Engine\TerrainTile.h" />
     <ClInclude Include="Engine\Texture.h" />
     <ClInclude Include="Engine\TextureShader.h" />
     <ClInclude Include="Engine\Triangle.h" />
     <ClInclude Include="Engine\VertexTypeManager.h" />
-    <ClInclude Include="Frustum.h" />
-    <ClInclude Include="TerrainArea.h" />
-    <ClInclude Include="TerrainTile.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Models\Cube.obj">

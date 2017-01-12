@@ -1,12 +1,12 @@
 #ifndef TERRAINAREA_H
 #define TERRAINAREA_H
 
-#include "Engine\PrioEngineVars.h"
+#include "PrioEngineVars.h"
 #include "TerrainTile.h"
 #include <vector>
 #include <d3d11.h>
 #include <d3dx10math.h>
-#include "Engine\Texture.h"
+#include "Texture.h"
 
 class CTerrainArea
 {
