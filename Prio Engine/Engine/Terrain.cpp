@@ -200,6 +200,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			V = static_cast<float>(heightCount);
 
 			vertices[vertex].UV = { U, V };
+			vertices[vertex].sandUV = { U, V };
 			// Set the default colour.
 			//vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -805,4 +806,23 @@ void CTerrainGrid::UpdateMatrices(D3DXMATRIX & world)
 	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
 	world = modelWorld * rotX * rotY * rotZ;
 
+}
+
+D3DXMATRIX CTerrainGrid::GetModelWorld()
+{
+	// Render any terrains.
+	D3DXMATRIX modelWorld;
+	// Define three matrices to hold x, y and z rotations.
+	D3DXMATRIX rotX;
+	D3DXMATRIX rotY;
+	D3DXMATRIX rotZ;
+
+	D3DXMatrixTranslation(&modelWorld, GetPosX(), GetPosY(), GetPosZ());
+
+	// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
+	D3DXMatrixRotationX(&rotX, GetRotationX());
+	D3DXMatrixRotationY(&rotY, GetRotationY());
+	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
+
+	return modelWorld;
 }

@@ -330,11 +330,11 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <None Include="Shaders\TerrainDiffuseLight.ps.hlsl">
+    <None Include="Shaders\Terrain.ps.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\TerrainDiffuseLight.vs.hlsl">
+    <None Include="Shaders\Terrain.vs.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>

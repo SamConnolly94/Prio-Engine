@@ -284,7 +284,7 @@ bool CGraphics::Render()
 	mpFrustum->ConstructFrustum(SCREEN_DEPTH, projMatrix, viewMatrix);
 
 	// Render model using texture shader.
-	if (!RenderModels(viewMatrix, worldMatrix, projMatrix))
+	if (!RenderModels(worldMatrix, viewMatrix, projMatrix))
 		return false;
 
 	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix))
@@ -372,22 +372,25 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 		terrain->UpdateMatrices(world);
 
 		// Iterate through each area of terrain in this terrain.
-		for (auto area : terrain->GetAreas())
-		{
+		//for (auto area : terrain->GetAreas())
+		//{
 			// Render this area.
-			area->Render(mpD3D->GetDeviceContext());
+			//area->Render(mpD3D->GetDeviceContext());
+			terrain->Render(mpD3D->GetDeviceContext());
 			
+			//mpTerrainShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour());
 			// Iterate through each light that we have on our scene.
 			for (auto light : mpLights)
 			{
 				// Render the terrain area with the diffuse light shader.
-				if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), area->GetNumberOfIndices(), world, view, proj, area->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+				//if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
 				{
 					// If we failed to render, return false.
 					return false;
 				}
 			}
-		}
+		//}
 	}
 
 	// Successfully rendered the terrain.
@@ -396,7 +399,7 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 }
 
 /* Renders physical entities within the scene. */
-bool CGraphics::RenderModels(D3DXMATRIX view, D3DXMATRIX world, D3DXMATRIX proj)
+bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
 	if (!RenderPrimitives(world, view, proj))
 		return false;

@@ -1,7 +1,5 @@
 #include "TerrainShader.h"
 
-
-
 CTerrainShader::CTerrainShader()
 {
 	mpVertexShader = nullptr;
@@ -12,7 +10,6 @@ CTerrainShader::CTerrainShader()
 	mpLightBuffer = nullptr;
 }
 
-
 CTerrainShader::~CTerrainShader()
 {
 }
@@ -22,7 +19,7 @@ bool CTerrainShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, L"Shaders/TerrainDiffuseLight.vs.hlsl", L"Shaders/TerrainDiffuseLight.ps.hlsl");
+	result = InitialiseShader(device, hwnd, L"Shaders/Terrain.vs.hlsl", L"Shaders/Terrain.ps.hlsl");
 
 	if (!result)
 	{
@@ -39,33 +36,20 @@ void CTerrainShader::Shutdown()
 }
 
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, CTexture** textures, unsigned int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
-	// Place our textures into a shader resource view array.
-	ID3D11ShaderResourceView** texArray = new ID3D11ShaderResourceView*[numberOfTextures];
-	gLogger->MemoryAllocWriteLine(typeid(texArray).name());
-	for (unsigned int i = 0; i < numberOfTextures; i++)
-	{
-		texArray[i] = textures[i]->GetTexture();
-	}
-
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texArray, numberOfTextures, lightDirection, diffuseColour, ambientColour);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, lightDirection, diffuseColour, ambientColour);
 	if (!result)
 	{
-		delete[] texArray;
-		gLogger->MemoryDeallocWriteLine(typeid(texArray).name());
-
 		return false;
 	}
 
 	// Now render the prepared buffers with the shader.
 	RenderShader(deviceContext, indexCount);
 
-	delete[] texArray;
-	gLogger->MemoryDeallocWriteLine(typeid(texArray).name());
 	return true;
 }
 
@@ -75,7 +59,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -94,7 +78,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	pixelShaderBuffer = nullptr;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "TerrainVertex", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -111,7 +95,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "TerrainPixel", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -165,13 +149,23 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
-	polygonLayout[2].SemanticName = "NORMAL";
-	polygonLayout[2].SemanticIndex = 0;
-	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	// Position only has 2 co-ords. Only need format of R32G32.
+	polygonLayout[2].SemanticName = "TEXCOORD";
+	// Set the index of tex coord we're on (e.g., texcoord 0, texcoord 1).
+	polygonLayout[2].SemanticIndex = 1;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32_FLOAT;
 	polygonLayout[2].InputSlot = 0;
 	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
+
+	polygonLayout[3].SemanticName = "NORMAL";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[3].InputSlot = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[3].InstanceDataStepRate = 0;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -180,7 +174,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create polygon layout.");
+		gLogger->WriteLine("Failed to create polygon layout in Terrain Shader class.");
 		return false;
 	}
 
@@ -320,7 +314,7 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView** textures, unsigned int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
+bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, ID3D11ShaderResourceView * texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -359,7 +353,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
+	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

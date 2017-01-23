@@ -29,6 +29,7 @@ public:
 	bool CreateGrid();
 	void Render(ID3D11DeviceContext* context);
 	CTexture** GetTextureArray() { return mpTextures; };
+	CTexture* GetTexture() { return mpTextures[0]; };
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 public:
 	std::vector<CTerrainTile> GetTiles() { return mTiles; };
@@ -71,6 +72,7 @@ public:
 	void LoadHeightMapFromFile(std::string filename);
 	bool UpdateBuffers(ID3D11Device* device, ID3D11DeviceContext* deviceContext, double** heightMap, int newWidth, int newHeight);
 	void UpdateMatrices(D3DXMATRIX& world);
+	D3DXMATRIX GetModelWorld();
 };
 
 #endif
