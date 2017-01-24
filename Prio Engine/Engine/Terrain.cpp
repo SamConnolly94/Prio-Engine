@@ -32,6 +32,12 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 	// Yellow grass.
 	mpTextures[2] = new CTexture();
 	mpTextures[2]->Initialise(device, L"Resources/Textures/YellowGrass.dds");
+	// Sand.
+	mpTextures[3] = new CTexture();
+	mpTextures[3]->Initialise(device, L"Resources/Textures/Sand.dds");
+	// Rock.
+	mpTextures[4] = new CTexture();
+	mpTextures[4]->Initialise(device, L"Resources/Textures/Rock.dds");
 }
 
 

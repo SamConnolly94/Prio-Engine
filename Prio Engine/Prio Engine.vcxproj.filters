@@ -251,11 +251,11 @@
     <ClInclude Include="Engine\Frustum.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\TerrainArea.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\TerrainTile.h">
       <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\TerrainArea.h">
+      <Filter>Engine\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

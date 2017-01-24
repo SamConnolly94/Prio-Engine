@@ -20,7 +20,7 @@ public:
 private:
 	void ReleaseHeightMap();
 	CTexture** mpTextures;
-	const unsigned int kmNumberOfTextures = 3;
+	const unsigned int kmNumberOfTextures = 5;
 	float mLowestPoint;
 	float mHighestPoint;
 	std::vector<CTerrainTile> mTiles;
