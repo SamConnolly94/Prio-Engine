@@ -45,6 +45,18 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		textureColour = shaderTexture[1].Sample(SampleType, input.tex);
 	}
+	// Blending time.
+	else if (input.worldPosition.y > snowHeight - 5.0f)
+	{
+		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+		float4 snowTex= shaderTexture[1].Sample(SampleType, input.tex);
+		snowTex.w = 0.5f;
+		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+		float4 dirtTex = shaderTexture[0].Sample(SampleType, input.tex);
+		float heightDiff = 80.0f - input.worldPosition.y;
+		float blendFactor = heightDiff / 5.0f;
+		textureColour = lerp(snowTex, dirtTex, blendFactor);/*(r, g, b, 1.0f );*/
+	}
 	else
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
