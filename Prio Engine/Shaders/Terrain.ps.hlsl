@@ -1,4 +1,4 @@
-Texture2D shaderTexture;
+Texture2D shaderTexture[3];
 SamplerState SampleType;
 
 ///////////////////////////
@@ -38,9 +38,18 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	float4 colour;
 	// The height at which we will say a pixel should have snow on it.
 	const float snowHeight = 80.0f;
-
-	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-	textureColour = shaderTexture.Sample(SampleType, input.tex);
+	
+	// If the shader is high up.
+	if (input.worldPosition.y > snowHeight)
+	{
+		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+		textureColour = shaderTexture[1].Sample(SampleType, input.tex);
+	}
+	else
+	{
+		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+		textureColour = shaderTexture[0].Sample(SampleType, input.tex);
+	}
 
 	// Set the colour to the ambient colour.
 	colour = ambientColour;
@@ -62,13 +71,13 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	// Multiply the texture pixel and the final diffuse color to get the final pixel color result.
 	colour = colour * textureColour;
 
-	// If the shader is high up.
-	if (input.worldPosition.y > snowHeight)
-	{
-		// Set the colour to be white.
-		colour.rgb = 1.0f, 1.0f, 1.0f;
-		colour.w = 1.0f;
-	};
+	//// If the shader is high up.
+	//if (input.worldPosition.y > snowHeight)
+	//{
+	//	// Set the colour to be white.
+	//	colour.rgb = 1.0f, 1.0f, 1.0f;
+	//	colour.w = 1.0f;
+	//};
 
 	// Return the colour of the current pixel.
 	return colour;

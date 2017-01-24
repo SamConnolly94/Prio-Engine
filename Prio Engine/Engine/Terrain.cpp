@@ -28,7 +28,7 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 	mpTextures[0]->Initialise(device, L"Resources/Textures/Dirt.dds");
 	// Rock
 	mpTextures[1] = new CTexture();
-	mpTextures[1]->Initialise(device, L"Resources/Textures/Rock.dds");
+	mpTextures[1]->Initialise(device, L"Resources/Textures/Snow.dds");
 	// Yellow grass.
 	mpTextures[2] = new CTexture();
 	mpTextures[2]->Initialise(device, L"Resources/Textures/YellowGrass.dds");
@@ -112,6 +112,11 @@ void CTerrainGrid::Render(ID3D11DeviceContext * context)
 {
 	// Render the data contained in the buffers..
 	RenderBuffers(context);
+}
+
+CTexture** CTerrainGrid::GetTexturesArray()
+{
+	return mpTextures;
 }
 
 /* This function is designed to create vertex and index buffers according to a heightmap that has already been set.
@@ -200,7 +205,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 			V = static_cast<float>(heightCount);
 
 			vertices[vertex].UV = { U, V };
-			vertices[vertex].sandUV = { U, V };
+			//vertices[vertex].sandUV = { U, V };
 			// Set the default colour.
 			//vertices[vertex].colour = D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f };
 

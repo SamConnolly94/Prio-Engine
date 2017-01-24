@@ -28,7 +28,7 @@ private:
 public:
 	bool CreateGrid();
 	void Render(ID3D11DeviceContext* context);
-	CTexture** GetTextureArray() { return mpTextures; };
+	CTexture** GetTexturesArray();
 	CTexture* GetTexture() { return mpTextures[0]; };
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 public:

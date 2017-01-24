@@ -384,7 +384,7 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 			{
 				// Render the terrain area with the diffuse light shader.
 				//if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexturesArray(), terrain->GetNumberOfTextures(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
 				{
 					// If we failed to render, return false.
 					return false;
