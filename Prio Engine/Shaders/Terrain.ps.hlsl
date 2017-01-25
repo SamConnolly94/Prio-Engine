@@ -41,6 +41,13 @@ struct PixelInputType
 	float3 normal : NORMAL;
 };
 
+float GetPercentage(float number, float desiredPercentage)
+{
+	float onePerc = number / 100.0f;
+
+	return (onePerc * desiredPercentage);
+};
+
 // Pixel shader
 float4 TerrainPixel(PixelInputType input) : SV_TARGET
 {
@@ -50,17 +57,19 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	float4 colour;
 	// The height at which we will say a pixel should have snow on it.
 	//const float snowHeight = highestPosition.y - 10.0f;
-	//const float snowHeight = 85.0f;
-	//const float grassHeight = 75.0f;
-	//const float dirtHeight = 70.0f;
-	//const float sandHeight = 65.0f;
-	//const float rockHeight = 60.0f;
-	//const float range = highestPosition.y - lowestPosition.y;
-	const float snowHeight = highestPosition.y - 2.0f;
-	const float grassHeight = highestPosition.y - 10.0f;
-	const float dirtHeight = highestPosition.y - 15.0f;
-	const float sandHeight = highestPosition.y - 20.0f;
-	const float rockHeight = lowestPosition.y;
+	const float snowHeight = 85.0f;
+	const float grassHeight = 75.0f;
+	const float dirtHeight = 70.0f;
+	const float sandHeight = 65.0f;
+	const float rockHeight = 60.0f;
+
+	const float range = highestPosition.y - lowestPosition.y;
+
+	//const float snowHeight = highestPosition.y - GetPercentage(range, 5.0f);
+	//const float grassHeight = highestPosition.y - GetPercentage(range, 25.0f);
+	//const float dirtHeight = highestPosition.y - GetPercentage(range, 28.0f);
+	//const float sandHeight = highestPosition.y - GetPercentage(range, 33.0f);
+	//const float rockHeight = highestPosition.y - GetPercentage(range, 100.0f);
 
 	// If the shader is high up.
 	if (input.worldPosition.y > snowHeight)
@@ -69,14 +78,14 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = shaderTexture[1].Sample(SampleType, input.tex);
 	}
 	// Blending time.
-	else if (input.worldPosition.y > snowHeight - 2.0f)
+	else if (input.worldPosition.y > snowHeight - GetPercentage(range, 5.0f))
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 snowTex = shaderTexture[1].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 grassTex = shaderTexture[2].Sample(SampleType, input.tex);
 		float heightDiff = snowHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / 2.0f;
+		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
 		textureColour = lerp(snowTex, grassTex, blendFactor);
 	}
 	// draw grass texture
@@ -86,14 +95,14 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = shaderTexture[2].Sample(SampleType, input.tex);
 	}
 	// Blend grass with dirt
-	else if (input.worldPosition.y > grassHeight - 5.0f)
+	else if (input.worldPosition.y > grassHeight - GetPercentage(range, 5.0f))
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 grassTex = shaderTexture[2].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 dirtTex = shaderTexture[0].Sample(SampleType, input.tex);
 		float heightDiff = grassHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / 5.0f;
+		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
 		textureColour = lerp(grassTex, dirtTex, blendFactor);
 	}
 	// Dirt
@@ -102,14 +111,14 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = shaderTexture[0].Sample(SampleType, input.tex);
 	}
 	// dirt blended with sand
-	else if (input.worldPosition.y > dirtHeight - 5.0f)
+	else if (input.worldPosition.y > dirtHeight - GetPercentage(range, 5.0f))
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 dirtTex = shaderTexture[0].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 sandTex = shaderTexture[3].Sample(SampleType, input.tex);
 		float heightDiff = dirtHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / 5.0f;
+		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
 	}
 	// Sand
@@ -118,14 +127,14 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = shaderTexture[3].Sample(SampleType, input.tex);
 	}
 	// Sand blended with rock.
-	else if (input.worldPosition.y > sandHeight - 5.0f)
+	else if (input.worldPosition.y > sandHeight - GetPercentage(range, 1.0f))
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 sandTex = shaderTexture[3].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		float4 rockTex = shaderTexture[4].Sample(SampleType, input.tex);
 		float heightDiff = sandHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / (5.0f);
+		float blendFactor = heightDiff / GetPercentage(range, 1.0f);
 		textureColour = lerp(sandTex, rockTex, blendFactor);
 	}
 	// Rock.
@@ -133,11 +142,19 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	{
 		textureColour = shaderTexture[4].Sample(SampleType, input.tex);
 	}
+	//else if (input.worldPosition.y <= rockHeight)
+	//{
+	//	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
+	//	//textureColour = shaderTexture[2].Sample(SampleType, input.tex);
+	//	textureColour.rgb = (0.0f, 0.0f, 1.0f);
+	//	textureColour.a = 1.0f;
+	//}
 	else
 	{
-		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[2].Sample(SampleType, input.tex);
-		textureColour.rgb = (1.0f, 1.0f, 1.0f);
+		// Default pixel to white to show any obvious errors
+		textureColour.r = 0.0f;
+		textureColour.g = 0.0f;
+		textureColour.b = 1.0f;
 		textureColour.a = 1.0f;
 	}
 	
