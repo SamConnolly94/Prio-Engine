@@ -25,7 +25,7 @@
 // Will the window run in full screen?
 
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
-const bool VSYNC_ENABLED = false;
+const bool VSYNC_ENABLED = true;
 // Far clip
 const float SCREEN_DEPTH = 1000.0f;
 // Near clip

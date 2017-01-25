@@ -382,20 +382,18 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 			// Iterate through each light that we have on our scene.
 			for (auto light : mpLights)
 			{
-				D3DXVECTOR3 highest = { 0.0f, terrain->GetHighestPoint(), 0.0f };
-				D3DXVECTOR3 lowest = { 0.0f, terrain->GetLowestPoint(), 0.0f };
-
 				// Render the terrain area with the diffuse light shader.
 				//if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(), 
-					terrain->GetIndexCount(), world, view, proj, 
-					terrain->GetTexturesArray(), 
-					terrain->GetNumberOfTextures(), 
-					light->GetDirection(), 
-					light->GetDiffuseColour(), 
-					light->GetAmbientColour(), 
-					highest,
-					lowest
+				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(),
+					terrain->GetIndexCount(), world, view, proj,
+					terrain->GetTexturesArray(),
+					terrain->GetNumberOfTextures(),
+					light->GetDirection(),
+					light->GetDiffuseColour(),
+					light->GetAmbientColour(),
+					terrain->GetHighestPoint(),
+					terrain->GetLowestPoint(),
+					terrain->GetPos()
 					))
 				{
 					// If we failed to render, return false.

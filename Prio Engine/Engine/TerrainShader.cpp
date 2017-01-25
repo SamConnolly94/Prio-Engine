@@ -37,12 +37,12 @@ void CTerrainShader::Shutdown()
 }
 
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, D3DXVECTOR3 highestPos, D3DXVECTOR3 lowestPos)
+	D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, textureArray, numberOfTextures, lightDirection, diffuseColour, ambientColour, highestPos, lowestPos);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, textureArray, numberOfTextures, lightDirection, diffuseColour, ambientColour, highestPos, lowestPos, worldPosition);
 	if (!result)
 	{
 		return false;
@@ -67,6 +67,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC terrainBufferDesc;
+	D3D11_BUFFER_DESC positioningBufferDesc;
 
 	// Convert the vs & ps filename to string for logging purposes.
 	std::wstring wsVs(vsFilename);
@@ -249,7 +250,8 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
 		return false;
 	}
-
+	///////////////////
+	// Terrain buffer description
 	terrainBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	terrainBufferDesc.ByteWidth = sizeof(TerrainInfoBufferType);
 	terrainBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -264,6 +266,21 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		return false;
 	}
 
+	///////////////////////////////
+	// Position buffer description
+	positioningBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	positioningBufferDesc.ByteWidth = sizeof(PositioningBufferType);
+	positioningBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	positioningBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	positioningBufferDesc.MiscFlags = 0;
+	positioningBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&positioningBufferDesc, NULL, &mpPositioningBuffer);
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to create the constant position information buffer in the terrrain shader from the positioning buffer description given.");
+		return false;
+	}
 	return true;
 }
 
@@ -344,7 +361,9 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, D3DXVECTOR3 highestPos, D3DXVECTOR3 lowestPos)
+bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
+	D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour,
+	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	ID3D11ShaderResourceView** textures = new ID3D11ShaderResourceView*[numberOfTextures];
 
@@ -359,7 +378,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	MatrixBufferType* dataPtr;
 	LightBufferType* dataPtr2;
 	TerrainInfoBufferType* terrainConstBuffPtr;
-
+	PositioningBufferType* positioningConstBuffPtr;
 
 	// Transpose the matrices to prepare them for the shader.
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
@@ -429,8 +448,10 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 
 	terrainConstBuffPtr = (TerrainInfoBufferType*)mappedResource.pData;
 
-	terrainConstBuffPtr->highestPosition = highestPos;
-	terrainConstBuffPtr->lowestPosition = lowestPos;
+	// Append the positions before it gets locked in the const buffer.
+	terrainConstBuffPtr->highestPosition = highestPos + worldPosition.y;
+	terrainConstBuffPtr->lowestPosition = lowestPos + worldPosition.y;
+	terrainConstBuffPtr->padding2 = { 0.0f, 0.0f };
 
 	// Unlock the terrain constant buffer.
 	deviceContext->Unmap(mpTerrainConstBuffer, 0);
@@ -440,6 +461,32 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 
 	// Update the terrain constant buffer in the pixel shader.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpTerrainConstBuffer);
+
+	////////////////////////////////////////
+	// Positioning buffer.
+
+	// Lock the terrain info constant buffer so it can be written to.
+	result = deviceContext->Map(mpPositioningBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		gLogger->WriteLine("Failed to map the positioning cosntant buffer when setting shader parameters in terrain shader class.");
+		return false;
+	}
+
+	positioningConstBuffPtr = (PositioningBufferType*)mappedResource.pData;
+
+	// Append the positions before it gets locked in the const buffer.
+	positioningConstBuffPtr->yOffset = worldPosition.y;
+	positioningConstBuffPtr->posPadding = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	// Unlock the terrain constant buffer.
+	deviceContext->Unmap(mpPositioningBuffer, 0);
+
+	// We'll need to modify the buffer position in the pixel shader as we're looking at the next buffer now.
+	bufferNumber = 2;
+
+	// Update the terrain constant buffer in the pixel shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpPositioningBuffer);
 
 	delete[] textures;
 	return true;

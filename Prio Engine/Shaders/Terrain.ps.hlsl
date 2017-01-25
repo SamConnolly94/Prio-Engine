@@ -1,20 +1,24 @@
 ///////////////////////////
 // Terrain pixel shader.
 // Author: Sam Connolly
-// Last update: 24/01/2017
+// Last update: 25/01/2017
 ///////////////////////////
 
+//////////////////////////
 // 1) Dirt
 // 2) Snow
 // 3) Yellow Grass
 // 4) Sand
 // 5) Rock
+/////////////////////////
 Texture2D shaderTexture[5];
 SamplerState SampleType;
 
 ///////////////////////////
 // Buffers
+///////////////////////////
 
+/* The buffer which contains details about our lighting information. */
 cbuffer LightBuffer : register(b0)
 {
 	float4 ambientColour;
@@ -23,16 +27,28 @@ cbuffer LightBuffer : register(b0)
 	float padding;
 };
 
+/* The buffer which contains information about our terrain. */
 cbuffer TerrainInfoBuffer : register(b1)
 {
-	float3 highestPosition;
-	float3 lowestPosition;
-	float2 padding2;
+	float highestPosition;
+	float lowestPosition;
+	float2 terrBuffPadding;
 };
 
-///////////////////////////
-// Typedefs
+/* Information about the model of the terrain itself. */
+// Important note - separate from terrainInfoBuffer due to the way in which padding works.
+cbuffer PositioningBuffer : register(b2)
+{
+	float yOffset;
+	float3 posPadding;
+}
 
+//////////////////////
+// Typedefs
+/////////////////////
+
+/* The pixel input type is the information that will be passed in from the vertex shader.
+*  This will need to match the structure in the vertex shader. */
 struct PixelInputType
 {
 	float4 screenPosition : SV_POSITION;
@@ -41,6 +57,13 @@ struct PixelInputType
 	float3 normal : NORMAL;
 };
 
+///////////////////////
+// Helper Functions
+///////////////////////
+
+/* Get the percentage of a number. 
+*  Param number - The number which you want to find the percentage of.
+*  Param desiredPercentage - The percentage of the number which you wish to find. */
 float GetPercentage(float number, float desiredPercentage)
 {
 	float onePerc = number / 100.0f;
@@ -48,7 +71,13 @@ float GetPercentage(float number, float desiredPercentage)
 	return (onePerc * desiredPercentage);
 };
 
-// Pixel shader
+///////////////////////////
+// Pixel Shading Functions
+///////////////////////////
+
+/* This is the main body of our pixel shader and our entry point.
+*  The purpose of this is to shade the pictures using a different texture depending on the height of the current vertex.
+*  So far we have implemented Snow, Grass, Dirt, Sand, Rocks and at the bottom below the rocks there are some pools of water. */
 float4 TerrainPixel(PixelInputType input) : SV_TARGET
 {
 	float4 textureColour;
@@ -56,189 +85,180 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	float lightIntensity;
 	float4 colour;
 
-	// Calculate triplanar mapping planes.
-
-	float mXY = abs(input.normal.z);
-	float mXZ = abs(input.normal.y);
-	float mYZ = abs(input.normal.x);
-	float length = mXY + mXZ + mYZ;
+	// Get normals on different planes
+	float normXY = abs(input.normal.z);
+	float normXZ = abs(input.normal.y);
+	float normYZ = abs(input.normal.x);
+	float length = normXY + normXZ + normYZ;
 
 	// Normalise the mapping planes.
-	mXY /= length;
-	mXZ /= length;
-	mYZ /= length;
+	normXY /= length;
+	normXZ /= length;
+	normYZ /= length;
 
-	// The height at which we will say a pixel should have snow on it.
-	//const float snowHeight = highestPosition.y - 10.0f;
-	const float snowHeight = 85.0f;
-	const float grassHeight = 75.0f;
-	const float dirtHeight = 70.0f;
-	const float sandHeight = 65.0f;
-	const float rockHeight = 60.0f;
+	// Find the world position by moving the vertex by whatever our current Y position of the terrain is.
+	// This only needs to be done as we support movement of terrain in Prio Engine.
+	float worldPos = input.worldPosition.y + yOffset;
 
-	const float range = highestPosition.y - lowestPosition.y;
+	const float changeInHeight = highestPosition - lowestPosition;
 
-	// If the shader is high up.
-	if (input.worldPosition.y > snowHeight)
+	// Define the position 
+	const float snowHeight = lowestPosition + GetPercentage(changeInHeight, 60);	// 60% and upwards will be snow.
+	const float grassHeight = lowestPosition + GetPercentage(changeInHeight, 30);	// 30% and upwards will be grass.
+	const float dirtHeight = lowestPosition + GetPercentage(changeInHeight, 15);	// 15% and upwards will be dirt.
+	const float sandHeight = lowestPosition + GetPercentage(changeInHeight, 10);	// 10% and upwards will be sand.
+	const float rockHeight = lowestPosition + GetPercentage(changeInHeight, 4);		// 4%  and upwards will be rocks.
+
+	const float rockBlendRange = GetPercentage(changeInHeight, 3);	// 2% of the terrain is given to blending the rocks with anything below rocks (water) **** CURRENTLY NOT IN USE *****.
+	const float sandBlendRange = GetPercentage(changeInHeight, 3);	// 3% of the terrain is given to blending the sand with rocks.
+	const float dirtBlendRange = GetPercentage(changeInHeight, 3);	// 3% of the terrain is given to blending the dirt with sand.
+	const float grassBlendRange = GetPercentage(changeInHeight, 3);	// 3% of the terrain is given to blending the grass with dirt.
+	const float snowBlendRange = GetPercentage(changeInHeight, 10);	// 10% of the terrain is given to blending the snow with grass.
+
+	/////////// SNOW //////////////////
+	if (worldPos > snowHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[1].Sample(SampleType, input.tex);		
 		float4 cXY = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 snowTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 snowTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 		textureColour = snowTex;
 	}
-	// Blending time.
-	else if (input.worldPosition.y > snowHeight - GetPercentage(range, 5.0f))
+	///////////// SNOW BLENDED WITH GRASS /////////////
+	else if (worldPos > snowHeight - snowBlendRange)
 	{
 		float4 cXY = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 snowTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ; 
-		/* shaderTexture[1].Sample(SampleType, input.tex); */
+		float4 snowTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
 
 		cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
 		cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//float4 grassTex = shaderTexture[2].Sample(SampleType, input.tex);
 
-		float heightDiff = snowHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
+		float heightDiff = snowHeight - worldPos;
+		float blendFactor = heightDiff / snowBlendRange;
 		textureColour = lerp(snowTex, grassTex, blendFactor);
 	}
-	// draw grass texture
-	else if (input.worldPosition.y > grassHeight)
+	////////////// GRASS ///////////////////
+	else if (worldPos > grassHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[1].Sample(SampleType, input.tex);		
 		float4 cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 		textureColour = grassTex;
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[2].Sample(SampleType, input.tex);
 	}
-	// Blend grass with dirt
-	else if (input.worldPosition.y > grassHeight - GetPercentage(range, 5.0f))
+	////////////////// GRASS BLENDED WITH DIRT ////////////////
+	else if (worldPos > grassHeight - grassBlendRange)
 	{
 		float4 cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ; 
+		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
 
 		cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
 		cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ; 
+		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//float4 grassTex = shaderTexture[2].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//float4 dirtTex = shaderTexture[0].Sample(SampleType, input.tex);
-		float heightDiff = grassHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
+		float heightDiff = grassHeight - worldPos;
+		float blendFactor = heightDiff / grassBlendRange;
 		textureColour = lerp(grassTex, dirtTex, blendFactor);
 	}
-	// Dirt
-	else if (input.worldPosition.y > dirtHeight)
+	/////////////////////// DIRT //////////////////////
+	else if (worldPos > dirtHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[1].Sample(SampleType, input.tex);		
 		float4 cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 		textureColour = dirtTex;
-
-		//textureColour = shaderTexture[0].Sample(SampleType, input.tex);
 	}
-	// dirt blended with sand
-	else if (input.worldPosition.y > dirtHeight - GetPercentage(range, 5.0f))
+	////////////////////// DIRT BLENDED WITH SAND ///////////////
+	else if (worldPos > dirtHeight - dirtBlendRange)
 	{
 		float4 cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//float4 dirtTex = shaderTexture[0].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
 		cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 
-		//float4 sandTex = shaderTexture[3].Sample(SampleType, input.tex);
-		float heightDiff = dirtHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / GetPercentage(range, 5.0f);
+		float heightDiff = dirtHeight - worldPos;
+		float blendFactor = heightDiff / dirtBlendRange;
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
 	}
-	// Sand
-	else if (input.worldPosition.y > sandHeight)
+	//////////////////// SAND //////////////////
+	else if (worldPos > sandHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[1].Sample(SampleType, input.tex);		
 		float4 cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 		textureColour = sandTex;
 
 		//textureColour = shaderTexture[3].Sample(SampleType, input.tex);
 	}
-	// Sand blended with rock.
-	else if (input.worldPosition.y > sandHeight - GetPercentage(range, 1.0f))
+	////////////////////// SAND BLENDED WITH ROCKS ///////////////////
+	else if (worldPos > sandHeight - sandBlendRange)
 	{
 		float4 cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//float4 sandTex = shaderTexture[3].Sample(SampleType, input.tex);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		cXY = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
 		cXZ = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
 		cYZ = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 rockTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 rockTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 
-		//float4 rockTex = shaderTexture[4].Sample(SampleType, input.tex);
-		float heightDiff = sandHeight - input.worldPosition.y;
-		float blendFactor = heightDiff / GetPercentage(range, 1.0f);
+		float heightDiff = sandHeight - worldPos;
+		float blendFactor = heightDiff / sandBlendRange;
 		textureColour = lerp(sandTex, rockTex, blendFactor);
 	}
-	// Rock.
-	else if (input.worldPosition.y > rockHeight)
+	//////////////////// ROCKS ///////////////////////////
+	else if (worldPos > rockHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		//textureColour = shaderTexture[1].Sample(SampleType, input.tex);		
 		float4 cXY = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
 		float4 cXZ = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
 		float4 cYZ = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 rockTex = cXY * mXY + cXZ * mXZ + cYZ * mYZ;
+		float4 rockTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
 		textureColour = rockTex;
-
-		//textureColour = shaderTexture[4].Sample(SampleType, input.tex);
 	}
+	////////////////// BELOW THE ROCKS TILE, SET TO WATER. /////////////////////
 	else
 	{
 		// Default pixel to blue to show any obvious errors (if its lower, blue is okay because it can represent water.
