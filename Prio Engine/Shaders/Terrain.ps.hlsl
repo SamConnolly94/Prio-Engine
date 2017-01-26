@@ -86,15 +86,20 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	float4 colour;
 
 	// Get normals on different planes
-	float normXY = abs(input.normal.z);
-	float normXZ = abs(input.normal.y);
-	float normYZ = abs(input.normal.x);
-	float length = normXY + normXZ + normYZ;
+	float3 blending = abs(input.normal);
+	// Make sure the blending weight is of length 1.
+	blending = normalize(max(blending, 0.00001));
+	float averageBlend = (blending.x + blending.y + blending.z) / 3.0f;
 
-	// Normalise the mapping planes.
-	normXY /= length;
-	normXZ /= length;
-	normYZ /= length;
+	//float blending = abs(input.normal.z);
+	//float blending.y = abs(input.normal.y);
+	//float blending.z = abs(input.normal.x);
+	//float length = blending + blending.y + blending.z;
+
+	//// Normalise the mapping planes.
+	//blending /= length;
+	//blending.y /= length;
+	//blending.z /= length;
 
 	// Find the world position by moving the vertex by whatever our current Y position of the terrain is.
 	// This only needs to be done as we support movement of terrain in Prio Engine.
@@ -119,27 +124,27 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	if (worldPos > snowHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 cXY = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 snowTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 snowTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 		textureColour = snowTex;
 	}
 	///////////// SNOW BLENDED WITH GRASS /////////////
 	else if (worldPos > snowHeight - snowBlendRange)
 	{
-		float4 cXY = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[1].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 snowTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
+		float4 snowTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
-		cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
-		cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
-		cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		xAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		yAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
+		zAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 grassTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 
@@ -151,28 +156,28 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > grassHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 grassTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 		textureColour = grassTex;
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	}
 	////////////////// GRASS BLENDED WITH DIRT ////////////////
 	else if (worldPos > grassHeight - grassBlendRange)
 	{
-		float4 cXY = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[2].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 grassTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
+		float4 grassTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
-		cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
-		cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
-		cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		xAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		yAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
+		zAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ; 
+		float4 dirtTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
@@ -184,30 +189,30 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > dirtHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 dirtTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 		textureColour = dirtTex;
 	}
 	////////////////////// DIRT BLENDED WITH SAND ///////////////
 	else if (worldPos > dirtHeight - dirtBlendRange)
 	{
-		float4 cXY = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[0].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 dirtTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 dirtTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
-		cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
-		cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		xAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		yAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
+		zAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 sandTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 		float heightDiff = dirtHeight - worldPos;
 		float blendFactor = heightDiff / dirtBlendRange;
@@ -217,31 +222,29 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > sandHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 sandTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 		textureColour = sandTex;
-
-		//textureColour = shaderTexture[3].Sample(SampleType, input.tex);
 	}
 	////////////////////// SAND BLENDED WITH ROCKS ///////////////////
 	else if (worldPos > sandHeight - sandBlendRange)
 	{
-		float4 cXY = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[3].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 sandTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 sandTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		cXY = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
-		cXZ = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
-		cYZ = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
+		xAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
+		yAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
+		zAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 rockTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 rockTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 
 		float heightDiff = sandHeight - worldPos;
 		float blendFactor = heightDiff / sandBlendRange;
@@ -251,11 +254,11 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > rockHeight)
 	{
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 cXY = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
-		float4 cXZ = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
-		float4 cYZ = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
+		float4 xAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.yz);
+		float4 yAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.xz);
+		float4 zAxis = shaderTexture[4].Sample(SampleType, input.worldPosition.xy);
 		// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-		float4 rockTex = cXY * normXY + cXZ * normXZ + cYZ * normYZ;
+		float4 rockTex = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 		textureColour = rockTex;
 	}
 	////////////////// BELOW THE ROCKS TILE, SET TO WATER. /////////////////////
