@@ -71,7 +71,7 @@ float GetPercentage(float number, float desiredPercentage)
 	return (onePerc * desiredPercentage);
 };
 
-float4 GetBlendColour(int texIndex, float3 blending, float4 worldPosition, float scale)
+float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
 {
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	float4 xAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * scale);
@@ -125,13 +125,13 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	/////////// SNOW //////////////////
 	if (worldPos > snowHeight)
 	{
-		textureColour = GetBlendColour(1, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 	}
 	///////////// SNOW BLENDED WITH GRASS /////////////
 	else if (worldPos > snowHeight - snowBlendRange)
 	{
-		float4 snowTex = GetBlendColour(1, blending, input.worldPosition, 1.0f);
-		float4 grassTex = GetBlendColour(2, blending, input.worldPosition, 1.0f);
+		float4 snowTex = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
+		float4 grassTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 		float heightDiff = snowHeight - worldPos;
 		float blendFactor = heightDiff / snowBlendRange;
 		textureColour = lerp(snowTex, grassTex, blendFactor);
@@ -139,13 +139,13 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	////////////// GRASS ///////////////////
 	else if (worldPos > grassHeight)
 	{
-		textureColour = GetBlendColour(2, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 	}
 	////////////////// GRASS BLENDED WITH DIRT ////////////////
 	else if (worldPos > grassHeight - grassBlendRange)
 	{
-		float4 grassTex = GetBlendColour(2, blending, input.worldPosition, 1.0f);
-		float4 dirtTex = GetBlendColour(0, blending, input.worldPosition, 1.0f);
+		float4 grassTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 		float heightDiff = grassHeight - worldPos;
 		float blendFactor = heightDiff / grassBlendRange;
 		textureColour = lerp(grassTex, dirtTex, blendFactor);
@@ -153,13 +153,13 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	/////////////////////// DIRT //////////////////////
 	else if (worldPos > dirtHeight)
 	{
-		textureColour = GetBlendColour(0, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 	}
 	////////////////////// DIRT BLENDED WITH SAND ///////////////
 	else if (worldPos > dirtHeight - dirtBlendRange)
 	{
-		float4 dirtTex = GetBlendColour(0, blending, input.worldPosition, 1.0f);
-		float4 sandTex = GetBlendColour(3, blending, input.worldPosition, 1.0f);
+		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 sandTex = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
 		float heightDiff = dirtHeight - worldPos;
 		float blendFactor = heightDiff / dirtBlendRange;
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
@@ -167,13 +167,13 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	//////////////////// SAND //////////////////
 	else if (worldPos > sandHeight)
 	{
-		textureColour = GetBlendColour(3, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
 	}
 	////////////////////// SAND BLENDED WITH ROCKS ///////////////////
 	else if (worldPos > sandHeight - sandBlendRange)
 	{
-		float4 sandTex = GetBlendColour(3, blending, input.worldPosition, 1.0f);
-		float4 rockTex = GetBlendColour(4, blending, input.worldPosition, 1.0f);
+		float4 sandTex = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
+		float4 rockTex = GetTriplanarTextureColour(4, blending, input.worldPosition, 1.0f);
 		float heightDiff = sandHeight - worldPos;
 		float blendFactor = heightDiff / sandBlendRange;
 		textureColour = lerp(sandTex, rockTex, blendFactor);
@@ -181,7 +181,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	//////////////////// ROCKS ///////////////////////////
 	else if (worldPos > rockHeight)
 	{
-		textureColour = GetBlendColour(4, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(4, blending, input.worldPosition, 1.0f);
 	}
 	////////////////// BELOW THE ROCKS TILE, SET TO WATER. /////////////////////
 	else
@@ -193,7 +193,6 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour.a = 1.0f;
 	}
 	
-
 	// Set the colour to the ambient colour.
 	colour = ambientColour;
 
