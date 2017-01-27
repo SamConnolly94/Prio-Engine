@@ -78,7 +78,18 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 	float4 yAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
+	float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale *4));
+	float4 yAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	float4 zAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+
+	float4 xAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	float4 yAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	float4 zAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+
 	float4 result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
+	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	result /= 3;
 
 	return result;
 };
