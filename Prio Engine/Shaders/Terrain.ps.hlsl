@@ -112,7 +112,8 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	float3 blending = abs(input.normal);
 	// Make sure the blending weight is of length 1.
 	blending = normalize(max(blending, 0.00001));
-	float averageBlend = (blending.x + blending.y + blending.z) / 3.0f;
+	float blendLen = (blending.x + blending.y + blending.z);
+	blending /= (blendLen, blendLen, blendLen);
 
 	// Find the world position by moving the vertex by whatever our current Y position of the terrain is.
 	// This only needs to be done as we support movement of terrain in Prio Engine.
