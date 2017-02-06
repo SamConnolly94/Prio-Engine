@@ -1,9 +1,9 @@
-#include "Engine\PrioEngineVars.h"
-#include "Engine/Engine.h"
+#include "PrioEngineVars.h"
+#include "Engine.h"
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
-void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid, float frameTime);
+void Control(CEngine* &engine, CCamera* cam, CTerrain* grid, float frameTime);
 
 // Globals
 CLogger* gLogger;
@@ -72,28 +72,12 @@ void GameLoop(CEngine* &engine)
 	myCam = engine->GetMainCamera();
 
 	CLight* ambientLight;
-	CTerrainGrid* grid = engine->CreateTerrainGrid();
-	grid->LoadHeightMapFromFile("Default.map");
-	grid->CreateGrid();
-	
-	//double** blankMap = new double*[100];
-	//for (int i = 0; i < 100; i++)
-	//{
-	//	blankMap[i] = new double[100];
-
-	//	for (int j = 0; j < 100; j++)
-	//	{
-	//		blankMap[i][j] = 0;
-	//	}
-	//}
-
-	//engine->UpdateTerrainBuffers(grid, blankMap, 100, 100);
+	CTerrain* terrain = engine->CreateTerrain("Default.map");
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
 
 	// Camera init.
-	//myCam = engine->CreateCamera();
 	myCam->SetPosizionY(30.0f);
 
 	// Light init
@@ -118,7 +102,7 @@ void GameLoop(CEngine* &engine)
 		frameTime = engine->GetFrameTime();
 
 		// Process any keys pressed this frame.
-		Control(engine, myCam, grid, frameTime);
+		Control(engine, myCam, terrain, frameTime);
 
 		// Update the text on our game.
 		if (timeSinceTextUpdate >= kTextUpdateInterval)
@@ -129,20 +113,10 @@ void GameLoop(CEngine* &engine)
 		}
 		timeSinceTextUpdate += frameTime;
 	}
-
-	//for (int i = 0; i < grid->GetHeight(); ++i) {
-	//	delete[] blankMap[i];
-	//	gLogger->MemoryDeallocWriteLine(typeid(blankMap[i]).name());
-	//	blankMap[i] = nullptr;
-
-	//}
-	//delete[] blankMap;
-	//blankMap = nullptr;
-	//grid->ReleaseHeightMap();
 }
 
 /* Control any user input here, must be called in every tick of the game loop. */
-void Control(CEngine* &engine, CCamera* cam, CTerrainGrid* grid, float frameTime)
+void Control(CEngine* &engine, CCamera* cam, CTerrain* grid, float frameTime)
 {
 	const float kMoveSpeed = 25.0f;
 	const float kRotationSpeed = 10.0f;

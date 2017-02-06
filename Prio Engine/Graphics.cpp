@@ -205,7 +205,7 @@ void CGraphics::Shutdown()
 
 	// Deallocate memory on the terrain list.
 
-	std::list<CTerrainGrid*>::iterator terrainIt;
+	std::list<CTerrain*>::iterator terrainIt;
 	terrainIt = mpTerrainGrids.begin();
 	while (terrainIt != mpTerrainGrids.end())
 	{
@@ -539,9 +539,9 @@ bool CGraphics::RemoveUIImage(C2DImage *& element)
 	return false;
 }
 
-bool CGraphics::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap, int width, int height)
+bool CGraphics::UpdateTerrainBuffers(CTerrain *& terrain, double ** heightmap, int width, int height)
 {
-	return grid->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap, width, height);
+	return terrain->UpdateBuffers(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), heightmap, width, height);
 }
 
 bool CGraphics::IsFullscreen()
@@ -986,12 +986,46 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 	return false;
 }
 
-CTerrainGrid * CGraphics::CreateTerrainGrid()
+CTerrain * CGraphics::CreateTerrain(std::string mapFile)
 {
-	CTerrainGrid* terrain = new CTerrainGrid(mpD3D->GetDevice());
-	//terrain->Initialise(mpD3D->GetDevice());
-	gLogger->WriteLine("Retrieved an instance of terrain but it will need to be initialised before use, if not we're going to attempt to render something which simply does not exist. Use terrainObj->CreateGrid() to create it. ");
+	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
+	gLogger->WriteLine("Created terrain from the graphics object.");
 	mpTerrainGrids.push_back(terrain);
+
+	// Check a map file was actually passed in.
+	if (mapFile != "")
+	{
+		// Attempt to load the height map passed in.
+		if (!terrain->LoadHeightMapFromFile(mapFile))
+		{
+			gLogger->WriteLine("Failed to load height map with name: " + mapFile);
+		}
+	}
+	else
+	{
+		gLogger->WriteLine("No map file was passed in, not attempting to load.");
+	}
+
+	// Initialise the terrain.
+	terrain->CreateTerrain(mpD3D->GetDevice());
+
+	return terrain;
+}
+
+CTerrain * CGraphics::CreateTerrain(double ** heightMap, int mapWidth, int mapHeight)
+{
+	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
+	gLogger->WriteLine("Created terrain from the graphics object.");
+	mpTerrainGrids.push_back(terrain);
+
+	// Loading height map
+	terrain->SetWidth(mapWidth);
+	terrain->SetHeight(mapHeight);
+	terrain->LoadHeightMap(heightMap);
+
+	// Initialise the terrain.
+	terrain->CreateTerrain(mpD3D->GetDevice());
+
 	return terrain;
 }
 

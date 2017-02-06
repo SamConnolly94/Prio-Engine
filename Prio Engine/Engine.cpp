@@ -453,9 +453,9 @@ bool CEngine::RemoveUIImage(C2DImage *& element)
 	return mpGraphics->RemoveUIImage(element);
 }
 
-bool CEngine::UpdateTerrainBuffers(CTerrainGrid *& grid, double ** heightmap, int width, int height)
+bool CEngine::UpdateTerrainBuffers(CTerrain *& terrain, double ** heightmap, int width, int height)
 {
-	return mpGraphics->UpdateTerrainBuffers(grid, heightmap, width, height);
+	return mpGraphics->UpdateTerrainBuffers(terrain, heightmap, width, height);
 }
 
 bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)
@@ -482,9 +482,18 @@ bool CEngine::RemoveLight(CLight *& light)
 	return mpGraphics->RemoveLight(light);
 }
 
-CTerrainGrid * CEngine::CreateTerrainGrid()
+CTerrain * CEngine::CreateTerrain(std::string mapFile)
 {
-	return mpGraphics->CreateTerrainGrid();
+	CTerrain* terrainPtr = mpGraphics->CreateTerrain(mapFile);
+
+	return terrainPtr;
+}
+
+CTerrain * CEngine::CreateTerrain(double ** heightMap, int mapWidth, int mapHeight)
+{
+	CTerrain* terrainPtr = mpGraphics->CreateTerrain(heightMap, mapWidth, mapHeight);
+
+	return terrainPtr;
 }
 
 bool CEngine::RemovePrimitive(CPrimitive * model)

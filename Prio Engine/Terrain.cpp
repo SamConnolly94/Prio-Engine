@@ -1,11 +1,9 @@
 #include "Terrain.h"
 
-CTerrainGrid::CTerrainGrid(ID3D11Device* device)
+CTerrain::CTerrain(ID3D11Device* device)
 {
 	// Output alloc message to memory log.
 	gLogger->MemoryAllocWriteLine(typeid(this).name());
-
-	mpDevice = device;
 
 	// Initialise pointers to nullptr.
 	mpVertexBuffer = nullptr;
@@ -41,20 +39,10 @@ CTerrainGrid::CTerrainGrid(ID3D11Device* device)
 }
 
 
-CTerrainGrid::~CTerrainGrid()
+CTerrain::~CTerrain()
 {
 	// Output dealloc message to memory log.
 	gLogger->MemoryDeallocWriteLine(typeid(this).name());
-
-	// Clean up the areas we're using.
-	for (auto area : mAreas)
-	{
-		area->Shutdown();
-		delete area;
-	}
-	mAreas.clear();
-
-	//delete[] mTiles;
 
 	for (unsigned int i = 0; i < kmNumberOfTextures; i++)
 	{
@@ -69,7 +57,7 @@ CTerrainGrid::~CTerrainGrid()
 	ShutdownBuffers();
 }
 
-void CTerrainGrid::ReleaseHeightMap()
+void CTerrain::ReleaseHeightMap()
 {
 	if (mpHeightMap != nullptr)
 	{
@@ -85,7 +73,7 @@ void CTerrainGrid::ReleaseHeightMap()
 }
 
 /* Create an instance of the grid so that it is ready to be rendered. */
-bool CTerrainGrid::CreateGrid()
+bool CTerrain::CreateTerrain(ID3D11Device* device)
 {
 	bool result;
 
@@ -100,7 +88,7 @@ bool CTerrainGrid::CreateGrid()
 	}
 
 	// Initialise the vertex buffers.
-	result = InitialiseBuffers(mpDevice);
+	result = InitialiseBuffers(device);
 
 	// If we weren't successful in creating buffers.
 	if (!result)
@@ -114,13 +102,13 @@ bool CTerrainGrid::CreateGrid()
 }
 
 /* Prepares the buffers and passes them over to the GPU ready for rendering. */
-void CTerrainGrid::Render(ID3D11DeviceContext * context)
+void CTerrain::Render(ID3D11DeviceContext * context)
 {
 	// Render the data contained in the buffers..
 	RenderBuffers(context);
 }
 
-CTexture** CTerrainGrid::GetTexturesArray()
+CTexture** CTerrain::GetTexturesArray()
 {
 	return mpTextures;
 }
@@ -128,9 +116,9 @@ CTexture** CTerrainGrid::GetTexturesArray()
 /* This function is designed to create vertex and index buffers according to a heightmap that has already been set.
 * @PARAM ID3D11Device* device - ptr to a direct x 11 device, can usually be retrieved from the graphics class.
 */
-bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
+bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 {
-	CTerrainTile::VertexType* vertices;
+	VertexType* vertices;
 	unsigned long* indices;
 	int index;
 	int vertex;
@@ -152,7 +140,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	numberOfNormals = ((mWidth - 1) * (mHeight - 1)) * 2;
 
 	// Create the vertex array.
-	vertices = new CTerrainTile::VertexType[mVertexCount];
+	vertices = new VertexType[mVertexCount];
 	// Output the allocation message to the log.
 	gLogger->MemoryAllocWriteLine(typeid(vertices).name());
 	// If we failed to allocate memory to the vertices array.
@@ -365,11 +353,9 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 		}
 	}
 
-	SplitTiles(device, vertices);
-
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(CTerrainTile::VertexType) * mVertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mVertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -421,7 +407,7 @@ bool CTerrainGrid::InitialiseBuffers(ID3D11Device * device)
 	return true;
 }
 
-void CTerrainGrid::ShutdownBuffers()
+void CTerrain::ShutdownBuffers()
 {
 	// Release any memory given to the vertex buffer.
 	if (mpVertexBuffer)
@@ -438,13 +424,13 @@ void CTerrainGrid::ShutdownBuffers()
 	}
 }
 
-void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
+void CTerrain::RenderBuffers(ID3D11DeviceContext * context)
 {
 	unsigned int stride;
 	unsigned int offset;
 
 	// Set the vertex buffer stride and offset.
-	stride = sizeof(CTerrainTile::VertexType);
+	stride = sizeof(VertexType);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler.
@@ -457,7 +443,7 @@ void CTerrainGrid::RenderBuffers(ID3D11DeviceContext * context)
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(CTerrainTile::VertexType * vertices, int index)
+PrioEngine::Math::VEC3 CTerrain::CalculateNormal(VertexType * vertices, int index)
 {
 	// Bottom left
 	PrioEngine::Math::VEC3 point1 = { vertices[index].position.x, vertices[index].position.y, vertices[index].position.z };
@@ -475,124 +461,12 @@ PrioEngine::Math::VEC3 CTerrainGrid::CalculateNormal(CTerrainTile::VertexType * 
 	return face1Vec;
 }
 
-void CTerrainGrid::SplitTiles(ID3D11Device* device, CTerrainTile::VertexType* vertices)
-{
-	// Initialise the snow area.
-	CTerrainArea* snow = new CTerrainArea();
-	gLogger->MemoryAllocWriteLine(typeid(snow).name());
-	snow->LoadTexture(device, L"Resources/Textures/ice.dds");
-
-	// Initialise the grass area.
-	CTerrainArea* grass = new CTerrainArea();
-	gLogger->MemoryAllocWriteLine(typeid(grass).name());
-	grass->LoadTexture(device, L"Resources/Textures/YellowGrass.dds");
-
-	CTerrainArea* sand = new CTerrainArea();
-	gLogger->MemoryAllocWriteLine(typeid(sand).name());
-	sand->LoadTexture(device, L"Resources/Textures/Sand.dds");
-
-	// Set the colour of the areas.
-	snow->SetColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
-	grass->SetColour(D3DXVECTOR4{ 0.0f, 1.0f, 0.0f, 1.0f });
-
-	const float kSnowHeightFromTop = 5.0f;
-	const float kSandHeightFromBottom = 10.0f;
-	int vertex = 0;
-
-	/// Copy data out of tiles. 
-	// Iterate through the height ( - 1 because we'll draw a triangle which uses the vertex above current point, don't want to cause issues when we hit the boundary).
-	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
-	{
-		// Iterate through the width ( - 1 because we'll draw a triangle which uses the vertex to the right of the current point, don't want to cause issue's at the boundary).
-		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
-		{
-			/// First triangle tile.
-			// Define a tile.
-			CTerrainTile tile1;
-
-			tile1.mVertices[0] = vertices[vertex];
-			tile1.mVertices[1] = vertices[vertex + mWidth];
-			tile1.mVertices[2] = vertices[vertex + 1];
-
-			float averageHeight = (tile1.mVertices[0].position.y + tile1.mVertices[1].position.y + tile1.mVertices[2].position.y) / 3.0f;
-
-			// If the vertex is high up.
-			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
-			{
-				// Make the tile type snow.
-				tile1.terrainType = CTerrainTile::TerrainType::Snow;
-				snow->AddTile(tile1);
-			}
-			else if (averageHeight < (mLowestPoint + kSandHeightFromBottom))
-			{
-				// Make the tile type sand.
-				tile1.terrainType = CTerrainTile::TerrainType::Sand;
-				sand->AddTile(tile1);
-			}
-			else
-			{
-				// Make it grass.
-				tile1.terrainType = CTerrainTile::TerrainType::Grass;
-				grass->AddTile(tile1);
-			}
-
-			/// Second triangle tile.
-
-			// Define a tile.
-			CTerrainTile tile2;
-
-			tile2.mVertices[0] = vertices[vertex + 1]; 
-			tile2.mVertices[1] = vertices[vertex + mWidth];
-			tile2.mVertices[2] = vertices[vertex + mWidth + 1];
-
-			averageHeight = (tile2.mVertices[0].position.y + tile2.mVertices[1].position.y + tile2.mVertices[2].position.y) / 3.0f;
-
-			// If the vertex is high up.
-			if (averageHeight > mHighestPoint - kSnowHeightFromTop)
-			{
-				// Make the tile type snow.
-				tile2.terrainType = CTerrainTile::TerrainType::Snow;
-				snow->AddTile(tile2);
-			}
-			else if (averageHeight < (mLowestPoint + kSandHeightFromBottom))
-			{
-				// Make the tile type sand.
-				tile2.terrainType = CTerrainTile::TerrainType::Sand;
-				sand->AddTile(tile2);
-			}
-			else
-			{
-				// Make it grass.
-				tile2.terrainType = CTerrainTile::TerrainType::Grass;
-				grass->AddTile(tile2);
-			}
-
-			// Define the tile.
-			mTiles.push_back(tile1);
-			mTiles.push_back(tile2);
-			// Increase the vertex which is our primary point.
-			vertex++;
-		}
-		// Increase the vertex which is our primary point.
-		vertex++;
-	}
-
-	mAreas.push_back(snow);
-	mAreas.push_back(grass);
-	mAreas.push_back(sand);
-
-	for (auto area : mAreas)
-	{
-		area->SetBuffers(device);
-	}
-}
-
 /* LoadHeightMap - Loads in a height map (usually from a perlin noise function) and stores ptrs to the data. 
 * @PARAM double ** heightMap - A dynamically allocated 2D array of type doubles, it must contain all the data to be used for the heightmap already.
 * @WARNING: Must not delete the 2D array until after this class has been destroyed.
 * @WARNING: Must set height and width before calling this function.
 */
-void CTerrainGrid::LoadHeightMap(double ** heightMap)
+void CTerrain::LoadHeightMap(double ** heightMap)
 {
 	// Copy the pointers to the 2D array and store them in memory.
 	//mpHeightMap = heightMap;
@@ -651,7 +525,7 @@ void CTerrainGrid::LoadHeightMap(double ** heightMap)
 	mHeightMapLoaded = true;
 }
 
-void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
+bool CTerrain::LoadHeightMapFromFile(std::string filename)
 {
 	std::string line;
 	std::ifstream inFile;
@@ -668,7 +542,7 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 	if (!inFile.is_open())
 	{
 		gLogger->WriteLine("Failed to open the map file with name: " + filename);
-		return;
+		return false;
 	}
 
 	int height = 0;
@@ -703,7 +577,7 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 	if (!inFile.is_open())
 	{
 		gLogger->WriteLine("Failed to open " + filename + ", but managed to open it the first time.");
-		return;
+		return false;
 	}
 
 	// Create height map.
@@ -762,20 +636,16 @@ void CTerrainGrid::LoadHeightMapFromFile(std::string filename)
 	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
 
 	mHeightMapLoaded = true;
+
+	return true;
 }
 
-bool CTerrainGrid::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceContext, double ** heightMap, int newWidth, int newHeight)
+bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceContext, double ** heightMap, int newWidth, int newHeight)
 {
 	if (mpHeightMap)
 	{
 		ReleaseHeightMap();
 	}
-	for (auto area : mAreas)
-	{
-		area->ClearAllTiles();
-	}
-
-	mTiles.clear();
 
 	mHeight = newHeight;
 	mWidth = newWidth;
@@ -784,23 +654,23 @@ bool CTerrainGrid::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* dev
 	// Load the new data into our member vars.
 	LoadHeightMap(heightMap);
 
-	//if (mpVertexBuffer)
-	//{
-	//	mpVertexBuffer->Release();
-	//	mpVertexBuffer = nullptr;
-	//}
+	if (mpVertexBuffer)
+	{
+		mpVertexBuffer->Release();
+		mpVertexBuffer = nullptr;
+	}
 
-	//if (mpIndexBuffer)
-	//{
-	//	mpIndexBuffer->Release();
-	//	mpIndexBuffer = nullptr;
-	//}
+	if (mpIndexBuffer)
+	{
+		mpIndexBuffer->Release();
+		mpIndexBuffer = nullptr;
+	}
 
 	InitialiseBuffers(device);
 	return true;
 }
 
-void CTerrainGrid::UpdateMatrices(D3DXMATRIX & world)
+void CTerrain::UpdateMatrices(D3DXMATRIX & world)
 {
 	// Render any terrains.
 	D3DXMATRIX modelWorld;
@@ -817,23 +687,4 @@ void CTerrainGrid::UpdateMatrices(D3DXMATRIX & world)
 	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
 	world = modelWorld * rotX * rotY * rotZ;
 
-}
-
-D3DXMATRIX CTerrainGrid::GetModelWorld()
-{
-	// Render any terrains.
-	D3DXMATRIX modelWorld;
-	// Define three matrices to hold x, y and z rotations.
-	D3DXMATRIX rotX;
-	D3DXMATRIX rotY;
-	D3DXMATRIX rotZ;
-
-	D3DXMatrixTranslation(&modelWorld, GetPosX(), GetPosY(), GetPosZ());
-
-	// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-	D3DXMatrixRotationX(&rotX, GetRotationX());
-	D3DXMatrixRotationY(&rotY, GetRotationY());
-	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
-
-	return modelWorld;
 }

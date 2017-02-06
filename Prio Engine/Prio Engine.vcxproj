@@ -18,6 +18,66 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="2DImage.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ColourShader.h" />
+    <ClInclude Include="Cube.h" />
+    <ClInclude Include="D3D11.h" />
+    <ClInclude Include="DiffuseLightShader.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="FontShader.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="GameFont.h" />
+    <ClInclude Include="GameText.h" />
+    <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelControl.h" />
+    <ClInclude Include="Primitive.h" />
+    <ClInclude Include="PrioEngineVars.h" />
+    <ClInclude Include="SpecularLightingShader.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TerrainShader.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureShader.h" />
+    <ClInclude Include="Triangle.h" />
+    <ClInclude Include="VertexTypeManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="2DImage.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ColourShader.cpp" />
+    <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="D3D11.cpp" />
+    <ClCompile Include="DiffuseLightShader.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="FontShader.cpp" />
+    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="GameFont.cpp" />
+    <ClCompile Include="GameText.cpp" />
+    <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelControl.cpp" />
+    <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="SpecularLightingShader.cpp" />
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TerrainShader.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureShader.cpp" />
+    <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="VertexTypeManager.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{24774A8A-27A2-4498-96B1-35A0087B84F2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -71,8 +131,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
-    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
+    <IncludePath>Dependencies\AntTweakBar\include;Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;Engine\Pixel Shaders;Engine\Vertex Shaders;</IncludePath>
+    <LibraryPath>Dependencies\AntTweakBar\lib;Dependencies\assimp-3.3.1\lib\Debug;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -84,8 +144,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Engine\Dependencies\AntTweakBar\include;Engine\Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>Engine\Dependencies\AntTweakBar\lib;Engine\Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <IncludePath>Dependencies\AntTweakBar\include;Dependencies\assimp-3.3.1\include\assimp;$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>Dependencies\AntTweakBar\lib;Dependencies\assimp-3.3.1\lib\Release;$(LibraryPath);$(DXSDK_DIR)Lib\x86</LibraryPath>
     <OutDir>$(SolutionDir)\Prio Engine\bin\Release</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -117,12 +177,10 @@
     <PostBuildEvent>
       <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
 echo "Made dir, copying shaders to that dir."
-xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
-if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
-xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
-xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
-if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
+xcopy /e /y "$(ProjectDir)Shaders" "$(TargetDir)Shaders"
+xcopy /e /y "$(ProjectDir)Dependencies\DLLs" "$(TargetDir)"
 echo "Made resources dir, copying resources to that dir."
+if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
 xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -184,10 +242,8 @@ xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     <PostBuildEvent>
       <Command>if not exist "$(TargetDir)Shaders" mkdir "$(TargetDir)Shaders"
 echo "Made dir, copying shaders to that dir."
-xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(TargetDir)Shaders"
-if not exist "$(ProjectDir)Shaders" mkdir "$(ProjectDir)Shaders"
-xcopy /e /y "$(ProjectDir)Engine\Shaders" "$(ProjectDir)Shaders"
-xcopy /e /y "$(ProjectDir)Engine\Dependencies\DLLs" "$(TargetDir)"
+xcopy /e /y "$(ProjectDir)Shaders" "$(TargetDir)Shaders"
+xcopy /e /y "$(ProjectDir)Dependencies\DLLs" "$(TargetDir)"
 if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
 echo "Made resources dir, copying resources to that dir."
 xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
@@ -225,164 +281,6 @@ echo "Made resources dir, copying resources to that dir."
 xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Engine\2DImage.cpp" />
-    <ClCompile Include="Engine\Camera.cpp" />
-    <ClCompile Include="Engine\ColourShader.cpp" />
-    <ClCompile Include="Engine\Cube.cpp" />
-    <ClCompile Include="Engine\D3D11.cpp" />
-    <ClCompile Include="Engine\DiffuseLightShader.cpp" />
-    <ClCompile Include="Engine\Engine.cpp" />
-    <ClCompile Include="Engine\FontShader.cpp" />
-    <ClCompile Include="Engine\Frustum.cpp" />
-    <ClCompile Include="Engine\GameFont.cpp" />
-    <ClCompile Include="Engine\GameText.cpp" />
-    <ClCompile Include="Engine\GameTimer.cpp" />
-    <ClCompile Include="Engine\Graphics.cpp" />
-    <ClCompile Include="Engine\Input.cpp" />
-    <ClCompile Include="Engine\Light.cpp" />
-    <ClCompile Include="Engine\Logger.cpp" />
-    <ClCompile Include="Engine\Mesh.cpp" />
-    <ClCompile Include="Engine\Model.cpp" />
-    <ClCompile Include="Engine\ModelControl.cpp" />
-    <ClCompile Include="Engine\Primitive.cpp" />
-    <ClCompile Include="Engine\SpecularLightingShader.cpp" />
-    <ClCompile Include="Engine\Terrain.cpp" />
-    <ClCompile Include="Engine\TerrainArea.cpp" />
-    <ClCompile Include="Engine\TerrainShader.cpp" />
-    <ClCompile Include="Engine\TerrainTile.cpp" />
-    <ClCompile Include="Engine\Texture.cpp" />
-    <ClCompile Include="Engine\TextureShader.cpp" />
-    <ClCompile Include="Engine\Triangle.cpp" />
-    <ClCompile Include="Engine\VertexTypeManager.cpp" />
-    <ClCompile Include="Main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Resources\Textures\TestTex.dds" />
-    <Image Include="Resources\Textures\TriangleTex.dds" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Textures\Triangle.sam" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Engine\2DImage.h" />
-    <ClInclude Include="Engine\Camera.h" />
-    <ClInclude Include="Engine\ColourShader.h" />
-    <ClInclude Include="Engine\Cube.h" />
-    <ClInclude Include="Engine\D3D11.h" />
-    <ClInclude Include="Engine\DiffuseLightShader.h" />
-    <ClInclude Include="Engine\Engine.h" />
-    <ClInclude Include="Engine\FontShader.h" />
-    <ClInclude Include="Engine\Frustum.h" />
-    <ClInclude Include="Engine\GameFont.h" />
-    <ClInclude Include="Engine\GameText.h" />
-    <ClInclude Include="Engine\GameTimer.h" />
-    <ClInclude Include="Engine\Graphics.h" />
-    <ClInclude Include="Engine\Input.h" />
-    <ClInclude Include="Engine\Light.h" />
-    <ClInclude Include="Engine\Logger.h" />
-    <ClInclude Include="Engine\Mesh.h" />
-    <ClInclude Include="Engine\Model.h" />
-    <ClInclude Include="Engine\ModelControl.h" />
-    <ClInclude Include="Engine\Primitive.h" />
-    <ClInclude Include="Engine\PrioEngineVars.h" />
-    <ClInclude Include="Engine\SpecularLightingShader.h" />
-    <ClInclude Include="Engine\Terrain.h" />
-    <ClInclude Include="Engine\TerrainArea.h" />
-    <ClInclude Include="Engine\TerrainShader.h" />
-    <ClInclude Include="Engine\TerrainTile.h" />
-    <ClInclude Include="Engine\Texture.h" />
-    <ClInclude Include="Engine\TextureShader.h" />
-    <ClInclude Include="Engine\Triangle.h" />
-    <ClInclude Include="Engine\VertexTypeManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Models\Cube.obj">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Colour.ps.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Shaders\Colour.vs.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Shaders\DiffuseLight.ps.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Shaders\DiffuseLight.vs.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <None Include="Shaders\Terrain.ps.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\Terrain.vs.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\Texture.ps.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="Shaders\Texture.vs.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Engine\Shaders\SpecularLight.ps.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Engine\Shaders\SpecularLight.vs.hlsl">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Engine\Shaders\Font.ps.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Engine\Shaders\Font.vs.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
