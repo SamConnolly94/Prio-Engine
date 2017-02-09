@@ -45,14 +45,17 @@ public:
 	bool Initialise(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-		D3DXMATRIX projMatrix, CTexture** texturesArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
+		D3DXMATRIX projMatrix, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, 	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
 
 private:
 	bool InitialiseShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename);
 
-	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
+		D3DXMATRIX projMatrix, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
 		float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
@@ -65,6 +68,7 @@ private:
 	ID3D11Buffer* mpLightBuffer;
 	ID3D11Buffer* mpTerrainConstBuffer;
 	ID3D11Buffer* mpPositioningBuffer;
+	CTexture* mpPatchMap;
 };
 
 #endif

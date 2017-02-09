@@ -9,10 +9,13 @@ CTerrainShader::CTerrainShader()
 	mpSampleState = nullptr;
 	mpLightBuffer = nullptr;
 	mpTerrainConstBuffer = nullptr;
+	mpPatchMap = new CTexture();
 }
 
 CTerrainShader::~CTerrainShader()
 {
+	mpPatchMap->Shutdown();
+	delete mpPatchMap;
 }
 
 bool CTerrainShader::Initialise(ID3D11Device * device, HWND hwnd)
@@ -24,6 +27,15 @@ bool CTerrainShader::Initialise(ID3D11Device * device, HWND hwnd)
 
 	if (!result)
 	{
+		gLogger->WriteLine("Failed to initialise the vertex and pixel shaders when initialising the terrain shader class.");
+		return false;
+	}
+
+	result = mpPatchMap->Initialise(device, L"Resources/Patch Maps/PatchMap.png");
+
+	if (!result)
+	{
+		gLogger->WriteLine("Failed to load the blend mask when initialising the terrain shader.");
 		return false;
 	}
 
@@ -37,12 +49,15 @@ void CTerrainShader::Shutdown()
 }
 
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
+	D3DXMATRIX projMatrix, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, textureArray, numberOfTextures, lightDirection, diffuseColour, ambientColour, highestPos, lowestPos, worldPosition);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texturesArray, 
+		numberOfTextures, grassTexturesArray, numberOfGrassTextures, lightDirection, 
+		diffuseColour, ambientColour, highestPos, lowestPos, worldPosition);
 	if (!result)
 	{
 		return false;
@@ -361,15 +376,23 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 	MessageBox(hwnd, L"Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename, MB_OK);
 }
 
-bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-	D3DXMATRIX projMatrix, CTexture** textureArray, int numberOfTextures, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour,
-	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
+bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+	D3DXMATRIX projMatrix, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour,
+	float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	ID3D11ShaderResourceView** textures = new ID3D11ShaderResourceView*[numberOfTextures];
+	ID3D11ShaderResourceView** grassTextures = new ID3D11ShaderResourceView*[numberOfGrassTextures];
+	ID3D11ShaderResourceView* patchMap = mpPatchMap->GetTexture();
 
 	for (int i = 0; i < numberOfTextures; i++)
 	{
 		textures[i] = textureArray[i]->GetTexture();
+	}
+
+	for (int i = 0; i < numberOfGrassTextures; i++)
+	{
+		grassTextures[i] = grassTexturesArray[i]->GetTexture();
 	}
 
 	HRESULT result;
@@ -411,6 +434,8 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
+	deviceContext->PSSetShaderResources(numberOfTextures, numberOfGrassTextures, grassTextures);
+	deviceContext->PSSetShaderResources(numberOfTextures + numberOfGrassTextures, 1, &patchMap);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -489,6 +514,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpPositioningBuffer);
 
 	delete[] textures;
+	delete[] grassTextures;
 	return true;
 }
 

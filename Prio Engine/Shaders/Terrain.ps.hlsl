@@ -7,11 +7,12 @@
 //////////////////////////
 // 1) Dirt
 // 2) Snow
-// 3) Yellow Grass
-// 4) Sand
-// 5) Rock
+// 3) Sand
+// 4) Rock
 /////////////////////////
-Texture2D shaderTexture[5];
+Texture2D shaderTexture[4];
+Texture2D grassTextures[6];
+Texture2D patchMap;
 SamplerState SampleType;
 
 ///////////////////////////
@@ -61,7 +62,7 @@ struct PixelInputType
 // Helper Functions
 ///////////////////////
 
-/* Get the percentage of a number. 
+/* Get the percentage of a number.
 *  Param number - The number which you want to find the percentage of.
 *  Param desiredPercentage - The percentage of the number which you wish to find. */
 float GetPercentage(float number, float desiredPercentage)
@@ -71,14 +72,39 @@ float GetPercentage(float number, float desiredPercentage)
 	return (onePerc * desiredPercentage);
 };
 
+float4 GetTriplanarGrassTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
+{
+	float4 xAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * scale);
+	float4 yAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
+	float4 zAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
+
+	float4 xAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
+	float4 yAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	float4 zAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+
+	float4 xAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	float4 yAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	float4 zAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+
+	float4 result;
+	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
+	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	result /= 3;
+
+	return result;
+
+}
+
 float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
 {
+
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	float4 xAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * scale);
 	float4 yAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale *4));
+	float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
 	float4 yAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
 	float4 zAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
 
@@ -86,13 +112,41 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 	float4 yAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
 	float4 zAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
 
-	float4 result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
+	float4 result;
+	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
 	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
 	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
 	result /= 3;
 
 	return result;
 };
+
+float4 GetCombinedGrassLerp(PixelInputType input, float3 blending)
+{
+	float4 grass1 = GetTriplanarGrassTextureColour(0, blending, input.worldPosition, 1.0f);
+	float4 grass2 = GetTriplanarGrassTextureColour(1, blending, input.worldPosition, 1.0f);
+
+	float4 grass12 = lerp(grass1, grass2, 0.5f);
+
+	float4 grass3 = GetTriplanarGrassTextureColour(2, blending, input.worldPosition, 1.0f);
+	float4 grass4 = GetTriplanarGrassTextureColour(3, blending, input.worldPosition, 1.0f);
+
+	float4 grass34 = lerp(grass3, grass4, 0.5f);
+
+	float4 grass5 = GetTriplanarGrassTextureColour(4, blending, input.worldPosition, 1.0f);
+	float4 grass6 = GetTriplanarGrassTextureColour(5, blending, input.worldPosition, 1.0f);
+
+	float4 grass56 = lerp(grass5, grass6, 0.5f);
+
+	float4 textureColour;
+
+	textureColour = lerp(grass12, grass34, 0.5f);
+	textureColour = lerp(textureColour, grass56, 0.5f);
+
+	return textureColour;
+}
+
+static float sinVal = 0.0f;
 
 ///////////////////////////
 // Pixel Shading Functions
@@ -134,6 +188,9 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	const float grassBlendRange = GetPercentage(changeInHeight, 3);	// 3% of the terrain is given to blending the grass with dirt.
 	const float snowBlendRange = GetPercentage(changeInHeight, 10);	// 10% of the terrain is given to blending the snow with grass.
 
+
+	float4 patchColour = patchMap.Sample(SampleType, input.tex);
+
 	/////////// SNOW //////////////////
 	if (worldPos > snowHeight)
 	{
@@ -143,7 +200,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > snowHeight - snowBlendRange)
 	{
 		float4 snowTex = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
-		float4 grassTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		float4 grassTex = GetCombinedGrassLerp(input, blending);
 		float heightDiff = snowHeight - worldPos;
 		float blendFactor = heightDiff / snowBlendRange;
 		textureColour = lerp(snowTex, grassTex, blendFactor);
@@ -151,12 +208,12 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	////////////// GRASS ///////////////////
 	else if (worldPos > grassHeight)
 	{
-		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		textureColour = GetCombinedGrassLerp(input, blending);
 	}
 	////////////////// GRASS BLENDED WITH DIRT ////////////////
 	else if (worldPos > grassHeight - grassBlendRange)
 	{
-		float4 grassTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		float4 grassTex = GetCombinedGrassLerp(input, blending);
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 		float heightDiff = grassHeight - worldPos;
 		float blendFactor = heightDiff / grassBlendRange;
@@ -171,7 +228,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > dirtHeight - dirtBlendRange)
 	{
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
-		float4 sandTex = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
+		float4 sandTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 		float heightDiff = dirtHeight - worldPos;
 		float blendFactor = heightDiff / dirtBlendRange;
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
@@ -179,32 +236,15 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	//////////////////// SAND //////////////////
 	else if (worldPos > sandHeight)
 	{
-		textureColour = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 	}
-	////////////////////// SAND BLENDED WITH ROCKS ///////////////////
-	else if (worldPos > sandHeight - sandBlendRange)
-	{
-		float4 sandTex = GetTriplanarTextureColour(3, blending, input.worldPosition, 1.0f);
-		float4 rockTex = GetTriplanarTextureColour(4, blending, input.worldPosition, 1.0f);
-		float heightDiff = sandHeight - worldPos;
-		float blendFactor = heightDiff / sandBlendRange;
-		textureColour = lerp(sandTex, rockTex, blendFactor);
-	}
-	//////////////////// ROCKS ///////////////////////////
-	else if (worldPos > rockHeight)
-	{
-		textureColour = GetTriplanarTextureColour(4, blending, input.worldPosition, 1.0f);
-	}
-	////////////////// BELOW THE ROCKS TILE, SET TO WATER. /////////////////////
+	// Below all height, assume sand.
 	else
 	{
-		// Default pixel to blue to show any obvious errors (if its lower, blue is okay because it can represent water.
-		textureColour.r = 0.0f;
-		textureColour.g = 0.0f;
-		textureColour.b = 1.0f;
-		textureColour.a = 1.0f;
+
+		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 	}
-	
+
 	// Set the colour to the ambient colour.
 	colour = ambientColour;
 

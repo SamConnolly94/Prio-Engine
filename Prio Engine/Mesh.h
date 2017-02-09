@@ -50,7 +50,7 @@ private:
 	std::vector<unsigned long> mpIndicesList;
 
 	// This will need to be updated every frame.
-	D3DXVECTOR3 mCameraPosition;
+	//D3DXVECTOR3 mCameraPosition;
 public:
 	CMesh(ID3D11Device* device, HWND hwnd, PrioEngine::ShaderType shaderType);
 	~CMesh();
@@ -61,7 +61,7 @@ public:
 
 	void Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
 
-	void SetCameraPos(D3DXVECTOR3 cameraPos) { mCameraPosition = cameraPos; };
+	//void SetCameraPos(D3DXVECTOR3 cameraPos) { mCameraPosition = cameraPos; };
 private:
 	bool LoadAssimpModel(char* filename);
 	bool LoadSam();

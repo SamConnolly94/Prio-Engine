@@ -78,6 +78,44 @@
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="VertexTypeManager.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Colour.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Colour.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\DiffuseLight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\DiffuseLight.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Font.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Font.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\SpecularLight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\SpecularLight.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Terrain.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Terrain.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Texture.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Texture.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{24774A8A-27A2-4498-96B1-35A0087B84F2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

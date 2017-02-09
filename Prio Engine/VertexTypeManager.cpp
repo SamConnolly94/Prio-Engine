@@ -483,7 +483,7 @@ void CVertexManager::SetColour(PrioEngine::RGBA colour)
 /* Creates a buffer and fills it with the data we have already found about the current shape. */
 bool CVertexManager::CreateVertexBuffer()
 {
-	bool result;
+	HRESULT hResult;
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData;
 
@@ -533,8 +533,8 @@ bool CVertexManager::CreateVertexBuffer()
 		gLogger->WriteLine("The device hasn't been initialised, you need to pass it into the VertexManager class first.");
 	}
 
-	result = mpDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
-	if (FAILED(result))
+	hResult = mpDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
+	if (FAILED(hResult))
 	{
 		gLogger->WriteLine("Failed to create the vertex buffer.");
 		return false;

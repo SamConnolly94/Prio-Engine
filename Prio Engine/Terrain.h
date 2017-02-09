@@ -25,15 +25,18 @@ public:
 private:
 	void ReleaseHeightMap();
 	CTexture** mpTextures;
-	const unsigned int kmNumberOfTextures = 5;
+	const unsigned int kmNumberOfTextures = 4;
+	CTexture** mpGrassTextures;
+	const unsigned int kNumberOfGrassTextures = 6;
 	float mLowestPoint;
 	float mHighestPoint;
 public:
 	bool CreateTerrain(ID3D11Device* device);
 	void Render(ID3D11DeviceContext* context);
 	CTexture** GetTexturesArray();
-	CTexture* GetTexture() { return mpTextures[0]; };
+	CTexture** GetGrassTextureArray();
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
+	unsigned int GetNumberOfGrassTextures();
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();

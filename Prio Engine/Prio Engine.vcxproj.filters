@@ -13,6 +13,9 @@
     <Filter Include="Header Files\Engine">
       <UniqueIdentifier>{6ff4ed0b-6d9a-4055-981d-5fc29c392495}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{c5ea3ef4-c05d-45b8-9a04-fde113d73ba9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="2DImage.h">
@@ -185,5 +188,43 @@
     <ClCompile Include="VertexTypeManager.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Colour.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Colour.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DiffuseLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DiffuseLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Font.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Font.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SpecularLight.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SpecularLight.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Terrain.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Terrain.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Texture.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Texture.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

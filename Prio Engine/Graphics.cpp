@@ -351,10 +351,9 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
 
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
-	D3DXVECTOR3 camPos = mpCamera->GetPosition();
 	while (meshIt != mpMeshes.end())
 	{
-		(*meshIt)->SetCameraPos(camPos);
+		//(*meshIt)->SetCameraPos(camPos);
 		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj, mpLights);
 		meshIt++;
 	}
@@ -371,36 +370,30 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 		// Update the world matrix and perform operations on the world matrix of this object.
 		terrain->UpdateMatrices(world);
 
-		// Iterate through each area of terrain in this terrain.
-		//for (auto area : terrain->GetAreas())
-		//{
-			// Render this area.
-			//area->Render(mpD3D->GetDeviceContext());
-			terrain->Render(mpD3D->GetDeviceContext());
-			
-			//mpTerrainShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour());
-			// Iterate through each light that we have on our scene.
-			for (auto light : mpLights)
+		terrain->Render(mpD3D->GetDeviceContext());
+
+		// Iterate through each light that we have on our scene.
+		for (auto light : mpLights)
+		{
+			// Render the terrain area with the diffuse light shader.
+			if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(),
+				terrain->GetIndexCount(), world, view, proj,
+				terrain->GetTexturesArray(),
+				terrain->GetNumberOfTextures(),
+				terrain->GetGrassTextureArray(),
+				terrain->GetNumberOfGrassTextures(),
+				light->GetDirection(),
+				light->GetDiffuseColour(),
+				light->GetAmbientColour(),
+				terrain->GetHighestPoint(),
+				terrain->GetLowestPoint(),
+				terrain->GetPos()
+			))
 			{
-				// Render the terrain area with the diffuse light shader.
-				//if (!mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexture()->GetTexture(), light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-				if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(),
-					terrain->GetIndexCount(), world, view, proj,
-					terrain->GetTexturesArray(),
-					terrain->GetNumberOfTextures(),
-					light->GetDirection(),
-					light->GetDiffuseColour(),
-					light->GetAmbientColour(),
-					terrain->GetHighestPoint(),
-					terrain->GetLowestPoint(),
-					terrain->GetPos()
-					))
-				{
-					// If we failed to render, return false.
-					return false;
-				}
+				// If we failed to render, return false.
+				return false;
 			}
-		//}
+		}
 	}
 
 	// Successfully rendered the terrain.

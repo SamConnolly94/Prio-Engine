@@ -27,15 +27,51 @@ CTerrain::CTerrain(ID3D11Device* device)
 	// Rock
 	mpTextures[1] = new CTexture();
 	mpTextures[1]->Initialise(device, L"Resources/Textures/Snow.dds");
-	// Yellow grass.
-	mpTextures[2] = new CTexture();
-	mpTextures[2]->Initialise(device, L"Resources/Textures/YellowGrass.dds");
 	// Sand.
-	mpTextures[3] = new CTexture();
-	mpTextures[3]->Initialise(device, L"Resources/Textures/Sand.dds");
+	mpTextures[2] = new CTexture();
+	mpTextures[2]->Initialise(device, L"Resources/Textures/Sand.dds");
 	// Rock.
-	mpTextures[4] = new CTexture();
-	mpTextures[4]->Initialise(device, L"Resources/Textures/Rock.dds");
+	mpTextures[3] = new CTexture();
+	mpTextures[3]->Initialise(device, L"Resources/Textures/Rock.dds");
+
+	mpGrassTextures = new CTexture*[kNumberOfGrassTextures];
+
+	// Yellow grass.
+	mpGrassTextures[0] = new CTexture();
+	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/Grass01.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass01.png'.");
+	}
+
+	mpGrassTextures[1] = new CTexture();
+	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/Grass02.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass02.png'.");
+	}
+
+	mpGrassTextures[2] = new CTexture();
+	if (!mpGrassTextures[2]->Initialise(device, L"Resources/Textures/Grass03.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass03.png'.");
+	}
+
+	mpGrassTextures[3] = new CTexture();
+	if (!mpGrassTextures[3]->Initialise(device, L"Resources/Textures/Grass04.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass04.png'.");
+	}
+
+	mpGrassTextures[4] = new CTexture();
+	if (!mpGrassTextures[4]->Initialise(device, L"Resources/Textures/Grass05.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass05.png'.");
+	}
+
+	mpGrassTextures[5] = new CTexture();
+	if (!mpGrassTextures[5]->Initialise(device, L"Resources/Textures/Grass06.dds"))
+	{
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass06.png'.");
+	}
 }
 
 
@@ -51,6 +87,14 @@ CTerrain::~CTerrain()
 	}
 
 	delete[] mpTextures;
+
+	for (unsigned int i = 0; i < kNumberOfGrassTextures; i++)
+	{
+		mpGrassTextures[i]->Shutdown();
+		delete mpGrassTextures[i];
+	}
+
+	delete[] mpGrassTextures;
 	
 	ReleaseHeightMap();
 
@@ -111,6 +155,16 @@ void CTerrain::Render(ID3D11DeviceContext * context)
 CTexture** CTerrain::GetTexturesArray()
 {
 	return mpTextures;
+}
+
+CTexture** CTerrain::GetGrassTextureArray()
+{
+	return mpGrassTextures;
+}
+
+unsigned int CTerrain::GetNumberOfGrassTextures()
+{
+	return kNumberOfGrassTextures;
 }
 
 /* This function is designed to create vertex and index buffers according to a heightmap that has already been set.
