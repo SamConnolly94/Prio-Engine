@@ -3,8 +3,8 @@
 "Prio Engine/Release/"
 "Prio Engine/x64/"
 bin/
-Debug/
-Release/
+#Debug/
+#Release/
 "Prio Engine/Shaders/"
 "Prio Engine/bin/"
 
