@@ -38,15 +38,15 @@ CTerrain::CTerrain(ID3D11Device* device)
 
 	// Yellow grass.
 	mpGrassTextures[0] = new CTexture();
-	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/Grass01.dds"))
+	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/Grass1.dds"))
 	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass01.png'.");
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass1.dds'.");
 	}
 
 	mpGrassTextures[1] = new CTexture();
-	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/Grass02.dds"))
+	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/Chamomile.png"))
 	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass02.png'.");
+		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass2.dds'.");
 	}
 
 	mpGrassTextures[2] = new CTexture();

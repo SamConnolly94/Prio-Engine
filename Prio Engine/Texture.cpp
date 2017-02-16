@@ -1,7 +1,6 @@
 #include "Texture.h"
 
 
-
 CTexture::CTexture()
 {
 	mpTexture = nullptr;

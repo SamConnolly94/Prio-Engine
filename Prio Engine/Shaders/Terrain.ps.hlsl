@@ -126,24 +126,11 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 float4 GetCombinedGrassLerp(PixelInputType input, float3 blending)
 {
 	float4 grass1 = GetTriplanarGrassTextureColour(0, blending, input.worldPosition, 1.0f);
-	//float4 grass2 = GetTriplanarGrassTextureColour(1, blending, input.worldPosition, 1.0f);
+	float4 grass2 = GetTriplanarGrassTextureColour(1, blending, input.worldPosition, 1.0f);
 
-	//float4 grass12 = lerp(grass1, grass2, 0.5f);
+	float4 patchColour = patchMap.Sample(SampleType, input.tex / 32.0f);
 
-	//float4 grass3 = GetTriplanarGrassTextureColour(2, blending, input.worldPosition, 1.0f);
-	//float4 grass4 = GetTriplanarGrassTextureColour(3, blending, input.worldPosition, 1.0f);
-
-	//float4 grass34 = lerp(grass3, grass4, 0.5f);
-
-	//float4 grass5 = GetTriplanarGrassTextureColour(4, blending, input.worldPosition, 1.0f);
-	//float4 grass6 = GetTriplanarGrassTextureColour(5, blending, input.worldPosition, 1.0f);
-
-	//float4 grass56 = lerp(grass5, grass6, 0.5f);
-
-	float4 textureColour = grass1;
-
-	//textureColour = lerp(grass12, grass34, 0.5f);
-	//textureColour = lerp(textureColour, grass56, 0.5f);
+	float4 textureColour = lerp(grass2, grass1, patchColour.r);
 
 	return textureColour;
 }
@@ -206,12 +193,12 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = GetCombinedGrassLerp(input, blending);
 	}
 	////////////////// GRASS BLENDED WITH DIRT ////////////////
-	else if (worldPos > grassHeight - 5.0f)
+	else if (worldPos > grassHeight - 2.0f)
 	{
 		float4 grassTex = GetCombinedGrassLerp(input, blending);
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 		float heightDiff = grassHeight - worldPos;
-		float blendFactor = heightDiff / 5.0f;
+		float blendFactor = heightDiff / 2.0f;
 		textureColour = lerp(grassTex, dirtTex, blendFactor);
 	}
 	/////////////////////// DIRT //////////////////////
@@ -220,12 +207,12 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		textureColour = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 	}
 	////////////////////// DIRT BLENDED WITH SAND ///////////////
-	else if (worldPos > dirtHeight - 5.0f)
+	else if (worldPos > dirtHeight - 2.0f)
 	{
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 		float4 sandTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
 		float heightDiff = dirtHeight - worldPos;
-		float blendFactor = heightDiff / 5.0f;
+		float blendFactor = heightDiff / 2.0f;
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
 	}
 	//////////////////// SAND //////////////////
