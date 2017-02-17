@@ -14,7 +14,7 @@ CSkyBox::~CSkyBox()
 
 bool CSkyBox::Initialise(ID3D11Device * device)
 {
-	if (!LoadSkyBoxModel( "Resources/Models/Skybox.FBX"))
+	if (!LoadSkyBoxModel( "Resources/Models/Sphere.fbx"))
 	{
 		logger->GetInstance().WriteLine("Failed to load the sky box model in initialisation function of skybox.");
 		return false;
@@ -174,7 +174,6 @@ bool CSkyBox::LoadSkyBoxModel(char * modelName)
 		aiProcess_Triangulate |
 		aiProcess_SortByPType);
 
-
 	// If scene hasn't been initialised then something has gone wrong!
 	if (!scene)
 	{
@@ -188,6 +187,7 @@ bool CSkyBox::LoadSkyBoxModel(char * modelName)
 	{
 		// Load the current mesh.
 		const aiMesh& mesh = *scene->mMeshes[meshCount];
+	
 		// Store info about the mesh.
 		unsigned int numFaces = mesh.mNumFaces;
 		unsigned int numVertices = mesh.mNumVertices;

@@ -107,7 +107,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	//CreateSkybox();
+	CreateSkybox();
 
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
@@ -325,8 +325,8 @@ bool CGraphics::Render()
 	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
 		return false;
 
-	//if (!RenderSkybox(worldMatrix, viewMatrix, projMatrix))
-	//	return false;
+	if (!RenderSkybox(worldMatrix, viewMatrix, projMatrix))
+		return false;
 
 	// Render model using texture shader.
 	if (!RenderModels(worldMatrix, viewMatrix, projMatrix))
@@ -486,11 +486,12 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	if (!RenderMeshes(world, view, proj))
 		return false;
 
+	if (!RenderSkybox(world, view, proj))
+		return false;
+
 	if (!RenderTerrains(world, view, proj))
 		return false;
 
-	if (!RenderSkybox(world, view, proj))
-		return false;
 
 	return true;
 }

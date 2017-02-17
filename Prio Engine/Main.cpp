@@ -75,9 +75,6 @@ void GameLoop(CEngine* &engine)
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
 
-	CMesh* skyboxMesh = engine->LoadMesh("Resources/Models/Wooden_House.fbx", L"Resources/Textures/House_Texture.png");
-	CModel* skybox = skyboxMesh->CreateModel();
-
 	// Camera init.
 	myCam->SetPosizionY(30.0f);
 
