@@ -8,6 +8,8 @@
 
 class CTexture
 {
+private:
+	CLogger* logger;
 public:
 	CTexture();
 	~CTexture();

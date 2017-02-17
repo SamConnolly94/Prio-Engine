@@ -16,9 +16,12 @@
 #include "Dependencies/assimp-3.3.1/include/assimp/Importer.hpp"
 #include "Dependencies/assimp-3.3.1/include\assimp/scene.h"
 #include "Dependencies/assimp-3.3.1/include/assimp/postprocess.h"
+#include "PrioEngineVars.h"
 
 class CMesh
 {
+private:
+	CLogger* logger;
 private:
 	// Handle of our main window.
 	HWND mHwnd;

@@ -6,8 +6,11 @@
 #include <D3DX11async.h>
 #include "PrioEngineVars.h"
 
+
 class CSpecularLightingShader
 {
+private:
+	CLogger* logger;
 	struct MatrixBufferType
 	{
 		D3DXMATRIX world;

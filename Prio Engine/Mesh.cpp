@@ -34,7 +34,7 @@ CMesh::~CMesh()
 	{
 		// Delete allocated memory from the back of our array.
 		delete (mpModels.back());
-		gLogger->MemoryDeallocWriteLine(typeid(mpModels.back()).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpModels.back()).name());
 		// Pop the model off of the list.
 		mpModels.pop_back();
 	}
@@ -45,7 +45,7 @@ CMesh::~CMesh()
 		// Deallocate memory.
 		delete mpDirectionalLightShader;
 		// Write the deallocation message to the memory log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpDirectionalLightShader).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpDirectionalLightShader).name());
 		// Set the directional light shader pointer to be default value.
 		mpDirectionalLightShader = nullptr;
 	}
@@ -55,7 +55,7 @@ CMesh::~CMesh()
 		// Deallocate memory.
 		delete mpColourShader;
 		// Write the deallocation message to the memory log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpColourShader).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpColourShader).name());
 		// Set the colour shader pointer to be default value.
 		mpColourShader = nullptr;
 	}
@@ -65,7 +65,7 @@ CMesh::~CMesh()
 		// Deallocate memory.
 		delete mpTextureShader;
 		// Write the deallocation message to the memory log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
 		// Set the mpTextureShader shader pointer to be default value.
 		mpTextureShader = nullptr;
 	}
@@ -75,7 +75,7 @@ CMesh::~CMesh()
 		// Deallocate memory.
 		delete mpSpecularShader;
 		// Write the deallocation message to the memory log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpSpecularShader).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpSpecularShader).name());
 		// Set the mpTextureShader shader pointer to be default value.
 		mpSpecularShader = nullptr;
 	}
@@ -86,7 +86,7 @@ CMesh::~CMesh()
 		// Deallocate memory.
 		delete mpTexture;
 		// Output the deallocation message to the log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpTexture).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpTexture).name());
 		// Set the texture pointer to be a default value.
 		mpTexture = nullptr;
 	}
@@ -98,19 +98,19 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	// If no file name was passed in, then output an error into the log and return false.
 	if (filename == NULL || filename == "")
 	{
-		gLogger->WriteLine("You need to pass in a file name to load a model.");
+		logger->GetInstance().GetInstance().WriteLine("You need to pass in a file name to load a model.");
 		return false;
 	}
 
 	// Check if a texture was passed in.
 	if (textureName == NULL || textureName == L"")
 	{
-		gLogger->WriteLine("You did not pass in a texture file name with a mesh named " + static_cast<std::string>(filename) + ", will load with solid black colour.");
+		logger->GetInstance().GetInstance().WriteLine("You did not pass in a texture file name with a mesh named " + static_cast<std::string>(filename) + ", will load with solid black colour.");
 	}
 	else
 	{
 		mpTexture = new CTexture();
-		gLogger->MemoryAllocWriteLine(typeid(mpTexture).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpTexture).name());
 		mpTexture->Initialise(mpDevice, textureName);
 		if (mShaderType == PrioEngine::ShaderType::Colour)
 		{
@@ -130,12 +130,12 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Initialise our directional light shader.
 		mpDirectionalLightShader = new CDiffuseLightShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpDirectionalLightShader).name());
 		// If the directional light shader is not successfully initialised.
 		if (!mpDirectionalLightShader->Initialise(mpDevice, mHwnd))
 		{
 			// Output failure message to the log.
-			gLogger->WriteLine("Failed to initialise the directional light shader in mesh object.");
+			logger->GetInstance().GetInstance().WriteLine("Failed to initialise the directional light shader in mesh object.");
 		}
 	}
 	// Allocate memory to one of our shaders, depending on whether a texture was loaded in or not.
@@ -143,53 +143,53 @@ bool CMesh::LoadMesh(char* filename, WCHAR* textureName)
 	{
 		// Initialise our directional light shader.
 		mpSpecularShader = new CSpecularLightingShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpSpecularShader).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpSpecularShader).name());
 		// If the directional light shader is not successfully initialised.
 		if (!mpSpecularShader->Initialise(mpDevice, mHwnd))
 		{
 			// Output failure message to the log.
-			gLogger->WriteLine("Failed to initialise the specular light shader in mesh object.");
+			logger->GetInstance().GetInstance().WriteLine("Failed to initialise the specular light shader in mesh object.");
 		}
 	}
 	else if (mShaderType == PrioEngine::ShaderType::Texture)
 	{
 		// Allocate memory to the texture shader.
 		mpTextureShader = new CTextureShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpTextureShader).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpTextureShader).name());
 		// If the texture shader is not successfully initialised.
 		if (!mpTextureShader->Initialise(mpDevice, mHwnd))
 		{
 			// output failure message to the log.
-			gLogger->WriteLine("Failed to initialise the colour shader in mesh object.");
+			logger->GetInstance().GetInstance().WriteLine("Failed to initialise the colour shader in mesh object.");
 		}
 	}
 	else if (mShaderType == PrioEngine::ShaderType::Colour)
 	{
 		// Allocate memory to the colour shader.
 		mpColourShader = new CColourShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpColourShader).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpColourShader).name());
 		// If the colour shader is not successfully initialised.
 		if (!mpColourShader->Initialise(mpDevice, mHwnd))
 		{
 			// output failure message to the log.
-			gLogger->WriteLine("Failed to initialise the colour shader in mesh object.");
+			logger->GetInstance().GetInstance().WriteLine("Failed to initialise the colour shader in mesh object.");
 		}
 	}
 
 	// Check what extension we are trying to load.
 	if (mFileExtension == ".sam")
 	{
-		gLogger->WriteLine("Loading .sam file using Prio Engines built in model loader.");
+		logger->GetInstance().GetInstance().WriteLine("Loading .sam file using Prio Engines built in model loader.");
 		return LoadSam();
 	}
 	else
 	{
-		gLogger->WriteLine("Loading " + mFileExtension + " file using assimp model loader.");
+		logger->GetInstance().GetInstance().WriteLine("Loading " + mFileExtension + " file using assimp model loader.");
 		return LoadAssimpModel(filename);
 	}
 		
 	// Output error message to the log.
-	gLogger->WriteLine("You have tried to load an unsupported file type as a mesh. The file name was: '" + mFilename + "'.");
+	logger->GetInstance().GetInstance().WriteLine("You have tried to load an unsupported file type as a mesh. The file name was: '" + mFilename + "'.");
 	// Return failure.
 	return false;
 }
@@ -212,7 +212,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpDirectionalLightShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour()))
 				{
-					gLogger->WriteLine("Failed to render the mesh model.");
+					logger->GetInstance().GetInstance().WriteLine("Failed to render the mesh model.");
 				}
 				lightIt++;
 			}
@@ -222,7 +222,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpSpecularShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture(), (*lightIt)->GetDirection(), (*lightIt)->GetDiffuseColour(), (*lightIt)->GetAmbientColour(), lightPos, (*lightIt)->GetSpecularColour(), (*lightIt)->GetSpecularPower()))
 				{
-					gLogger->WriteLine("Failed to render the mesh model.");
+					logger->GetInstance().GetInstance().WriteLine("Failed to render the mesh model.");
 				}
 				lightIt++;
 			}
@@ -231,7 +231,7 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpTextureShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj, mpTexture->GetTexture()))
 				{
-					gLogger->WriteLine("Failed to render the mesh model.");
+					logger->GetInstance().GetInstance().WriteLine("Failed to render the mesh model.");
 				}
 				lightIt++;
 			}
@@ -240,13 +240,13 @@ void CMesh::Render(ID3D11DeviceContext* context, D3DXMATRIX &view, D3DXMATRIX &p
 				// Our number of indices isn't quite accurate, we stash indicies away in vector 3's as we should always be creating a triangle. 
 				if (!mpColourShader->Render(context, (*it)->GetNumberOfIndices(), (*it)->GetWorldMatrix(), view, proj))
 				{
-					gLogger->WriteLine("Failed to render the mesh model.");
+					logger->GetInstance().GetInstance().WriteLine("Failed to render the mesh model.");
 				}
 				lightIt++;
 			}
 			else
 			{
-				gLogger->WriteLine("Failed to find any available shader to render the instance of mesh in mesh.cpp Render function.");
+				logger->GetInstance().GetInstance().WriteLine("Failed to find any available shader to render the instance of mesh in mesh.cpp Render function.");
 			}
 		}
 
@@ -289,12 +289,12 @@ CModel* CMesh::CreateModel()
 	model = new CModel(mpDevice, vt);
 
 	// Write an allocation message to our memory log.
-	gLogger->MemoryAllocWriteLine(typeid(model).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(model).name());
 
 	// Check the model has had space allocated to it.
 	if (model == nullptr)
 	{
-		gLogger->WriteLine("Failed to allocate space to model. ");
+		logger->GetInstance().GetInstance().WriteLine("Failed to allocate space to model. ");
 		return nullptr;
 	}
 
@@ -316,7 +316,7 @@ CModel* CMesh::CreateModel()
 	}
 	else
 	{
-		gLogger->WriteLine("Failed to find a valid shader being used when creating instance of mesh. ");
+		logger->GetInstance().GetInstance().WriteLine("Failed to find a valid shader being used when creating instance of mesh. ");
 		return nullptr;
 	}
 	// Stick our models on a list to prevent losing the pointers.
@@ -334,7 +334,7 @@ bool CMesh::LoadAssimpModel(char* filename)
 
 	Assimp::Importer importer;
 	const std::string name = filename;
-	gLogger->WriteLine("Attempting to open " + name + " using Assimp.");
+	logger->GetInstance().GetInstance().WriteLine("Attempting to open " + name + " using Assimp.");
 
 	// Read in the file, store this mesh in the scene.
 	const aiScene* scene = importer.ReadFile(filename,
@@ -347,8 +347,8 @@ bool CMesh::LoadAssimpModel(char* filename)
 	// If scene hasn't been initialised then something has gone wrong!
 	if (!scene)
 	{
-		gLogger->WriteLine(importer.GetErrorString());
-		gLogger->WriteLine("Failed to create scene.");
+		logger->GetInstance().GetInstance().WriteLine(importer.GetErrorString());
+		logger->GetInstance().GetInstance().WriteLine("Failed to create scene.");
 		return nullptr;
 	}
 
@@ -397,11 +397,11 @@ bool CMesh::LoadAssimpModel(char* filename)
 		}
 	}
 
-	gLogger->WriteLine("Successfully initialised our arrays for mesh '" + mFilename + "'. ");
+	logger->GetInstance().GetInstance().WriteLine("Successfully initialised our arrays for mesh '" + mFilename + "'. ");
 
 
 	// Close off this section in the log.
-	gLogger->CloseSubtitle();
+	logger->GetInstance().GetInstance().CloseSubtitle();
 
 	// Success!
 	return true;
@@ -436,7 +436,7 @@ bool CMesh::GetSizes()
 	if (!inFile.is_open())
 	{
 		// Output error message to logs.
-		gLogger->WriteLine("Failed to find file of name: '" + mFilename + "'.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to find file of name: '" + mFilename + "'.");
 		// Return failure.
 		return false;
 	}
@@ -504,7 +504,7 @@ bool CMesh::InitialiseArrays()
 	if (!inFile.is_open())
 	{
 		// Output error message to logs.
-		gLogger->WriteLine("Failed to find file of name: '" + mFilename + "'.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to find file of name: '" + mFilename + "'.");
 		// Return failure.
 		return false;
 	}

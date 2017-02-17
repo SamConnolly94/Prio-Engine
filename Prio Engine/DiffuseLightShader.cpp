@@ -88,10 +88,10 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -105,10 +105,10 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -116,7 +116,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -124,7 +124,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -165,7 +165,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create polygon layout.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -196,7 +196,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the sampler state in TextureShader.cpp");
 		return false;
 	}
 
@@ -213,7 +213,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -227,7 +227,7 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCH
 	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
 		return false;
 	}
 
@@ -295,7 +295,7 @@ void CDiffuseLightShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWN
 	}
 
 	// Write the error string to the logs.
-	gLogger->WriteLine(errMsg);
+	logger->GetInstance().GetInstance().WriteLine(errMsg);
 
 	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();

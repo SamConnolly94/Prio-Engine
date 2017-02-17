@@ -20,6 +20,8 @@
 #include "Frustum.h"
 #include <thread>
 #include <functional>
+#include "SkyBox.h"
+#include "SkyboxShader.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -34,11 +36,15 @@ const float SCREEN_NEAR = 0.01f;
 class CGraphics
 {
 private:
-	int mScreenWidth, mScreenHeight;
+	CLogger* logger;
+private:
+	int mScreenWidth;
+	int mScreenHeight;
 	float mFieldOfView;
 	bool mWireframeEnabled;
 	CFrustum* mpFrustum;
 	bool mFullScreen = false;
+	CSkyboxShader* mpSkyboxShader;
 public:
 	CGraphics();
 	~CGraphics();
@@ -53,6 +59,7 @@ private:
 	bool RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderSkybox(D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj);
 private:
 	CD3D11* mpD3D;
 
@@ -74,6 +81,7 @@ private:
 	std::list<CLight*> mpLights;
 	std::list<CTerrain*> mpTerrainGrids;
 	std::list<C2DImage*> mpUIImages;
+	std::vector<CSkyBox*> mpSkyboxList;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
@@ -117,6 +125,7 @@ public:
 	bool UpdateTerrainBuffers(CTerrain* &terrain, double** heightmap, int width, int height);
 	bool IsFullscreen();
 	bool SetFullscreen(bool enabled);
+	CSkyBox* CreateSkybox();
 };
 
 #endif

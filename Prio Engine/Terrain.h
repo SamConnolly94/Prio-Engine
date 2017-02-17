@@ -9,9 +9,12 @@
 
 #include <vector>
 #include <sstream>
+#include "PrioEngineVars.h"
 
 class CTerrain : public CModelControl
 {
+private:
+	CLogger* logger;
 private:
 	struct VertexType
 	{
@@ -27,7 +30,7 @@ private:
 	CTexture** mpTextures;
 	const unsigned int kmNumberOfTextures = 4;
 	CTexture** mpGrassTextures;
-	const unsigned int kNumberOfGrassTextures = 6;
+	const unsigned int kNumberOfGrassTextures = 2;
 	float mLowestPoint;
 	float mHighestPoint;
 public:

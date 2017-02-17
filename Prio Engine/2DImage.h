@@ -4,9 +4,12 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include "Texture.h"
+#include "PrioEngineVars.h"
 
 class C2DImage
 {
+private:
+	CLogger* logger;
 private:
 	struct VertexType
 	{

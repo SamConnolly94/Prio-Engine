@@ -9,6 +9,8 @@
 class CColourShader
 {
 private:
+	CLogger* logger;
+private:
 	struct MatrixBufferType
 	{
 		D3DXMATRIX world;

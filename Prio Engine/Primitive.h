@@ -9,8 +9,11 @@
 #include "Texture.h"
 #include "ModelControl.h"
 
+
 class CPrimitive : public CModelControl
 {
+private:
+	CLogger* logger;
 public:
 	CPrimitive(){};
 	CPrimitive(WCHAR* textureFilename);

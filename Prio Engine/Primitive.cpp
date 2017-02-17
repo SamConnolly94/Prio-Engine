@@ -62,7 +62,7 @@ CPrimitive::~CPrimitive()
 	{
 		delete mpVertexManager;
 		mpVertexManager = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpVertexManager).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVertexManager).name());
 	}
 }
 
@@ -174,18 +174,18 @@ bool CPrimitive::LoadTexture(ID3D11Device * device)
 
 	if (!mpTexture)
 	{
-		gLogger->WriteLine("Failed to create the texture object.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the texture object.");
 		return false;
 	}
 
-	gLogger->MemoryAllocWriteLine(typeid(mpTexture).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpTexture).name());
 
 	// Initialise the texture object.
 	result = mpTexture->Initialise(device, mpTextureFilename);
 
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to initialise the texture object. ");
+		logger->GetInstance().GetInstance().WriteLine("Failed to initialise the texture object. ");
 	}
 
 	return true;
@@ -199,7 +199,7 @@ void CPrimitive::ReleaseTexture()
 		mpTexture->Shutdown();
 		delete mpTexture;
 		mpTexture = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpTexture).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpTexture).name());
 	}
 
 	if (mpTextureFilename)

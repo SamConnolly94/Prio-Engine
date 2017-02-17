@@ -15,6 +15,7 @@ CGraphics::CGraphics()
 	mpText = nullptr;
 	mFullScreen = false;
 	mpFrustum = nullptr;
+	mpSkyboxShader = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -36,11 +37,11 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	if (!mpD3D)
 	{
 		// Output failure message to the log.
-		gLogger->WriteLine("Did not successfully create the D3D11 object.");
+		logger->GetInstance().WriteLine("Did not successfully create the D3D11 object.");
 		//Don't continue with the init function any more.
 		return false;
 	}
-	gLogger->MemoryAllocWriteLine(typeid(mpD3D).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpD3D).name());
 
 	// Initialise the D3D object.
 	successful = mpD3D->Initialise(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, mFullScreen, SCREEN_DEPTH, SCREEN_NEAR);
@@ -48,7 +49,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	if (!successful)
 	{
 		// Write the error to the log.
-		gLogger->WriteLine("Failed to initialised Direct3D.");
+		logger->GetInstance().WriteLine("Failed to initialised Direct3D.");
 		// Write the error to a message box too.
 		MessageBox(hwnd, L"Could not initialise Direct3D.", L"Error", MB_OK);
 		// Do not continue with this function any more.
@@ -71,7 +72,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	if (!mpText)
 	{
-		gLogger->WriteLine("Failed to allocate memory to the GameText var in Graphics.cpp.");
+		logger->GetInstance().WriteLine("Failed to allocate memory to the GameText var in Graphics.cpp.");
 		return false;
 	}
 
@@ -79,29 +80,64 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpCamera->GetViewMatrix(baseView);
 	if (!mpText->Initialise(mpD3D->GetDevice(), mpD3D->GetDeviceContext(), mHwnd, mScreenWidth, mScreenHeight, baseView))
 	{
-		gLogger->WriteLine("Failed to initailise the text object in graphics.cpp.");
+		logger->GetInstance().WriteLine("Failed to initailise the text object in graphics.cpp.");
 		return false;
 	}
 	mBaseView = baseView;
 
-	gLogger->WriteLine("Setting up AntTweakBar.");
+	logger->GetInstance().WriteLine("Setting up AntTweakBar.");
 	TwInit(TW_DIRECT3D11, mpD3D->GetDevice());
 	TwWindowSize(mScreenWidth, mScreenHeight);
-	gLogger->WriteLine("AntTweakBar successfully initialised. ");
+	logger->GetInstance().WriteLine("AntTweakBar successfully initialised. ");
+
+	//////////////////////////////////////////////
+	// Skybox shader
+
+	mpSkyboxShader = new CSkyboxShader();
+	if (!mpSkyboxShader)
+	{
+		logger->GetInstance().WriteLine("Failed to allocate memory to the skybox shader.");
+		return false;
+	}
+
+	bool result = mpSkyboxShader->Initialise(mpD3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the skybox shader.");
+		return false;
+	}
+
+	//CreateSkybox();
 
 	// Success!
-	gLogger->WriteLine("Direct3D was successfully initialised.");
+	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
 }
 
 void CGraphics::Shutdown()
 {
+	for (auto skybox : mpSkyboxList)
+	{
+		skybox->Shutdown();
+		delete skybox;
+		skybox = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(skybox).name());
+	}
+
+	if (mpSkyboxShader)
+	{
+		mpSkyboxShader->Shutdown();
+		delete mpSkyboxShader;
+		mpSkyboxShader = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpSkyboxShader).name());
+	}
+
 	if (mpText)
 	{
 		mpText->Shutdown();
 		delete mpText;
 		mpText = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpText).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpText).name());
 	}
 
 	for (auto image : mpUIImages)
@@ -109,7 +145,7 @@ void CGraphics::Shutdown()
 		image->Shutdown();
 		delete image;
 		image = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(image).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(image).name());
 	}
 
 	if (mpFrustum != nullptr)
@@ -124,7 +160,7 @@ void CGraphics::Shutdown()
 		mpDiffuseLightShader->Shutdown();
 		delete mpDiffuseLightShader;
 		mpDiffuseLightShader = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpDiffuseLightShader).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpDiffuseLightShader).name());
 	}
 
 	if (mpTerrainShader)
@@ -132,7 +168,7 @@ void CGraphics::Shutdown()
 		mpTerrainShader->Shutdown();
 		delete mpTerrainShader;
 		mpTerrainShader = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpTerrainShader).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTerrainShader).name());
 	}
 
 	if (mpTextureShader)
@@ -140,7 +176,7 @@ void CGraphics::Shutdown()
 		mpTextureShader->Shutdown();
 		delete mpTextureShader;
 		mpTextureShader = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpTextureShader).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTextureShader).name());
 	}
 
 	if (mpColourShader)
@@ -148,7 +184,7 @@ void CGraphics::Shutdown()
 		mpColourShader->Shutdown();
 		delete mpColourShader;
 		mpColourShader = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpColourShader).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpColourShader).name());
 	}
 
 	// Deallocate any allocated memory on the primitives list.
@@ -160,7 +196,7 @@ void CGraphics::Shutdown()
 		(*it)->Shutdown();
 		delete (*it);
 		(*it) = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid((*it)).name());
 		it++;
 	}
 
@@ -177,7 +213,7 @@ void CGraphics::Shutdown()
 	{
 		delete (*meshIt);
 		(*meshIt) = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid((*meshIt)).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid((*meshIt)).name());
 		meshIt++;
 	}
 
@@ -194,7 +230,7 @@ void CGraphics::Shutdown()
 	{
 		delete (*lightIt);
 		(*lightIt) = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(*lightIt).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(*lightIt).name());
 		lightIt++;
 	}
 
@@ -225,7 +261,7 @@ void CGraphics::Shutdown()
 	{
 		delete mpCamera;
 		mpCamera = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpCamera).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpCamera).name());
 	}
 
 	// If the Direct 3D object exists.
@@ -235,9 +271,9 @@ void CGraphics::Shutdown()
 		mpD3D->Shutdown();
 		delete mpD3D;
 		mpD3D = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpD3D).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpD3D).name());
 		// Output message to log to let us know that this object is gone.
-		gLogger->WriteLine("Direct3D object has been shutdown, deallocated and pointer set to null.");
+		logger->GetInstance().WriteLine("Direct3D object has been shutdown, deallocated and pointer set to null.");
 	}
 
 	return;
@@ -254,7 +290,7 @@ bool CGraphics::Frame()
 	if (!success)
 	{
 		// Output a message to the log.
-		gLogger->WriteLine("Failed to render the scene.");
+		logger->GetInstance().WriteLine("Failed to render the scene.");
 		// Prevent the program from continuing any further.
 		return false;
 	}
@@ -282,16 +318,18 @@ bool CGraphics::Render()
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
 	mpFrustum->ConstructFrustum(SCREEN_DEPTH, projMatrix, viewMatrix);
-
-	// Render model using texture shader.
-	if (!RenderModels(worldMatrix, viewMatrix, projMatrix))
-		return false;
-
+	
 	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix))
 		return false;
 
-
 	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
+		return false;
+
+	//if (!RenderSkybox(worldMatrix, viewMatrix, projMatrix))
+	//	return false;
+
+	// Render model using texture shader.
+	if (!RenderModels(worldMatrix, viewMatrix, projMatrix))
 		return false;
 
 	TwDraw();
@@ -401,6 +439,42 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 
 }
 
+bool CGraphics::RenderSkybox(D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj)
+{
+	for (auto skybox : mpSkyboxList)
+	{
+		D3DXVECTOR3 cameraPosition;
+
+		// Get the position of the camera.
+		cameraPosition = mpCamera->GetPosition();
+
+		// Translate the sky dome to be centered around the camera position.
+		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+		// Turn off back face culling.
+		mpD3D->TurnOffBackFaceCulling();
+
+		// Turn off the Z buffer.
+		mpD3D->DisableZBuffer();
+
+		// Render the sky dome using the sky dome shader.
+		skybox->Render(mpD3D->GetDeviceContext());
+		mpSkyboxShader->Render(mpD3D->GetDeviceContext(), skybox->GetIndexCount(), world, view, proj,
+			skybox->GetApexColor(), skybox->GetCenterColor());
+
+		// Turn back face culling back on.
+		mpD3D->TurnOnBackFaceCulling();
+
+		// Turn the Z buffer back on.
+		mpD3D->EnableZBuffer();
+
+		// Reset the world matrix.
+		mpD3D->GetWorldMatrix(world);
+	}
+
+	return true;
+}
+
 /* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
@@ -411,6 +485,9 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		return false;
 
 	if (!RenderTerrains(world, view, proj))
+		return false;
+
+	if (!RenderSkybox(world, view, proj))
 		return false;
 
 	return true;
@@ -425,7 +502,7 @@ bool CGraphics::RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho)
 
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to render text.");
+		logger->GetInstance().WriteLine("Failed to render text.");
 		return false;
 	}
 
@@ -449,7 +526,7 @@ bool CGraphics::RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX orth
 
 		if (!result)
 		{
-			gLogger->WriteLine("Failed to render.");
+			logger->GetInstance().WriteLine("Failed to render.");
 			return false;
 		}
 	}
@@ -460,7 +537,7 @@ bool CGraphics::RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX orth
 
 		if (!result)
 		{
-			gLogger->WriteLine("Failed to render with texture shader.");
+			logger->GetInstance().WriteLine("Failed to render with texture shader.");
 			return false;
 		}
 	}
@@ -499,10 +576,10 @@ C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int
 
 	if (!successful)
 	{
-		gLogger->WriteLine("Failed to initialise C2DSprite in Graphics.cpp.");
+		logger->GetInstance().WriteLine("Failed to initialise C2DSprite in Graphics.cpp.");
 		return false;
 	}
-	gLogger->MemoryAllocWriteLine(typeid(image).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(image).name());
 
 	// Push image to the list.
 	mpUIImages.push_back(image);
@@ -521,7 +598,7 @@ bool CGraphics::RemoveUIImage(C2DImage *& element)
 		{
 			(*it)->Shutdown();
 			delete (*it);
-			gLogger->MemoryDeallocWriteLine(typeid(*it).name());
+			logger->GetInstance().MemoryDeallocWriteLine(typeid(*it).name());
 			(*it) = nullptr;
 			mpUIImages.erase(it);
 			element = nullptr;
@@ -553,6 +630,29 @@ bool CGraphics::SetFullscreen(bool isEnabled)
 	return true;
 }
 
+CSkyBox * CGraphics::CreateSkybox()
+{
+	CSkyBox* skybox;
+	logger->GetInstance().WriteLine("Setting up skybox.");
+	skybox = new CSkyBox();
+	if (!skybox)
+	{
+		logger->GetInstance().WriteLine("Failed to allocate memory to skybox.");
+		return false;
+	}
+
+	bool result = skybox->Initialise(mpD3D->GetDevice());
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to create the skybox.");
+		return false;
+	}
+
+	mpSkyboxList.push_back(skybox);
+
+	return skybox;
+}
+
 bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool success = false;
@@ -571,7 +671,7 @@ bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3D
 	// If we did not successfully render.
 	if (!success)
 	{
-		gLogger->WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+		logger->GetInstance().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
 		return false;
 	}
 
@@ -586,7 +686,7 @@ bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatr
 	success = mpColourShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix);
 	if (!success)
 	{
-		gLogger->WriteLine("Failed to render the model using the colour shader object.");
+		logger->GetInstance().WriteLine("Failed to render the model using the colour shader object.");
 		return false;
 	}
 
@@ -602,7 +702,7 @@ bool CGraphics::RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMa
 
 	if (!success)
 	{
-		gLogger->WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+		logger->GetInstance().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
 		return false;
 	}
 
@@ -618,11 +718,11 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(TextureFilename);
-		gLogger->MemoryAllocWriteLine(typeid(model).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(TextureFilename);
-		gLogger->MemoryAllocWriteLine(typeid(model).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
@@ -630,7 +730,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 
 	if (!model)
 	{
-		gLogger->WriteLine("Failed to create the model object");
+		logger->GetInstance().WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -638,7 +738,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
+		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -677,10 +777,10 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 	}
 
 
-	gLogger->MemoryAllocWriteLine(typeid(model).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(model).name());
 	if (!model)
 	{
-		gLogger->WriteLine("Failed to create the model object");
+		logger->GetInstance().WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -688,7 +788,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
+		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -718,11 +818,11 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	{
 	case PrioEngine::Primitives::cube:
 		model = new CCube(colour);
-		gLogger->MemoryAllocWriteLine(typeid(model).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	case PrioEngine::Primitives::triangle:
 		model = new CTriangle(colour);
-		gLogger->MemoryAllocWriteLine(typeid(model).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(model).name());
 		break;
 	default:
 		return nullptr;
@@ -730,7 +830,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 
 	if (!model)
 	{
-		gLogger->WriteLine("Failed to create the model object");
+		logger->GetInstance().WriteLine("Failed to create the model object");
 		return nullptr;
 	}
 
@@ -738,7 +838,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	successful = model->Initialise(mpD3D->GetDevice());
 	if (!successful)
 	{
-		gLogger->WriteLine("*** ERROR! *** Could not initialise the model object");
+		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
 		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
 		return nullptr;
 	}
@@ -760,10 +860,10 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 
 		// Create texture shader.
 		mpDiffuseLightShader = new CDiffuseLightShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpDiffuseLightShader).name());
 		if (!mpDiffuseLightShader)
 		{
-			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to create the texture shader object in graphics.cpp.");
 			return false;
 		}
 
@@ -771,7 +871,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		successful = mpDiffuseLightShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			gLogger->WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
@@ -788,10 +888,10 @@ bool CGraphics::CreateTerrainShader(HWND hwnd)
 
 		// Create texture shader.
 		mpTerrainShader = new CTerrainShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpTerrainShader).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpTerrainShader).name());
 		if (!mpTerrainShader)
 		{
-			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to create the texture shader object in graphics.cpp.");
 			return false;
 		}
 
@@ -799,7 +899,7 @@ bool CGraphics::CreateTerrainShader(HWND hwnd)
 		successful = mpTerrainShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			gLogger->WriteLine("Failed to initialise the mpTerrainShader shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to initialise the mpTerrainShader shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the mpTerrainShader shader object.", L"Error", MB_OK);
 			return false;
 		}
@@ -817,10 +917,10 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 
 		// Create texture shader.
 		mpTextureShader = new CTextureShader();
-		gLogger->MemoryAllocWriteLine(typeid(mpTextureShader).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpTextureShader).name());
 		if (!mpTextureShader)
 		{
-			gLogger->WriteLine("Failed to create the texture shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to create the texture shader object in graphics.cpp.");
 			return false;
 		}
 
@@ -828,7 +928,7 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 		successful = mpTextureShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			gLogger->WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
+			logger->GetInstance().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
 			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
 			return false;
 		}
@@ -847,16 +947,16 @@ bool CGraphics::CreateColourShader(HWND hwnd)
 		mpColourShader = new CColourShader();
 		if (!mpColourShader)
 		{
-			gLogger->WriteLine("Failed to create the colour shader object.");
+			logger->GetInstance().WriteLine("Failed to create the colour shader object.");
 			return false;
 		}
-		gLogger->MemoryAllocWriteLine(typeid(mpColourShader).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpColourShader).name());
 
 		// Initialise the colour shader object.
 		successful = mpColourShader->Initialise(mpD3D->GetDevice(), hwnd);
 		if (!successful)
 		{
-			gLogger->WriteLine("*** ERROR! *** Could not initialise the colour shader object");
+			logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the colour shader object");
 			MessageBox(hwnd, L"Could not initialise the colour shader object. ", L"Error", MB_OK);
 			return false;
 		}
@@ -877,7 +977,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 			model->Shutdown();
 			delete model;
 			(*it) = nullptr;
-			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
+			logger->GetInstance().MemoryDeallocWriteLine(typeid((*it)).name());
 			mpPrimitives.erase(it);
 			model = nullptr;
 			return true;
@@ -886,7 +986,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 		it++;
 	}
 
-	gLogger->WriteLine("Failed to find model to delete.");
+	logger->GetInstance().WriteLine("Failed to find model to delete.");
 	return false;
 }
 
@@ -903,14 +1003,14 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
 		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, PrioEngine::ShaderType::Colour);
 	}
 
-	gLogger->MemoryAllocWriteLine(typeid(mesh).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
 	if (!mesh->LoadMesh(filename, textureFilename))
 	{
 		// Deallocate memory.
 		delete mesh;
-		gLogger->MemoryDeallocWriteLine(typeid(mesh).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mesh).name());
 		return nullptr;
 	}
 
@@ -924,14 +1024,14 @@ CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd, shaderType);
-	gLogger->MemoryAllocWriteLine(typeid(mesh).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
 	if (!mesh->LoadMesh(filename, textureFilename))
 	{
 		// Deallocate memory.
 		delete mesh;
-		gLogger->MemoryDeallocWriteLine(typeid(mesh).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mesh).name());
 		return nullptr;
 	}
 
@@ -960,7 +1060,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 			// Reset the pointer to be null.
 			(*it) = nullptr;
 			// Output the memory deallocation message to the memory log.
-			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
+			logger->GetInstance().MemoryDeallocWriteLine(typeid((*it)).name());
 			// Erase this element off of the list.
 			mpMeshes.erase(it);
 			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
@@ -973,7 +1073,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 	}
 
 	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
-	gLogger->WriteLine("Failed to find mesh to delete.");
+	logger->GetInstance().WriteLine("Failed to find mesh to delete.");
 
 	// Return failure.
 	return false;
@@ -982,7 +1082,7 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 CTerrain * CGraphics::CreateTerrain(std::string mapFile)
 {
 	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
-	gLogger->WriteLine("Created terrain from the graphics object.");
+	logger->GetInstance().WriteLine("Created terrain from the graphics object.");
 	mpTerrainGrids.push_back(terrain);
 
 	// Check a map file was actually passed in.
@@ -991,12 +1091,12 @@ CTerrain * CGraphics::CreateTerrain(std::string mapFile)
 		// Attempt to load the height map passed in.
 		if (!terrain->LoadHeightMapFromFile(mapFile))
 		{
-			gLogger->WriteLine("Failed to load height map with name: " + mapFile);
+			logger->GetInstance().WriteLine("Failed to load height map with name: " + mapFile);
 		}
 	}
 	else
 	{
-		gLogger->WriteLine("No map file was passed in, not attempting to load.");
+		logger->GetInstance().WriteLine("No map file was passed in, not attempting to load.");
 	}
 
 	// Initialise the terrain.
@@ -1008,7 +1108,7 @@ CTerrain * CGraphics::CreateTerrain(std::string mapFile)
 CTerrain * CGraphics::CreateTerrain(double ** heightMap, int mapWidth, int mapHeight)
 {
 	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
-	gLogger->WriteLine("Created terrain from the graphics object.");
+	logger->GetInstance().WriteLine("Created terrain from the graphics object.");
 	mpTerrainGrids.push_back(terrain);
 
 	// Loading height map
@@ -1029,10 +1129,10 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientCo
 	if (!light)
 	{
 		// Output error string to the message log.
-		gLogger->WriteLine("Failed to create the light object. ");
+		logger->GetInstance().WriteLine("Failed to create the light object. ");
 		return nullptr;
 	}
-	gLogger->MemoryAllocWriteLine(typeid(light).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(light).name());
 
 	// Set the colour to our colour variable passed in.
 	light->SetDiffuseColour(diffuseColour);
@@ -1043,7 +1143,7 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientCo
 	mpLights.push_back(light);
 
 	// Output success message.
-	gLogger->WriteLine("Light successfully created.");
+	logger->GetInstance().WriteLine("Light successfully created.");
 
 	// Returns a pointer to the light.
 	return light;
@@ -1069,7 +1169,7 @@ bool CGraphics::RemoveLight(CLight *& light)
 			// Reset the pointer to be null.
 			(*it) = nullptr;
 			// Output the memory deallocation message to the memory log.
-			gLogger->MemoryDeallocWriteLine(typeid((*it)).name());
+			logger->GetInstance().MemoryDeallocWriteLine(typeid((*it)).name());
 			// Erase this element off of the list.
 			mpLights.erase(it);
 			// Set the value of the parameter to be null as well, so we have NO pointers to this area of memory any more.
@@ -1082,7 +1182,7 @@ bool CGraphics::RemoveLight(CLight *& light)
 	}
 
 	// If we got to this point, the light that was passed in was not found on the list. Output failure message to the log.
-	gLogger->WriteLine("Failed to find light to delete.");
+	logger->GetInstance().WriteLine("Failed to find light to delete.");
 
 	// Return failure.
 	return false;
@@ -1094,10 +1194,10 @@ CCamera* CGraphics::CreateCamera()
 	mpCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 	if (!mpCamera)
 	{
-		gLogger->WriteLine("Failed to create the camera for DirectX.");
+		logger->GetInstance().WriteLine("Failed to create the camera for DirectX.");
 		return nullptr;
 	}
-	gLogger->MemoryAllocWriteLine(typeid(mpCamera).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpCamera).name());
 
 	// Set the initial camera position.
 	mpCamera->SetPosition(0.0f, 0.0f, -1.0f);

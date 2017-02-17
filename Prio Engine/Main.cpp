@@ -1,12 +1,11 @@
-#include "PrioEngineVars.h"
 #include "Engine.h"
+#include "PrioEngineVars.h"
 
 // Declaration of functions used to run game itself.
 void GameLoop(CEngine* &engine);
 void Control(CEngine* &engine, CCamera* cam, CTerrain* grid, float frameTime);
 
-// Globals
-CLogger* gLogger;
+CLogger* logger;
 
 // Main
 int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -15,7 +14,6 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-	gLogger = new CLogger();
 	// Start the game engine.
 	CEngine* PrioEngine;
 	bool result;
@@ -26,11 +24,11 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!PrioEngine)
 	{
 		// Write a message to the log to let the user know we couldn't create the engine object.
-		gLogger->WriteLine("Could not create the engine object.");
+		logger->GetInstance().GetInstance().WriteLine("Could not create the engine object.");
 		// Return 0, we're saying we're okay, implement error codes in future versions maybe? 
 		return 0;
 	}
-	gLogger->MemoryAllocWriteLine(typeid(PrioEngine).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(PrioEngine).name());
 
 	// Set up the engine.
 	result = PrioEngine->Initialise();
@@ -44,9 +42,9 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Shutdown and release the engine.
 	PrioEngine->Shutdown();
 	delete PrioEngine;
-	gLogger->MemoryDeallocWriteLine(typeid(PrioEngine).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(PrioEngine).name());
 	PrioEngine = nullptr;
-	delete gLogger;
+	logger->GetInstance().GetInstance().Shutdown();
 
 	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.
 	_CrtDumpMemoryLeaks();

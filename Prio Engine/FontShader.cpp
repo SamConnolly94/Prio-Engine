@@ -22,7 +22,7 @@ bool CFontShader::Initialise(ID3D11Device * device, HWND hwnd)
 	result = InitialiseShader(device, hwnd, L"Shaders/Font.vs.hlsl", L"Shaders/Font.ps.hlsl");
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to load either the pixel or vertex shader in FontShader.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load either the pixel or vertex shader in FontShader.cpp.");
 		return false;
 	}
 
@@ -42,7 +42,7 @@ bool CFontShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, D3
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texture, pixelColour);
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to set the shader parameters in FontShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to set the shader parameters in FontShader.cpp");
 		return false;
 	}
 
@@ -86,10 +86,10 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -107,10 +107,10 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 		else
 		{
 			// Output a message to the log and a message box.
-			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -126,7 +126,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -155,7 +155,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 		vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create polygon layout.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -179,7 +179,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the Colour shader class.");
 		return false;
 	}
 
@@ -203,7 +203,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the sampler state in FontShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the sampler state in FontShader.cpp");
 		return false;
 	}
 
@@ -221,7 +221,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsF
 	result = device->CreateBuffer(&pixelBufferDesc, NULL, &mpPixelBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to set up the pixel buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to set up the pixel buffer.");
 		return false;
 	}
 
@@ -285,8 +285,8 @@ void CFontShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd,
 		errStr += compileErrors[i];
 	}
 
-	gLogger->WriteLine("*** SHADER ERROR ***");
-	gLogger->WriteLine(errStr);
+	logger->GetInstance().GetInstance().WriteLine("*** SHADER ERROR ***");
+	logger->GetInstance().GetInstance().WriteLine(errStr);
 
 	// Release the blob used to store error message data.
 	errorMessage->Release();
@@ -308,7 +308,7 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	result = deviceContext->Map(mpConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to the lock the constant buffer so we could write to it in TextureShader.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to the lock the constant buffer so we could write to it in TextureShader.cpp.");
 		return false;
 	}
 
@@ -342,7 +342,7 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to lock the pixel buffer before writing to it in FontShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to lock the pixel buffer before writing to it in FontShader.cpp");
 		return false;
 	}
 

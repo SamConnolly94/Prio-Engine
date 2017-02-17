@@ -12,6 +12,8 @@
 class CEngine
 {
 private:
+	CLogger* logger;
+private:
 	const float kKeyPressIntervalTime = 0.5f;
 	bool mKeyRecentlyHit[256];
 	float mTimeSinceLastKeyPress;

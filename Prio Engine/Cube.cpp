@@ -16,7 +16,7 @@ CCube::CCube(WCHAR * filename)
 	mShape = PrioEngine::Primitives::cube;
 
 	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::cube);
-	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVertexManager).name());
 }
 
 CCube::CCube(WCHAR* filename, bool useLighting)
@@ -39,12 +39,12 @@ CCube::CCube(WCHAR* filename, bool useLighting)
 	if (useLighting)
 	{
 		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Diffuse, PrioEngine::Primitives::cube);
-		gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVertexManager).name());
 	}
 	else
 	{
 		mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Texture, PrioEngine::Primitives::cube);
-		gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
+		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVertexManager).name());
 	}
 }
 
@@ -63,7 +63,7 @@ CCube::CCube(PrioEngine::RGBA colour)
 	mShape = PrioEngine::Primitives::cube;
 
 	mpVertexManager = new CVertexManager(PrioEngine::ShaderType::Colour, PrioEngine::Primitives::cube);
-	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVertexManager).name());
 
 	mpVertexManager->SetColour(colour);
 }
@@ -122,7 +122,7 @@ bool CCube::InitialiseBuffers(ID3D11Device * device)
 
 	// Create the index array.
 	indices = new unsigned long[mIndexCount];
-	gLogger->MemoryAllocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(indices).name());
 	if (!indices)
 	{
 		return false;
@@ -164,7 +164,7 @@ bool CCube::InitialiseBuffers(ID3D11Device * device)
 
 	delete[] indices;
 	indices = nullptr;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }

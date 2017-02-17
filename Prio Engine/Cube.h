@@ -3,9 +3,12 @@
 #include <d3d11.h>
 #include <D3DX10math.h>
 #include "Primitive.h"
+#include "PrioEngineVars.h"
 
 class CCube : public CPrimitive
 {
+private:
+	CLogger* logger;
 public:
 	CCube(WCHAR* textureFilename);
 	CCube(WCHAR* filename, bool useLighting);

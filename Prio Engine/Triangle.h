@@ -5,8 +5,11 @@
 #include <D3DX10math.h>
 #include "Primitive.h"
 
+
 class CTriangle : public CPrimitive
 {
+private:
+	CLogger* logger;
 	public:
 		CTriangle(WCHAR* textureFilename);
 		CTriangle(WCHAR* filename, bool useLighting);

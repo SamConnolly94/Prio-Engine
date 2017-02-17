@@ -40,6 +40,8 @@
     <ClInclude Include="ModelControl.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrioEngineVars.h" />
+    <ClInclude Include="SkyBox.h" />
+    <ClInclude Include="SkyboxShader.h" />
     <ClInclude Include="SpecularLightingShader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainShader.h" />
@@ -70,6 +72,8 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelControl.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
+    <ClCompile Include="SkyboxShader.cpp" />
     <ClCompile Include="SpecularLightingShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
@@ -98,10 +102,10 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\SpecularLight.ps.hlsl">
-      <FileType>Document</FileType>
+      <FileType>HLSL</FileType>
     </None>
     <None Include="Shaders\SpecularLight.vs.hlsl">
-      <FileType>Document</FileType>
+      <FileType>HLSL</FileType>
     </None>
     <None Include="Shaders\Terrain.ps.hlsl">
       <FileType>Document</FileType>
@@ -113,6 +117,14 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Texture.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Skybox.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Skybox.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

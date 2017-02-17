@@ -6,8 +6,11 @@
 #include <D3DX11async.h>
 #include "PrioEngineVars.h"
 
+
 class CTextureShader
 {
+private:
+	CLogger* logger;
 private:
 	struct MatrixBufferType
 	{

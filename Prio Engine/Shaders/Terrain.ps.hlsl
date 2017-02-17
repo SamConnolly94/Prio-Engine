@@ -11,7 +11,7 @@
 // 4) Rock
 /////////////////////////
 Texture2D shaderTexture[4];
-Texture2D grassTextures[6];
+Texture2D grassTextures[2];
 Texture2D patchMap;
 SamplerState SampleType;
 

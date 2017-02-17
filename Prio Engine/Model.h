@@ -4,9 +4,12 @@
 #include "VertexTypeManager.h"
 #include "ModelControl.h"
 #include <vector>
+#include "Logger.h"
 
 class CModel : public CModelControl
 {
+private:
+	CLogger* logger;
 private:
 	D3DXVECTOR3* mpVertices;
 	D3DXVECTOR3* mpTexCoords;

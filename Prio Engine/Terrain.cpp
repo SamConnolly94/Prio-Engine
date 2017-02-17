@@ -3,7 +3,7 @@
 CTerrain::CTerrain(ID3D11Device* device)
 {
 	// Output alloc message to memory log.
-	gLogger->MemoryAllocWriteLine(typeid(this).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(this).name());
 
 	// Initialise pointers to nullptr.
 	mpVertexBuffer = nullptr;
@@ -38,39 +38,15 @@ CTerrain::CTerrain(ID3D11Device* device)
 
 	// Yellow grass.
 	mpGrassTextures[0] = new CTexture();
-	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/Grass1.dds"))
+	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/BrightGrass.dds"))
 	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass1.dds'.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/Grass1.dds'.");
 	}
 
 	mpGrassTextures[1] = new CTexture();
-	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/Chamomile.png"))
+	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/DarkGrass.dds"))
 	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass2.dds'.");
-	}
-
-	mpGrassTextures[2] = new CTexture();
-	if (!mpGrassTextures[2]->Initialise(device, L"Resources/Textures/Grass03.dds"))
-	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass03.png'.");
-	}
-
-	mpGrassTextures[3] = new CTexture();
-	if (!mpGrassTextures[3]->Initialise(device, L"Resources/Textures/Grass04.dds"))
-	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass04.png'.");
-	}
-
-	mpGrassTextures[4] = new CTexture();
-	if (!mpGrassTextures[4]->Initialise(device, L"Resources/Textures/Grass05.dds"))
-	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass05.png'.");
-	}
-
-	mpGrassTextures[5] = new CTexture();
-	if (!mpGrassTextures[5]->Initialise(device, L"Resources/Textures/Grass06.dds"))
-	{
-		gLogger->WriteLine("Failed to load 'Resources/Textures/Grass06.png'.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/DarkGrass.dds'.");
 	}
 }
 
@@ -78,7 +54,7 @@ CTerrain::CTerrain(ID3D11Device* device)
 CTerrain::~CTerrain()
 {
 	// Output dealloc message to memory log.
-	gLogger->MemoryDeallocWriteLine(typeid(this).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(this).name());
 
 	for (unsigned int i = 0; i < kmNumberOfTextures; i++)
 	{
@@ -107,12 +83,12 @@ void CTerrain::ReleaseHeightMap()
 	{
 		for (int i = 0; i < mHeight; ++i) {
 			delete[] mpHeightMap[i];
-			gLogger->MemoryDeallocWriteLine(typeid(mpHeightMap[i]).name());
+			logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpHeightMap[i]).name());
 			mpHeightMap[i] = nullptr;
 		}
 		delete[] mpHeightMap;
 		mpHeightMap = nullptr;
-		gLogger->MemoryDeallocWriteLine(typeid(mpHeightMap).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpHeightMap).name());
 	}
 }
 
@@ -138,7 +114,7 @@ bool CTerrain::CreateTerrain(ID3D11Device* device)
 	if (!result)
 	{
 		// Output error to log.
-		gLogger->WriteLine("Failed to initialise buffers in Terrain.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to initialise buffers in Terrain.cpp.");
 		return false;
 	}
 
@@ -196,12 +172,12 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	// Create the vertex array.
 	vertices = new VertexType[mVertexCount];
 	// Output the allocation message to the log.
-	gLogger->MemoryAllocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(vertices).name());
 	// If we failed to allocate memory to the vertices array.
 	if (!vertices)
 	{
 		// Output error message to the debug log.
-		gLogger->WriteLine("Failed to create the vertex array in InitialiseBuffers function, Terrain.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex array in InitialiseBuffers function, Terrain.cpp.");
 		// Don't continue any more.
 		return false;
 	}
@@ -209,12 +185,12 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	// Create the index array.
 	indices = new unsigned long[mIndexCount];
 	// Output allocation message to the debug log.
-	gLogger->MemoryAllocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(indices).name());
 	// If we failed to allocate memory to the indices array.
 	if (!indices)
 	{
 		// Output failure message to the debug log.
-		gLogger->WriteLine("Failed to create the index array in InitialiseBuffers function, Terrain.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the index array in InitialiseBuffers function, Terrain.cpp.");
 		// Don't continue any further.
 		return false;
 	}
@@ -424,7 +400,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex buffer from the buffer description.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex buffer from the buffer description.");
 		return false;
 	}
 
@@ -445,17 +421,17 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	result = device->CreateBuffer(&indexBufferDesc, &indexData, &mpIndexBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the index buffer from the buffer description.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the index buffer from the buffer description.");
 		return false;
 	}
 
 	// Clean up the memory allocated to arrays.
 	delete[] vertices;
-	gLogger->MemoryDeallocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(vertices).name());
 	vertices = nullptr;
 
 	delete[] indices;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
 
 	return true;
@@ -546,7 +522,7 @@ void CTerrain::LoadHeightMap(double ** heightMap)
 	mHighestPoint = static_cast<float>(mpHeightMap[0][0]);
 	
 	// Outpout a log to let the user know where we're up to in the function.
-	gLogger->WriteLine("Copied height map over to terrain, time to find the heights and lowest points.");
+	logger->GetInstance().GetInstance().WriteLine("Copied height map over to terrain, time to find the heights and lowest points.");
 	
 	// Iterate through the height.
 	for (int y = 0; y < mHeight; y++)
@@ -595,7 +571,7 @@ bool CTerrain::LoadHeightMapFromFile(std::string filename)
 	// Check we successfully opened.
 	if (!inFile.is_open())
 	{
-		gLogger->WriteLine("Failed to open the map file with name: " + filename);
+		logger->GetInstance().GetInstance().WriteLine("Failed to open the map file with name: " + filename);
 		return false;
 	}
 
@@ -630,7 +606,7 @@ bool CTerrain::LoadHeightMapFromFile(std::string filename)
 
 	if (!inFile.is_open())
 	{
-		gLogger->WriteLine("Failed to open " + filename + ", but managed to open it the first time.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to open " + filename + ", but managed to open it the first time.");
 		return false;
 	}
 

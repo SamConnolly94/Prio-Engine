@@ -22,9 +22,19 @@ class CLogger
 {
 /* Signleton class methods. */
 public:
+	static CLogger& GetInstance()
+	{
+		static CLogger instance;
+
+		return instance;
+	}
+	void Shutdown();
+private:
 	// Constructor.
 	CLogger();
-	~CLogger();
+	CLogger(CLogger const&) = delete;
+	void operator=(CLogger const&) = delete;
+	//~CLogger();
 private:
 	// String which writes a line of astericks.
 	const std::string k256Astericks = "****************************************************************************************************************************************************************************************************************************************************************";

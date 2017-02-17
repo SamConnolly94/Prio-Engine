@@ -6,9 +6,12 @@
 #include <fstream>
 
 #include "Texture.h"
+#include "PrioEngineVars.h"
 
 class CGameFont
 {
+private:
+	CLogger* logger;
 private:
 	struct FontType
 	{

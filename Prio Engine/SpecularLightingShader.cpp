@@ -91,10 +91,10 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -108,10 +108,10 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -119,7 +119,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -127,7 +127,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -168,7 +168,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create polygon layout.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create polygon layout.");
 		return false;
 	}
 
@@ -199,7 +199,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the sampler state in TextureShader.cpp");
 		return false;
 	}
 
@@ -216,7 +216,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -231,7 +231,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateBuffer(&cameraBufferDesc, NULL, &mpCameraBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the camera buffer from the camera buffer descriptor from within the specular lighting shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the camera buffer from the camera buffer descriptor from within the specular lighting shader class.");
 		return false;
 	}
 
@@ -245,7 +245,7 @@ bool CSpecularLightingShader::InitialiseShader(ID3D11Device * device, HWND hwnd,
 	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the specular lighting shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer from the light buffer descriptor from within the specular lighting shader class.");
 		return false;
 	}
 
@@ -319,7 +319,7 @@ void CSpecularLightingShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage,
 	}
 
 	// Write the error string to the logs.
-	gLogger->WriteLine(errMsg);
+	logger->GetInstance().GetInstance().WriteLine(errMsg);
 
 	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();
@@ -373,7 +373,7 @@ bool CSpecularLightingShader::SetShaderParameters(	ID3D11DeviceContext * deviceC
 	result = deviceContext->Map(mpCameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to lock the camera constant buffer so it could be written to in SpecularLightingShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to lock the camera constant buffer so it could be written to in SpecularLightingShader.cpp");
 		return false;
 	}
 

@@ -27,7 +27,7 @@ bool CTerrainShader::Initialise(ID3D11Device * device, HWND hwnd)
 
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to initialise the vertex and pixel shaders when initialising the terrain shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to initialise the vertex and pixel shaders when initialising the terrain shader class.");
 		return false;
 	}
 
@@ -35,7 +35,7 @@ bool CTerrainShader::Initialise(ID3D11Device * device, HWND hwnd)
 
 	if (!result)
 	{
-		gLogger->WriteLine("Failed to load the blend mask when initialising the terrain shader.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load the blend mask when initialising the terrain shader.");
 		return false;
 	}
 
@@ -106,10 +106,10 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
 			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
 		return false;
 	}
 
@@ -123,10 +123,10 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 		}
 		else
 		{
-			gLogger->WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
+			logger->GetInstance().GetInstance().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
 			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
 		}
-		gLogger->WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		logger->GetInstance().GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
 		return false;
 	}
 
@@ -134,7 +134,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
 		return false;
 	}
 
@@ -142,7 +142,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the pixel shader from the buffer.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
 		return false;
 	}
 
@@ -200,7 +200,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create polygon layout in Terrain Shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create polygon layout in Terrain Shader class.");
 		return false;
 	}
 
@@ -231,7 +231,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the sampler state in TextureShader.cpp");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the sampler state in TextureShader.cpp");
 		return false;
 	}
 
@@ -248,7 +248,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the texture shader class.");
 		return false;
 	}
 
@@ -262,7 +262,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the buffer from the light buffer descriptor from within the texture diffuse light shader class.");
 		return false;
 	}
 	///////////////////
@@ -277,7 +277,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&terrainBufferDesc, NULL, &mpTerrainConstBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the constant terrain information buffer in the terrrain shader from the terrain buffer description given.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the constant terrain information buffer in the terrrain shader from the terrain buffer description given.");
 		return false;
 	}
 
@@ -293,7 +293,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * 
 	result = device->CreateBuffer(&positioningBufferDesc, NULL, &mpPositioningBuffer);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the constant position information buffer in the terrrain shader from the positioning buffer description given.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the constant position information buffer in the terrrain shader from the positioning buffer description given.");
 		return false;
 	}
 	return true;
@@ -366,7 +366,7 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 	}
 
 	// Write the error string to the logs.
-	gLogger->WriteLine(errMsg);
+	logger->GetInstance().GetInstance().WriteLine(errMsg);
 
 	// Clean up the BLOB file used to store the error message.
 	errorMessage->Release();
@@ -467,7 +467,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 	result = deviceContext->Map(mpTerrainConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to map the terrain cosntant buffer when setting shader parameters in terrain shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to map the terrain cosntant buffer when setting shader parameters in terrain shader class.");
 		return false;
 	}
 
@@ -494,7 +494,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 	result = deviceContext->Map(mpPositioningBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to map the positioning cosntant buffer when setting shader parameters in terrain shader class.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to map the positioning cosntant buffer when setting shader parameters in terrain shader class.");
 		return false;
 	}
 

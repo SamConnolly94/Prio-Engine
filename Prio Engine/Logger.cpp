@@ -42,7 +42,6 @@ CLogger::CLogger()
 	else
 	{
 		MessageBox(NULL, L"Could not open the memory log to write to it, make sure you haven't left it open. The program will continue to run but without logging.", L"Could not open memory log!", MB_OK);
-
 	}
 
 #endif
@@ -50,7 +49,7 @@ CLogger::CLogger()
 }
 
 // Destructor.
-CLogger::~CLogger()
+void CLogger::Shutdown()
 {
 	// Analyse the memory allocated / deallocated messages and check for anything missing.
 	MemoryAnalysis();

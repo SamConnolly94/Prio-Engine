@@ -7,8 +7,11 @@
 #include "PrioEngineVars.h"
 #include "Texture.h"
 
+
 class CTerrainShader
 {
+private:
+	CLogger* logger;
 private:
 	struct MatrixBufferType
 	{

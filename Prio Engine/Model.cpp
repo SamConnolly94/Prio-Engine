@@ -5,7 +5,7 @@ CModel::CModel(ID3D11Device * device, PrioEngine::ShaderType vertexType)
 {
 	mpDevice = device;
 	mpVertexManager = new CVertexManager(vertexType);
-	gLogger->MemoryAllocWriteLine(typeid(mpVertexManager).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVertexManager).name());
 	mpVertexManager->SetDevicePtr(mpDevice);
 }
 
@@ -13,7 +13,7 @@ CModel::CModel(ID3D11Device * device, PrioEngine::ShaderType vertexType)
 CModel::~CModel()
 {
 	delete mpVertexManager;
-	gLogger->MemoryDeallocWriteLine(typeid(mpVertexManager).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVertexManager).name());
 }
 
 void CModel::SetNumberOfVertices(int size)
@@ -100,7 +100,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	/* Give the subresource structure a pointer to the index data. */
 	unsigned long* indices = new unsigned long[mIndicesCount];
-	gLogger->MemoryAllocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(indices).name());
 	for (int i = 0; i < mIndicesCount; i++)
 	{
 		indices[i] = indicesList[i];
@@ -119,7 +119,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	mpVertexManager->CleanArrays();
 	delete[] indices;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	return true;
 }
 
@@ -154,7 +154,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	/* Give the subresource structure a pointer to the index data. */
 	unsigned long* indices = new unsigned long[mIndicesCount];
-	gLogger->MemoryAllocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(indices).name());
 	for (int i = 0; i < mIndicesCount; i++)
 	{
 		indices[i] = indicesList[i];
@@ -173,7 +173,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	mpVertexManager->CleanArrays();
 	delete[] indices;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	return true;
 }
 
@@ -208,7 +208,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	/* Give the subresource structure a pointer to the index data. */
 	unsigned long* indices = new unsigned long[mIndicesCount];
-	gLogger->MemoryAllocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(indices).name());
 	for (int i = 0; i < mIndicesCount; i++)
 	{
 		indices[i] = indicesList[i];
@@ -226,7 +226,7 @@ bool CModel::SetGeometry(std::vector<D3DXVECTOR3> vertices, std::vector<unsigned
 
 	mpVertexManager->CleanArrays();
 	delete [] indices;
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }

@@ -9,6 +9,8 @@
 class CFontShader
 {
 private:
+	CLogger* logger;
+private:
 	struct ConstantBufferType
 	{
 		D3DXMATRIX world;

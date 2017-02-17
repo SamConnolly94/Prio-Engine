@@ -50,7 +50,7 @@ bool C2DImage::Initialise(ID3D11Device * device, int screenWidth, int screenHeig
 	if (!result)
 	{
 		// Output error to logs.
-		gLogger->WriteLine("Failed to initialise the buffers in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to initialise the buffers in 2DSprite.cpp.");
 		// Return false to avoid continuing.
 		return false;
 	}
@@ -62,7 +62,7 @@ bool C2DImage::Initialise(ID3D11Device * device, int screenWidth, int screenHeig
 	if (!result)
 	{
 		// Output detailed error to the logs for the user to fix.
-		gLogger->WriteLine("Failed to load texture in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load texture in 2DSprite.cpp.");
 		// Prevent continuing to avoid disappointment.
 		return false;
 	}
@@ -93,7 +93,7 @@ bool C2DImage::Render(ID3D11DeviceContext * deviceContext, int posX, int posY)
 	if (!result)
 	{
 		// Output detailed error message to the logs.
-		gLogger->WriteLine("Failed to update the buffers with any potential new positions on the screen in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to update the buffers with any potential new positions on the screen in 2DSprite.cpp.");
 		// Return false to avoid continuing any further.
 		return false;
 	}
@@ -141,12 +141,12 @@ bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 	if (!vertices)
 	{
 		// Output detailed error message to the log.
-		gLogger->WriteLine("Failed to create vertex array in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create vertex array in 2DSprite.cpp.");
 		// Return false to avoid continuing incorrectly.
 		return false;
 	}
 	// Output message to memory allocation log.
-	gLogger->MemoryAllocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(vertices).name());
 
 	// Create index array.
 	indices = new unsigned long[mIndexCount];
@@ -155,7 +155,7 @@ bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 	if (!indices)
 	{
 		// Output detailed error message to the log.
-		gLogger->WriteLine("Failed to create index array in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create index array in 2DSprite.cpp.");
 		// Return false to avoid continuing incorrectly.
 		return false;
 	}
@@ -188,7 +188,7 @@ bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 	// If failed to create the vertex buffer.
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the vertex buffer from descriptor in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex buffer from descriptor in 2DSprite.cpp.");
 		return false;
 	}
 
@@ -211,7 +211,7 @@ bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 	// Check if we failed to create index buffer.
 	if (FAILED(result))
 	{
-		gLogger->WriteLine("Failed to create the index buffer from descriptor in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create the index buffer from descriptor in 2DSprite.cpp.");
 		return false;
 	}
 
@@ -220,14 +220,14 @@ bool C2DImage::InitialiseBuffers(ID3D11Device * device)
 	// Take away the pointer to the now deallocated memory.
 	vertices = nullptr;
 	// Output deallocation message to the logs.
-	gLogger->MemoryDeallocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(vertices).name());
 
 	// Deallocate memory given to the temp index array.
 	delete[] indices;
 	// Take away the pointer to the now deallocated memory.
 	indices = nullptr;
 	// Output deallocation message to the logs.
-	gLogger->MemoryDeallocWriteLine(typeid(indices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 
 	return true;
 }
@@ -291,12 +291,12 @@ bool C2DImage::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int 
 	if (!vertices)
 	{
 		// Output error to log.
-		gLogger->WriteLine("Failed to allocate memory to the vertices array when updating vertices.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to allocate memory to the vertices array when updating vertices.");
 		// Don't continue any further.
 		return false;
 	}
 	// Output memory alloc message to memory logs.
-	gLogger->MemoryAllocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(vertices).name());
 
 	/// Load the vertex array with data.
 	// First triangle.
@@ -332,7 +332,7 @@ bool C2DImage::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int 
 	if (FAILED(result))
 	{
 		// Output error message to log.
-		gLogger->WriteLine("Failed to lock the vertex buffer when updating it in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to lock the vertex buffer when updating it in 2DSprite.cpp.");
 		// Don't continue any further.
 		return false;
 	}
@@ -351,7 +351,7 @@ bool C2DImage::UpdateBuffers(ID3D11DeviceContext * deviceContext, int posX, int 
 	// Remove pointer to deallocated memory.
 	vertices = nullptr;
 	// Output messaoge to logs.
-	gLogger->MemoryDeallocWriteLine(typeid(vertices).name());
+	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(vertices).name());
 
 	return true;
 }
@@ -389,12 +389,12 @@ bool C2DImage::LoadTexture(ID3D11Device * device, WCHAR * textureFilename)
 	if (!mpTexture)
 	{
 		// Output failure message to log.
-		gLogger->WriteLine("Failed to create texture object in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to create texture object in 2DSprite.cpp.");
 		// Prevent continuing any further.
 		return false;
 	}
 	// Output memory allocation message to memory log.
-	gLogger->MemoryAllocWriteLine(typeid(mpTexture).name());
+	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpTexture).name());
 
 	// Initialise the texture object.
 	result = mpTexture->Initialise(device, textureFilename);
@@ -403,7 +403,7 @@ bool C2DImage::LoadTexture(ID3D11Device * device, WCHAR * textureFilename)
 	if (!result)
 	{
 		// Output error message.
-		gLogger->WriteLine("Failed to initialise the texture object in 2DSprite.cpp.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to initialise the texture object in 2DSprite.cpp.");
 		// Don't continue any further.
 		return false;
 	}
@@ -424,6 +424,6 @@ void C2DImage::ReleaseTexture()
 		// Remove pointer to that block of memory.
 		mpTexture = nullptr;
 		// Output deallocation message to the memory log.
-		gLogger->MemoryDeallocWriteLine(typeid(mpTexture).name());
+		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpTexture).name());
 	}
 }
