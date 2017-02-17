@@ -49,6 +49,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 		D3DXMATRIX projMatrix, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+		CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, 	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
 
 private:
@@ -58,6 +59,7 @@ private:
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 		D3DXMATRIX projMatrix, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+		CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
 		float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);

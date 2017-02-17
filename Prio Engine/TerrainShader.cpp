@@ -50,13 +50,14 @@ void CTerrainShader::Shutdown()
 
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projMatrix, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+	CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, texturesArray, 
-		numberOfTextures, grassTexturesArray, numberOfGrassTextures, lightDirection, 
+		numberOfTextures, grassTexturesArray, numberOfGrassTextures, rockTexturesArray, numberOfRockTextures, lightDirection, 
 		diffuseColour, ambientColour, highestPos, lowestPos, worldPosition);
 	if (!result)
 	{
@@ -378,12 +379,14 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 
 bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projMatrix, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
+	CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour,
 	float highestPos, float lowestPos, D3DXVECTOR3 worldPosition)
 {
 	ID3D11ShaderResourceView** textures = new ID3D11ShaderResourceView*[numberOfTextures];
 	ID3D11ShaderResourceView** grassTextures = new ID3D11ShaderResourceView*[numberOfGrassTextures];
 	ID3D11ShaderResourceView* patchMap = mpPatchMap->GetTexture();
+	ID3D11ShaderResourceView** rockTextures = new ID3D11ShaderResourceView*[numberOfRockTextures];
 
 	for (int i = 0; i < numberOfTextures; i++)
 	{
@@ -393,6 +396,11 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 	for (int i = 0; i < numberOfGrassTextures; i++)
 	{
 		grassTextures[i] = grassTexturesArray[i]->GetTexture();
+	}
+
+	for (int i = 0; i < numberOfRockTextures; i++)
+	{
+		rockTextures[i] = rockTexturesArray[i]->GetTexture();
 	}
 
 	HRESULT result;
@@ -436,6 +444,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
 	deviceContext->PSSetShaderResources(numberOfTextures, numberOfGrassTextures, grassTextures);
 	deviceContext->PSSetShaderResources(numberOfTextures + numberOfGrassTextures, 1, &patchMap);
+	deviceContext->PSSetShaderResources(numberOfTextures + numberOfGrassTextures + 1, numberOfRockTextures, rockTextures);
 
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -515,6 +524,7 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 
 	delete[] textures;
 	delete[] grassTextures;
+	delete[] rockTextures;
 	return true;
 }
 

@@ -34,19 +34,40 @@ CTerrain::CTerrain(ID3D11Device* device)
 	mpTextures[3] = new CTexture();
 	mpTextures[3]->Initialise(device, L"Resources/Textures/Rock.dds");
 
+
+	///////////////////////
+	// Grass textures
+	//////////////////////
+
 	mpGrassTextures = new CTexture*[kNumberOfGrassTextures];
 
-	// Yellow grass.
 	mpGrassTextures[0] = new CTexture();
 	if (!mpGrassTextures[0]->Initialise(device, L"Resources/Textures/BrightGrass.dds"))
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/Grass1.dds'.");
+		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/BrightGrass.dds'.");
 	}
 
 	mpGrassTextures[1] = new CTexture();
 	if (!mpGrassTextures[1]->Initialise(device, L"Resources/Textures/DarkGrass.dds"))
 	{
 		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/DarkGrass.dds'.");
+	}
+
+	/////////////////////////
+	// Rock textures
+	////////////////////////
+	mpRockTextures = new CTexture*[kNumberOfRockTextures];
+
+	mpRockTextures[0] = new CTexture();
+	if (!mpRockTextures[0]->Initialise(device, L"Resources/Textures/Stone.dds"))
+	{
+		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/Stone.dds'.");
+	}
+
+	mpRockTextures[1] = new CTexture();
+	if (!mpRockTextures[1]->Initialise(device, L"Resources/Textures/LightRock.dds"))
+	{
+		logger->GetInstance().GetInstance().WriteLine("Failed to load 'Resources/Textures/LightRock.dds'.");
 	}
 }
 
@@ -71,6 +92,14 @@ CTerrain::~CTerrain()
 	}
 
 	delete[] mpGrassTextures;
+
+	for (unsigned int i = 0; i < kNumberOfRockTextures; i++)
+	{
+		mpRockTextures[i]->Shutdown();
+		delete mpRockTextures[i];
+	}
+
+	delete[] mpRockTextures;
 	
 	ReleaseHeightMap();
 
@@ -138,9 +167,19 @@ CTexture** CTerrain::GetGrassTextureArray()
 	return mpGrassTextures;
 }
 
+CTexture ** CTerrain::GetRockTextureArray()
+{
+	return mpRockTextures;
+}
+
 unsigned int CTerrain::GetNumberOfGrassTextures()
 {
 	return kNumberOfGrassTextures;
+}
+
+unsigned int CTerrain::GetNumberOfRockTextures()
+{
+	return kNumberOfRockTextures;
 }
 
 /* This function is designed to create vertex and index buffers according to a heightmap that has already been set.

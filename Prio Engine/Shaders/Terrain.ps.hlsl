@@ -13,6 +13,7 @@
 Texture2D shaderTexture[4];
 Texture2D grassTextures[2];
 Texture2D patchMap;
+Texture2D rockTextures[2];
 SamplerState SampleType;
 
 ///////////////////////////
@@ -123,7 +124,7 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 	return result;
 };
 
-float4 GetCombinedGrassLerp(PixelInputType input, float3 blending)
+float4 GetPatchGrassColour(PixelInputType input, float3 blending)
 {
 	float4 grass1 = GetTriplanarGrassTextureColour(0, blending, input.worldPosition, 1.0f);
 	float4 grass2 = GetTriplanarGrassTextureColour(1, blending, input.worldPosition, 1.0f);
@@ -135,7 +136,43 @@ float4 GetCombinedGrassLerp(PixelInputType input, float3 blending)
 	return textureColour;
 }
 
-static float sinVal = 0.0f;
+float4 GetTriplanarRockTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
+{
+	scale = 0.1f;
+	float4 xAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * scale);
+	float4 yAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
+	float4 zAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
+
+	float4 xAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
+	float4 yAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	float4 zAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+
+	float4 xAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	float4 yAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	float4 zAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+
+	float4 result;
+	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
+	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	result /= 3;
+
+	return result;
+
+}
+
+float4 GetCombinedRockLerp(PixelInputType input, float3 blending)
+{
+	float4 rock1 = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+	float4 rock2 = GetTriplanarRockTextureColour(1, blending, input.worldPosition, 1.0f);
+
+	float4 patchColour = patchMap.Sample(SampleType, input.tex / 32.0f);
+
+	float4 textureColour = lerp(rock2, rock1, patchColour.r);
+
+	return textureColour;
+}
+
 
 ///////////////////////////
 // Pixel Shading Functions
@@ -176,26 +213,28 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	/////////// SNOW //////////////////
 	if (worldPos > snowHeight)
 	{
-		textureColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
+		//textureColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
+		textureColour = GetCombinedRockLerp(input, blending);
 	}
 	///////////// SNOW BLENDED WITH GRASS /////////////
 	else if (worldPos > snowHeight - 5.0f)
 	{
-		float4 snowTex = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
-		float4 grassTex = GetCombinedGrassLerp(input, blending);
+		//float4 snowTex = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
+		float4 rockTex = GetCombinedRockLerp(input, blending);
+		float4 grassTex = GetPatchGrassColour(input, blending);
 		float heightDiff = snowHeight - worldPos;
 		float blendFactor = heightDiff / 5.0f;
-		textureColour = lerp(snowTex, grassTex, blendFactor);
+		textureColour = lerp(rockTex, grassTex, blendFactor);
 	}
 	////////////// GRASS ///////////////////
 	else if (worldPos > grassHeight)
 	{
-		textureColour = GetCombinedGrassLerp(input, blending);
+		textureColour = GetPatchGrassColour(input, blending);
 	}
 	////////////////// GRASS BLENDED WITH DIRT ////////////////
 	else if (worldPos > grassHeight - 2.0f)
 	{
-		float4 grassTex = GetCombinedGrassLerp(input, blending);
+		float4 grassTex = GetPatchGrassColour(input, blending);
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 		float heightDiff = grassHeight - worldPos;
 		float blendFactor = heightDiff / 2.0f;

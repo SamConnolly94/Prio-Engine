@@ -420,6 +420,8 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 				terrain->GetNumberOfTextures(),
 				terrain->GetGrassTextureArray(),
 				terrain->GetNumberOfGrassTextures(),
+				terrain->GetRockTextureArray(),
+				terrain->GetNumberOfRockTextures(),
 				light->GetDirection(),
 				light->GetDiffuseColour(),
 				light->GetAmbientColour(),

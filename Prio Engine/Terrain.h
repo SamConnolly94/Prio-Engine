@@ -31,6 +31,8 @@ private:
 	const unsigned int kmNumberOfTextures = 4;
 	CTexture** mpGrassTextures;
 	const unsigned int kNumberOfGrassTextures = 2;
+	CTexture** mpRockTextures;
+	const unsigned int kNumberOfRockTextures = 2;
 	float mLowestPoint;
 	float mHighestPoint;
 public:
@@ -38,8 +40,10 @@ public:
 	void Render(ID3D11DeviceContext* context);
 	CTexture** GetTexturesArray();
 	CTexture** GetGrassTextureArray();
+	CTexture** GetRockTextureArray();
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 	unsigned int GetNumberOfGrassTextures();
+	unsigned int GetNumberOfRockTextures();
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();
