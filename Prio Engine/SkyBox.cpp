@@ -12,7 +12,7 @@ CSkyBox::~CSkyBox()
 {
 }
 
-bool CSkyBox::Initialise(ID3D11Device * device)
+bool CSkyBox::Initialise(ID3D11Device * device, D3DXVECTOR4 ambientColour)
 {
 	if (!LoadSkyBoxModel( "Resources/Models/Sphere.fbx"))
 	{
@@ -27,7 +27,7 @@ bool CSkyBox::Initialise(ID3D11Device * device)
 	}
 
 	mApexColour = D3DXVECTOR4{ 0.0f, 0.15f, 0.66f, 1.0f };
-	mCentreColour = D3DXVECTOR4{ 0.81f, 0.38f, 0.66f, 1.0f };
+	mCentreColour = ambientColour;
 
 	return true;
 }

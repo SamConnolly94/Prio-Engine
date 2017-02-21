@@ -28,7 +28,7 @@ public:
 private:
 	void ReleaseHeightMap();
 	CTexture** mpTextures;
-	const unsigned int kmNumberOfTextures = 4;
+	const unsigned int kmNumberOfTextures = 2;
 	CTexture** mpGrassTextures;
 	const unsigned int kNumberOfGrassTextures = 2;
 	CTexture** mpRockTextures;

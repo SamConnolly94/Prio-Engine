@@ -32,7 +32,7 @@ private:
 		D3DXVECTOR3 position;
 	};
 public:
-	bool Initialise(ID3D11Device* device);
+	bool Initialise(ID3D11Device* device, D3DXVECTOR4 ambientColour);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext);
 

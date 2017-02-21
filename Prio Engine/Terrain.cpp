@@ -24,15 +24,15 @@ CTerrain::CTerrain(ID3D11Device* device)
 	// Dirt
 	mpTextures[0] = new CTexture();
 	mpTextures[0]->Initialise(device, L"Resources/Textures/Dirt.dds");
-	// Rock
-	mpTextures[1] = new CTexture();
-	mpTextures[1]->Initialise(device, L"Resources/Textures/Stone.dds");
+	//// Rock
+	//mpTextures[1] = new CTexture();
+	//mpTextures[1]->Initialise(device, L"Resources/Textures/Stone.dds");
 	// Sand.
-	mpTextures[2] = new CTexture();
-	mpTextures[2]->Initialise(device, L"Resources/Textures/Sand.dds");
-	// Rock.
-	mpTextures[3] = new CTexture();
-	mpTextures[3]->Initialise(device, L"Resources/Textures/Rock.dds");
+	mpTextures[1] = new CTexture();
+	mpTextures[1]->Initialise(device, L"Resources/Textures/Sand.dds");
+	//// Rock.
+	//mpTextures[2] = new CTexture();
+	//mpTextures[2]->Initialise(device, L"Resources/Textures/Rock.dds");
 
 
 	///////////////////////

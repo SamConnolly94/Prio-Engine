@@ -125,7 +125,7 @@ public:
 	bool UpdateTerrainBuffers(CTerrain* &terrain, double** heightmap, int width, int height);
 	bool IsFullscreen();
 	bool SetFullscreen(bool enabled);
-	CSkyBox* CreateSkybox();
+	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
 };
 
 #endif

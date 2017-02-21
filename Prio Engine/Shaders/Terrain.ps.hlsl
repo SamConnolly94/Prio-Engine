@@ -10,7 +10,7 @@
 // 3) Sand
 // 4) Rock
 /////////////////////////
-Texture2D shaderTexture[4];
+Texture2D shaderTexture[2];
 Texture2D grassTextures[2];
 Texture2D patchMap;
 Texture2D rockTextures[2];
@@ -73,31 +73,6 @@ float GetPercentage(float number, float desiredPercentage)
 	return (onePerc * desiredPercentage);
 };
 
-float4 GetTriplanarGrassTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
-{
-	scale = 0.1f;
-	float4 xAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * scale);
-	float4 yAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
-	float4 zAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
-
-	float4 xAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	float4 yAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	float4 zAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
-
-	float4 xAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	float4 yAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	float4 zAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
-
-	float4 result;
-	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	result /= 3;
-
-	return result;
-
-}
-
 float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
 {
 
@@ -107,22 +82,48 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 	float4 yAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	float4 yAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	float4 zAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+	//float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
+	//float4 yAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	//float4 zAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
 
-	float4 xAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	float4 yAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	float4 zAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+	//float4 xAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	//float4 yAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	//float4 zAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
 
 	float4 result;
 	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	result /= 3;
+	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	//result /= 3;
 
 	return result;
 };
+
+float4 GetTriplanarGrassTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
+{
+	scale = 0.1f;
+	float4 xAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * scale);
+	float4 yAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
+	float4 zAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
+
+	//float4 xAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
+	//float4 yAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	//float4 zAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+
+	//float4 xAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	//float4 yAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	//float4 zAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+
+	float4 result;
+	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
+	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	//result /= 3;
+
+	return result;
+
+}
+
 
 float4 GetPatchGrassColour(PixelInputType input, float3 blending)
 {
@@ -143,19 +144,19 @@ float4 GetTriplanarRockTextureColour(int texIndex, float3 blending, float4 world
 	float4 yAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	float4 xAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	float4 yAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	float4 zAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
+	//float4 xAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
+	//float4 yAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
+	//float4 zAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
 
-	float4 xAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	float4 yAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	float4 zAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
+	//float4 xAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
+	//float4 yAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
+	//float4 zAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
 
 	float4 result;
 	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	result /= 3;
+	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
+	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
+	//result /= 3;
 
 	return result;
 
@@ -249,7 +250,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	else if (worldPos > dirtHeight - 2.0f)
 	{
 		float4 dirtTex = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
-		float4 sandTex = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		float4 sandTex = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 		float heightDiff = dirtHeight - worldPos;
 		float blendFactor = heightDiff / 2.0f;
 		textureColour = lerp(dirtTex, sandTex, blendFactor);
@@ -257,13 +258,12 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	//////////////////// SAND //////////////////
 	else if (worldPos > sandHeight)
 	{
-		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 	}
 	// Below all height, assume sand.
 	else
 	{
-
-		textureColour = GetTriplanarTextureColour(2, blending, input.worldPosition, 1.0f);
+		textureColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 	}
 
 	// Set the colour to the ambient colour.

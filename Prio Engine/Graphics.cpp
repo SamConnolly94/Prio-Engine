@@ -107,7 +107,21 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	CreateSkybox();
+	const float ambientMultiplier = 0.3f;
+	D3DXVECTOR4 horizonColour = { 0.81f, 0.38f, 0.66f, 1.0f };
+	D3DXVECTOR4 ambientColour = horizonColour;
+	
+	ambientColour.x *= ambientMultiplier;
+	ambientColour.y *= ambientMultiplier;
+	ambientColour.z *= ambientMultiplier;
+
+	CLight* ambientLight;
+	ambientLight = CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, ambientColour);
+	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, 0.0f, 1.0f });
+	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
+	ambientLight->SetSpecularPower(32.0f);
+
+	CreateSkybox(horizonColour);
 
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
@@ -633,7 +647,7 @@ bool CGraphics::SetFullscreen(bool isEnabled)
 	return true;
 }
 
-CSkyBox * CGraphics::CreateSkybox()
+CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 {
 	CSkyBox* skybox;
 	logger->GetInstance().WriteLine("Setting up skybox.");
@@ -644,7 +658,7 @@ CSkyBox * CGraphics::CreateSkybox()
 		return false;
 	}
 
-	bool result = skybox->Initialise(mpD3D->GetDevice());
+	bool result = skybox->Initialise(mpD3D->GetDevice(), ambientColour);
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to create the skybox.");

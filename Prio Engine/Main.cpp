@@ -69,20 +69,18 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam;
 	myCam = engine->GetMainCamera();
 
-	CLight* ambientLight;
-	CTerrain* terrain = engine->CreateTerrain("Default.map");
+	//CTerrain* terrain = engine->CreateTerrain("Default.map");
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
 
+	CMesh* treeMesh = engine->LoadMesh("Resources/Models/trees9.3ds", L"Resources/Models/Oak_Leav.jpg");
+	CModel* tree = treeMesh->CreateModel();
+	tree->SetPos(0.0f, 0.0f, 10.0f);
+	//tree->Scale(20.0f);
+
 	// Camera init.
 	myCam->SetPosizionY(30.0f);
-
-	// Light init
-	ambientLight = engine->CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, D3DXVECTOR4{ 0.15f, 0.15f, 0.15f, 1.0f });
-	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, 0.0f, 1.0f });
-	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
-	ambientLight->SetSpecularPower(32.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();
@@ -100,7 +98,7 @@ void GameLoop(CEngine* &engine)
 		frameTime = engine->GetFrameTime();
 
 		// Process any keys pressed this frame.
-		Control(engine, myCam, terrain, frameTime);
+		//Control(engine, myCam, terrain, frameTime);
 
 		// Update the text on our game.
 		if (timeSinceTextUpdate >= kTextUpdateInterval)
