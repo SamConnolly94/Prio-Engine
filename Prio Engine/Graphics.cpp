@@ -309,14 +309,14 @@ bool CGraphics::Render()
 	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix))
 		return false;
 
-	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
-		return false;
-
 	if (!RenderSkybox(worldMatrix, viewMatrix, projMatrix))
 		return false;
 
 	// Render model using texture shader.
 	if (!RenderModels(worldMatrix, viewMatrix, projMatrix))
+		return false;
+
+	if (!RenderText(worldMatrix, mBaseView, orthoMatrix))
 		return false;
 
 	TwDraw();
