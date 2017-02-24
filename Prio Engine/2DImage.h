@@ -21,7 +21,7 @@ public:
 	~C2DImage();
 
 	// Graphics functions.
-	bool Initialise(ID3D11Device* device, int screenWidth, int screenHeight, WCHAR* textureFilename, int width, int height);
+	bool Initialise(ID3D11Device* device, int screenWidth, int screenHeight, std::string textureFilename, int width, int height);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* deviceContext, int posX, int posY);
 
@@ -35,7 +35,7 @@ private:
 	bool UpdateBuffers(ID3D11DeviceContext* deviceContext, int posX, int posY);
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 
-	bool LoadTexture(ID3D11Device* device, WCHAR* textureFilename);
+	bool LoadTexture(ID3D11Device* device, std::string textureFilename);
 	void ReleaseTexture();
 private:
 	// Member variables.

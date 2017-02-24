@@ -16,8 +16,8 @@ private:
 	CLogger* logger;
 public:
 	CPrimitive(){};
-	CPrimitive(WCHAR* textureFilename);
-	CPrimitive(WCHAR* textureFilename, bool useLighting);
+	CPrimitive(std::string filename);
+	CPrimitive(std::string filename, bool useLighting);
 	CPrimitive(PrioEngine::RGBA colour);
 	~CPrimitive();
 public:
@@ -50,7 +50,7 @@ protected:
 	int mVertexCount;
 	int mIndexCount;
 	CTexture* mpTexture;
-	WCHAR* mpTextureFilename;
+	std::string mpTextureFilename;
 	bool mApplyTexture;
 	PrioEngine::RGBA mColour;
 	bool mUseDiffuseLighting;

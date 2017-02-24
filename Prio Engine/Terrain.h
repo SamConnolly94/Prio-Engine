@@ -6,6 +6,7 @@
 #include "PrioEngineVars.h"
 #include "ModelControl.h"
 #include "Texture.h"
+#include "Mesh.h"
 
 #include <vector>
 #include <sstream>
@@ -22,6 +23,15 @@ private:
 		D3DXVECTOR2 UV;
 		D3DXVECTOR3 normal;
 	};
+
+	enum VertexAreaType
+	{
+		Snow,
+		Grass,
+		Dirt,
+		Sand
+	};
+
 public:
 	CTerrain(ID3D11Device* device);
 	~CTerrain();
@@ -84,6 +94,33 @@ public:
 // Update functions.
 public:
 	void UpdateMatrices(D3DXMATRIX& world);
+private:
+	struct TerrainEntityType
+	{
+		D3DXVECTOR3 position;
+		float rotation;
+		float scale;
+	};
+	std::vector<TerrainEntityType> mTreesInfo;
+	std::vector<TerrainEntityType> mPlantsInfo;
+	bool PositionTreeHere();
+	bool CreateTree(D3DXVECTOR3 position);
+	bool PositionPlantHere();
+	bool CreatePlant(D3DXVECTOR3 position);
+	CTerrain::VertexAreaType FindAreaType(float height);
+public:
+	std::vector<TerrainEntityType> GetTreeInformation() { return mTreesInfo; };
+	std::vector<TerrainEntityType> GetPlantInformation() { return mPlantsInfo; };
+private:
+	float mSnowHeight;	// 60% and upwards will be snow.
+	float mGrassHeight;	// 30% and upwards will be grass.
+	float mSandHeight;	// 10% and upwards will be sand.
+	float mDirtHeight;	// 15% and upwards will be dirt.
+public:
+	float GetSnowHeight() { return mSnowHeight; };
+	float GetGrassHeight() { return mGrassHeight; };
+	float GetSandHeight() { return mSandHeight; };
+	float GetDirtHeight() { return mDirtHeight; };
 };
 
 #endif

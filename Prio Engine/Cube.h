@@ -10,8 +10,8 @@ class CCube : public CPrimitive
 private:
 	CLogger* logger;
 public:
-	CCube(WCHAR* textureFilename);
-	CCube(WCHAR* filename, bool useLighting);
+	CCube(std::string textureFilename);
+	CCube(std::string filename, bool useLighting);
 	CCube(PrioEngine::RGBA colour);
 
 	~CCube();

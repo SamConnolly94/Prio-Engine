@@ -41,7 +41,7 @@ private:
 	float mFrameTime;
 private:
 	// The name of our application as it will appear in windows.
-	LPCWSTR mApplicationName;
+	std::string mApplicationName;
 	// The instance of our application as reffered to by windows.
 	HINSTANCE mHinstance;
 	// The handle to the window of our application.
@@ -63,8 +63,8 @@ private:
 public:
 	// Model creation functions.
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	CPrimitive* CreatePrimitive(WCHAR* textureFilename, bool useLighting, PrioEngine::Primitives shape);
-	CPrimitive* CreatePrimitive(WCHAR* textureFilename, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(std::string textureFilename, bool useLighting, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(std::string textureFilename, PrioEngine::Primitives shape);
 	
 	//CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
 	//bool RemoveLight(CLight* &light);
@@ -75,8 +75,7 @@ public:
 	bool RemovePrimitive(CPrimitive* model);
 	bool RemoveMesh(CMesh* mesh);
 
-	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
-	CMesh* LoadMesh(char * filename, WCHAR * textureFilename, PrioEngine::ShaderType shaderType);
+	CMesh* LoadMesh(std::string filename);
 	
 
 	float GetFrameTime();
@@ -94,7 +93,7 @@ public:
 	bool KeyHeld(const unsigned int key);
 	void Stop();
 	CCamera* GetMainCamera() { return mpGraphics->GetMainCamera(); };
-	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY);
+	C2DImage* CreateUIImages(std::string filename, int width, int height, int posX, int posY);
 	bool RemoveUIImage(C2DImage *& element);
 	bool UpdateTerrainBuffers(CTerrain *& terrain, double** heightmap, int width, int height);
 	bool ToggleFullscreen(unsigned int fullscreenKey);

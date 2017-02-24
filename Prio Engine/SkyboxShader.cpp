@@ -21,7 +21,7 @@ bool CSkyboxShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex and pixel shaders.
-	result = InitialiseShader(device, hwnd, L"Shaders/Skybox.vs.hlsl", L"Shaders/Skybox.ps.hlsl");
+	result = InitialiseShader(device, hwnd, "Shaders/Skybox.vs.hlsl", "Shaders/Skybox.ps.hlsl");
 	if (!result)
 	{
 		return false;
@@ -52,7 +52,7 @@ bool CSkyboxShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D
 	return true;
 }
 
-bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * vsFilename, WCHAR * psFilename)
+bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -63,20 +63,13 @@ bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC gradientBufferDesc;
 
-	// Convert the vs & ps filename to string for logging purposes.
-	std::wstring wsVs(vsFilename);
-	std::string vsFilenameStr(wsVs.begin(), wsVs.end());
-
-	std::wstring wsPs(psFilename);
-	std::string psFilenameStr(wsPs.begin(), wsPs.end());
-
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
 	vertexShaderBuffer = nullptr;
 	pixelShaderBuffer = nullptr;
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename, NULL, NULL, "SkyDomeVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "SkyDomeVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -85,16 +78,16 @@ bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 		}
 		else
 		{
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilenameStr + "'");
-			MessageBox(hwnd, vsFilename, L"Missing shader file. ", MB_OK);
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
+			MessageBox(hwnd, vsFilename.c_str(), "Missing shader file. ", MB_OK);
 		}
-		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilenameStr + "'");
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilename + "'");
 		return false;
 	}
 	
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename, NULL, NULL, "SkyDomePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "SkyDomePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		// If we recieved an error message.
@@ -107,10 +100,10 @@ bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, WCHAR * v
 		else
 		{
 			// Output a message to the log and a message box.
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilenameStr + "'");
-			MessageBox(hwnd, psFilename, L"Missing shader file.", MB_OK);
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilename + "'");
+			MessageBox(hwnd, psFilename.c_str(), "Missing shader file.", MB_OK);
 		}
-		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilenameStr + "'");
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilename + "'");
 		return false;
 	}
 
@@ -228,7 +221,7 @@ void CSkyboxShader::ShutdownShader()
 
 }
 
-void CSkyboxShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, WCHAR * shaderFilename)
+void CSkyboxShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, std::string shaderFilename)
 {
 	char* compileErrors;
 	unsigned long bufferSize;
@@ -254,7 +247,7 @@ void CSkyboxShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwn
 	errorMessage = 0;
 
 	// Output error in message box.
-	MessageBox(hwnd, L"Error compiling shader. Check logs for a detailed error message.", shaderFilename, MB_OK);
+	MessageBox(hwnd, "Error compiling shader. Check logs for a detailed error message.", shaderFilename.c_str(), MB_OK);
 }
 
 bool CSkyboxShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour)

@@ -6,9 +6,7 @@
 
 //////////////////////////
 // 1) Dirt
-// 2) Snow
-// 3) Sand
-// 4) Rock
+// 2) Sand
 /////////////////////////
 Texture2D shaderTexture[2];
 Texture2D grassTextures[2];
@@ -29,20 +27,20 @@ cbuffer LightBuffer : register(b0)
 	float padding;
 };
 
-/* The buffer which contains information about our terrain. */
-cbuffer TerrainInfoBuffer : register(b1)
-{
-	float highestPosition;
-	float lowestPosition;
-	float2 terrBuffPadding;
-};
-
 /* Information about the model of the terrain itself. */
 // Important note - separate from terrainInfoBuffer due to the way in which padding works.
-cbuffer PositioningBuffer : register(b2)
+cbuffer PositioningBuffer : register(b1)
 {
 	float yOffset;
 	float3 posPadding;
+}
+
+cbuffer TerrainAreaBuffer : register(b2)
+{
+	float snowHeight;
+	float grassHeight;
+	float dirtHeight;
+	float sandHeight;
 }
 
 //////////////////////
@@ -63,16 +61,6 @@ struct PixelInputType
 // Helper Functions
 ///////////////////////
 
-/* Get the percentage of a number.
-*  Param number - The number which you want to find the percentage of.
-*  Param desiredPercentage - The percentage of the number which you wish to find. */
-float GetPercentage(float number, float desiredPercentage)
-{
-	float onePerc = number / 100.0f;
-
-	return (onePerc * desiredPercentage);
-};
-
 float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosition, float scale)
 {
 
@@ -82,20 +70,8 @@ float4 GetTriplanarTextureColour(int texIndex, float3 blending, float4 worldPosi
 	float4 yAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	//float4 xAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	//float4 yAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	//float4 zAxisTimes4 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
-
-	//float4 xAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	//float4 yAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	//float4 zAxisTimes16 = shaderTexture[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
-
 	float4 result;
 	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	//result /= 3;
-
 	return result;
 };
 
@@ -106,20 +82,8 @@ float4 GetTriplanarGrassTextureColour(int texIndex, float3 blending, float4 worl
 	float4 yAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	//float4 xAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	//float4 yAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	//float4 zAxisTimes4 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
-
-	//float4 xAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	//float4 yAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	//float4 zAxisTimes16 = grassTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
-
 	float4 result;
 	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	//result /= 3;
-
 	return result;
 
 }
@@ -144,20 +108,8 @@ float4 GetTriplanarRockTextureColour(int texIndex, float3 blending, float4 world
 	float4 yAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * scale);
 	float4 zAxis = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * scale);
 
-	//float4 xAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 4));
-	//float4 yAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 4));
-	//float4 zAxisTimes4 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 4));
-
-	//float4 xAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.yz * (scale * 16));
-	//float4 yAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xz * (scale * 16));
-	//float4 zAxisTimes16 = rockTextures[texIndex].Sample(SampleType, worldPosition.xy * (scale * 16));
-
 	float4 result;
 	result = xAxis * blending.x + yAxis * blending.y + zAxis * blending.z;
-	//result += xAxisTimes4 * blending.x + yAxisTimes4 * blending.y + zAxisTimes4 * blending.z;
-	//result += xAxisTimes16 * blending.x + yAxisTimes16 * blending.y + zAxisTimes16 * blending.z;
-	//result /= 3;
-
 	return result;
 
 }
@@ -199,15 +151,6 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	// Find the world position by moving the vertex by whatever our current Y position of the terrain is.
 	// This only needs to be done as we support movement of terrain in Prio Engine.
 	float worldPos = input.worldPosition.y + yOffset;
-
-	const float changeInHeight = highestPosition - lowestPosition;
-
-	// Define the position 
-	const float snowHeight = lowestPosition + GetPercentage(changeInHeight, 60);	// 60% and upwards will be snow.
-	const float grassHeight = lowestPosition + GetPercentage(changeInHeight, 30);	// 30% and upwards will be grass.
-	const float dirtHeight = lowestPosition + GetPercentage(changeInHeight, 15);	// 15% and upwards will be dirt.
-	const float sandHeight = lowestPosition + GetPercentage(changeInHeight, 10);	// 10% and upwards will be sand.
-	const float rockHeight = lowestPosition + GetPercentage(changeInHeight, 4);		// 4%  and upwards will be rocks.
 
 	float4 patchColour = patchMap.Sample(SampleType, input.tex);
 

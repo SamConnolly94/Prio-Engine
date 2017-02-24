@@ -46,28 +46,28 @@ void CVertexManager::CleanArrays()
 	{
 		delete[] mpVerticesColour;
 		mpVerticesColour = nullptr;
-		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesColour).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesColour).name());
 	}
 
 	if (mpVerticesTexture != nullptr)
 	{
 		delete[] mpVerticesTexture;
 		mpVerticesTexture = nullptr;
-		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesTexture).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesTexture).name());
 	}
 
 	if (mpVerticesDiffuse != nullptr)
 	{
 		delete[] mpVerticesDiffuse;
 		mpVerticesDiffuse = nullptr;
-		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
 	}
 
 	if (mpVerticesSpecular != nullptr)
 	{
 		delete[] mpVerticesSpecular;
 		mpVerticesSpecular = nullptr;
-		logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpVerticesDiffuse).name());
 	}
 }
 
@@ -109,11 +109,11 @@ void CVertexManager::SetNumberOfVertices(int amount)
 void CVertexManager::CreateColourVerticesArray()
 {
 	mpVerticesColour = new VertexColourType[mNumOfVertices];
-	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
 
 	if (!mpVerticesColour)
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to create a vertex array for colour.");
+		logger->GetInstance().WriteLine("Failed to create a vertex array for colour.");
 	}
 }
 
@@ -121,11 +121,11 @@ void CVertexManager::CreateColourVerticesArray()
 void CVertexManager::CreateTextureVerticesArray()
 {
 	mpVerticesTexture = new VertexTextureType[mNumOfVertices];
-	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
 	
 	if (!mpVerticesTexture)
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to create a vertex array for texture.");
+		logger->GetInstance().WriteLine("Failed to create a vertex array for texture.");
 	}
 }
 
@@ -133,11 +133,11 @@ void CVertexManager::CreateTextureVerticesArray()
 void CVertexManager::CreateDiffuseVerticesArray()
 {
 	mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
-	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 
 	if (!mpVerticesDiffuse)
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
+		logger->GetInstance().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
 	}
 }
 
@@ -145,11 +145,11 @@ void CVertexManager::CreateDiffuseVerticesArray()
 void CVertexManager::CreateSpecularVerticesArray()
 {
 	mpVerticesSpecular = new VertexSpecularLightingType[mNumOfVertices];
-	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 
 	if (!mpVerticesSpecular)
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
+		logger->GetInstance().WriteLine("Failed to create a vertex array for texture using diffuse lighting.");
 	}
 }
 
@@ -199,7 +199,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z)
 	}
 	}
 
-	logger->GetInstance().GetInstance().WriteLine("Failed to set any buffers to be drawn.");
+	logger->GetInstance().WriteLine("Failed to set any buffers to be drawn.");
 }
 
 /* Sets the vertex array of a mesh which has been loaded in. */
@@ -214,7 +214,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 		if (!mpVerticesDiffuse)
 		{
 			mpVerticesDiffuse = new VertexDiffuseLightingType[mNumOfVertices];
-			logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
+			logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesDiffuse).name());
 		}
 
 
@@ -233,7 +233,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 		if (!mpVerticesSpecular)
 		{
 			mpVerticesSpecular = new VertexSpecularLightingType[mNumOfVertices];
-			logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesSpecular).name());
+			logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesSpecular).name());
 		}
 
 
@@ -254,7 +254,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesTexture)
 	{
 		mpVerticesTexture = new VertexTextureType[mNumOfVertices];
-		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesTexture).name());
 	}
 
 
@@ -274,7 +274,7 @@ void CVertexManager::SetVertexArray(float x, float y, float z, std::vector<D3DXV
 	if (!mpVerticesColour)
 	{
 		mpVerticesColour = new VertexColourType[mNumOfVertices];
-		logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
+		logger->GetInstance().MemoryAllocWriteLine(typeid(mpVerticesColour).name());
 	}
 
 
@@ -514,7 +514,7 @@ bool CVertexManager::CreateVertexBuffer()
 		vertexData.pSysMem = mpVerticesSpecular;
 		break;
 	default:
-		logger->GetInstance().GetInstance().WriteLine("Failed to find any vertex type. This prevents us from creating a vertex buffer.");
+		logger->GetInstance().WriteLine("Failed to find any vertex type. This prevents us from creating a vertex buffer.");
 		return false;
 	}
 
@@ -530,13 +530,13 @@ bool CVertexManager::CreateVertexBuffer()
 
 	if (mpDevice == nullptr)
 	{
-		logger->GetInstance().GetInstance().WriteLine("The device hasn't been initialised, you need to pass it into the VertexManager class first.");
+		logger->GetInstance().WriteLine("The device hasn't been initialised, you need to pass it into the VertexManager class first.");
 	}
 
 	hResult = mpDevice->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
 	if (FAILED(hResult))
 	{
-		logger->GetInstance().GetInstance().WriteLine("Failed to create the vertex buffer.");
+		logger->GetInstance().WriteLine("Failed to create the vertex buffer.");
 		return false;
 	}
 
@@ -565,7 +565,7 @@ void CVertexManager::RenderBuffers(ID3D11DeviceContext * deviceContext, ID3D11Bu
 		stride = sizeof(VertexSpecularLightingType);
 		break;
 	default:
-		logger->GetInstance().GetInstance().WriteLine("Neither texture nor colour is being used when rendered. You're probably going to crash here when attempting to render.");
+		logger->GetInstance().WriteLine("Neither texture nor colour is being used when rendered. You're probably going to crash here when attempting to render.");
 		break;
 	}
 

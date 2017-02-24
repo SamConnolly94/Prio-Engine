@@ -40,7 +40,13 @@ private:
 		float yOffset;
 		D3DXVECTOR3 posPadding;
 	};
-
+	struct TerrainAreaBufferType
+	{
+		float snowHeight;
+		float grassHeight;
+		float dirtHeight;
+		float sandHeight;
+	};
 public:
 	CTerrainShader();
 	~CTerrainShader();
@@ -50,18 +56,19 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 		D3DXMATRIX projMatrix, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
 		CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
-		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, 	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
+		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, 	D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition,
+		float snowHeight, float grassHeight, float dirtHeight, float sandHeight);
 
 private:
-	bool InitialiseShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename);
+	bool InitialiseShader(ID3D11Device* device, HWND hwnd, std::string vsFilename, std::string psFilename);
 	void ShutdownShader();
-	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename);
+	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, std::string shaderFilename);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 		D3DXMATRIX projMatrix, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
 		CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 		D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
-		float highestPos, float lowestPos, D3DXVECTOR3 worldPosition);
+		float highestPos, float lowestPos, D3DXVECTOR3 worldPosition, float snowHeight, float grassHeight, float dirtHeight, float sandHeight);
 	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
 private:
@@ -71,8 +78,8 @@ private:
 	ID3D11Buffer* mpMatrixBuffer;
 	ID3D11SamplerState* mpSampleState;
 	ID3D11Buffer* mpLightBuffer;
-	ID3D11Buffer* mpTerrainConstBuffer;
 	ID3D11Buffer* mpPositioningBuffer;
+	ID3D11Buffer* mpTerrainAreaBuffer;
 	CTexture* mpPatchMap;
 };
 

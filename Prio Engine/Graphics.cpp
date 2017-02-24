@@ -51,7 +51,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		// Write the error to the log.
 		logger->GetInstance().WriteLine("Failed to initialised Direct3D.");
 		// Write the error to a message box too.
-		MessageBox(hwnd, L"Could not initialise Direct3D.", L"Error", MB_OK);
+		MessageBox(hwnd, "Could not initialise Direct3D.", "Error", MB_OK);
 		// Do not continue with this function any more.
 		return false;
 	}
@@ -108,7 +108,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	const float ambientMultiplier = 0.3f;
-	D3DXVECTOR4 horizonColour = { 0.81f, 0.38f, 0.66f, 1.0f };
+	D3DXVECTOR4 horizonColour = { 1.0f, 0.44f, 0.11f, 1.0f };
 	D3DXVECTOR4 ambientColour = horizonColour;
 	
 	ambientColour.x *= ambientMultiplier;
@@ -116,7 +116,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	ambientColour.z *= ambientMultiplier;
 
 	CLight* ambientLight;
-	ambientLight = CreateLight(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f }, ambientColour);
+	ambientLight = CreateLight(D3DXVECTOR4{ ambientColour.x, ambientColour.y, ambientColour.z, 1.0f }, ambientColour);
 	ambientLight->SetDirection(D3DXVECTOR3{ 0.0, 0.0f, 1.0f });
 	ambientLight->SetSpecularColour(D3DXVECTOR4{ 1.0f, 1.0f, 1.0f, 1.0f });
 	ambientLight->SetSpecularPower(32.0f);
@@ -220,54 +220,27 @@ void CGraphics::Shutdown()
 	}
 
 	// Deallocate any allocated memroy on the mesh list.
-	std::list<CMesh*>::iterator meshIt;
-	meshIt = mpMeshes.begin();
-
-	while (meshIt != mpMeshes.end())
+	for (auto mesh : mpMeshes)
 	{
-		delete (*meshIt);
-		(*meshIt) = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid((*meshIt)).name());
-		meshIt++;
+		mesh->Shutdown();
+		delete mesh;
 	}
+	mpMeshes.clear();
 
-	while (!mpMeshes.empty())
+	for (auto light : mpLights)
 	{
-		mpMeshes.pop_back();
+		delete light;
+		light = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(light).name());
 	}
+	mpLights.clear();
 
-	// Deallocate any memory on the lights list.
-	std::list<CLight*>::iterator lightIt;
-	lightIt = mpLights.begin();
-
-	while (lightIt != mpLights.end())
+	for (auto terrain : mpTerrainGrids)
 	{
-		delete (*lightIt);
-		(*lightIt) = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(*lightIt).name());
-		lightIt++;
+		delete terrain;
+		terrain = nullptr;
 	}
-
-	while (!mpLights.empty())
-	{
-		mpLights.pop_back();
-	}
-
-	// Deallocate memory on the terrain list.
-
-	std::list<CTerrain*>::iterator terrainIt;
-	terrainIt = mpTerrainGrids.begin();
-	while (terrainIt != mpTerrainGrids.end())
-	{
-		delete (*terrainIt);
-		(*terrainIt) = nullptr;
-		terrainIt++;
-	}
-
-	while (!mpTerrainGrids.empty())
-	{
-		mpTerrainGrids.pop_back();
-	}
+	mpTerrainGrids.clear();
 
 	// Remove camera.
 
@@ -378,10 +351,10 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 		// Render texture with light.
 		else if ((*primitivesIt)->HasTexture() && (*primitivesIt)->UseDiffuseLight())
 		{
-			if (!RenderPrimitiveWithTextureAndDiffuseLight((*primitivesIt), world, view, proj))
-			{
-				return false;
-			}
+			//if (!RenderPrimitiveWithTextureAndDiffuseLight((*primitivesIt), world, view, proj))
+			//{
+			//	return false;
+			//}
 		}
 		// Render colour.
 		else if ((*primitivesIt)->HasColour())
@@ -400,14 +373,10 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 /* Render any meshes / instances of meshes which we have created on the scene. */
 bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-	std::list<CMesh*>::iterator meshIt = mpMeshes.begin();
-
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
-	while (meshIt != mpMeshes.end())
+	for (auto mesh : mpMeshes)
 	{
-		//(*meshIt)->SetCameraPos(camPos);
-		(*meshIt)->Render(mpD3D->GetDeviceContext(), view, proj, mpLights);
-		meshIt++;
+		mesh->Render(mpD3D->GetDeviceContext(), mpDiffuseLightShader, view, proj, mpLights);
 	}
 
 	return true;
@@ -441,7 +410,11 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 				light->GetAmbientColour(),
 				terrain->GetHighestPoint(),
 				terrain->GetLowestPoint(),
-				terrain->GetPos()
+				terrain->GetPos(),
+				terrain->GetSnowHeight(),
+				terrain->GetGrassHeight(),
+				terrain->GetDirtHeight(),
+				terrain->GetSandHeight()
 			))
 			{
 				// If we failed to render, return false.
@@ -498,9 +471,6 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		return false;
 
 	if (!RenderMeshes(world, view, proj))
-		return false;
-
-	if (!RenderSkybox(world, view, proj))
 		return false;
 
 	if (!RenderTerrains(world, view, proj))
@@ -580,7 +550,7 @@ bool CGraphics::RemoveSentence(SentenceType *& sentence)
 	return mpText->RemoveSentence(sentence);
 }
 
-C2DImage * CGraphics::CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY)
+C2DImage * CGraphics::CreateUIImages(std::string filename, int width, int height, int posX, int posY)
 {
 	/// Set up image.
 
@@ -670,30 +640,30 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 	return skybox;
 }
 
-bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
-{
-	bool success = false;
-
-	// Attempt to render the model with the texture specified.
-	std::list<CLight*>::iterator it;
-	it = mpLights.begin();
-
-	// Render each diffuse light in the list.
-	do
-	{
-		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(), (*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
-		it++;
-	} while (it != mpLights.end());
-
-	// If we did not successfully render.
-	if (!success)
-	{
-		logger->GetInstance().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
-		return false;
-	}
-
-	return true;
-}
+//bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+//{
+//	bool success = false;
+//
+//	// Attempt to render the model with the texture specified.
+//	std::list<CLight*>::iterator it;
+//	it = mpLights.begin();
+//
+//	// Render each diffuse light in the list.
+//	do
+//	{
+//		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(), (*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
+//		it++;
+//	} while (it != mpLights.end());
+//
+//	// If we did not successfully render.
+//	if (!success)
+//	{
+//		logger->GetInstance().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
+//		return false;
+//	}
+//
+//	return true;
+//}
 
 bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
 {
@@ -726,7 +696,7 @@ bool CGraphics::RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMa
 	return true;
 }
 
-CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreatePrimitive(std::string TextureFilename, PrioEngine::Primitives shape)
 {
 	CPrimitive* model;
 	bool successful;
@@ -756,7 +726,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	if (!successful)
 	{
 		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
-		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+		MessageBox(mHwnd, "Could not initialise the model object. ", "Error", MB_OK);
 		return nullptr;
 	}
 
@@ -776,7 +746,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primi
 	return model;
 }
 
-CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape)
+CPrimitive* CGraphics::CreatePrimitive(std::string TextureFilename, bool useLighting, PrioEngine::Primitives shape)
 {
 	CPrimitive* model;
 	bool successful;
@@ -806,7 +776,7 @@ CPrimitive* CGraphics::CreatePrimitive(WCHAR* TextureFilename, bool useLighting,
 	if (!successful)
 	{
 		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
-		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+		MessageBox(mHwnd, "Could not initialise the model object. ", "Error", MB_OK);
 		return nullptr;
 	}
 
@@ -856,7 +826,7 @@ CPrimitive* CGraphics::CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Prim
 	if (!successful)
 	{
 		logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the model object");
-		MessageBox(mHwnd, L"Could not initialise the model object. ", L"Error", MB_OK);
+		MessageBox(mHwnd, "Could not initialise the model object. ", "Error", MB_OK);
 		return nullptr;
 	}
 
@@ -889,7 +859,7 @@ bool CGraphics::CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd)
 		if (!successful)
 		{
 			logger->GetInstance().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
-			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, "Could not initialise the texture shader object.", "Error", MB_OK);
 			return false;
 		}
 
@@ -917,7 +887,7 @@ bool CGraphics::CreateTerrainShader(HWND hwnd)
 		if (!successful)
 		{
 			logger->GetInstance().WriteLine("Failed to initialise the mpTerrainShader shader object in graphics.cpp.");
-			MessageBox(hwnd, L"Could not initialise the mpTerrainShader shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, "Could not initialise the mpTerrainShader shader object.", "Error", MB_OK);
 			return false;
 		}
 
@@ -946,7 +916,7 @@ bool CGraphics::CreateTextureShaderForModel(HWND hwnd)
 		if (!successful)
 		{
 			logger->GetInstance().WriteLine("Failed to initialise the texture shader object in graphics.cpp.");
-			MessageBox(hwnd, L"Could not initialise the texture shader object.", L"Error", MB_OK);
+			MessageBox(hwnd, "Could not initialise the texture shader object.", "Error", MB_OK);
 			return false;
 		}
 
@@ -974,7 +944,7 @@ bool CGraphics::CreateColourShader(HWND hwnd)
 		if (!successful)
 		{
 			logger->GetInstance().WriteLine("*** ERROR! *** Could not initialise the colour shader object");
-			MessageBox(hwnd, L"Could not initialise the colour shader object. ", L"Error", MB_OK);
+			MessageBox(hwnd, "Could not initialise the colour shader object. ", "Error", MB_OK);
 			return false;
 		}
 
@@ -1007,48 +977,20 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 	return false;
 }
 
-CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename)
+CMesh* CGraphics::LoadMesh(std::string filename)
 {
 	// Allocate the mesh memory.
-	CMesh* mesh;
-	if (textureFilename != L"" && textureFilename != NULL)
-	{
-		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, PrioEngine::ShaderType::Diffuse);
-	}
-	else
-	{
-		mesh = new CMesh(mpD3D->GetDevice(), mHwnd, PrioEngine::ShaderType::Colour);
-	}
+	CMesh* mesh = new CMesh(mpD3D->GetDevice());
 
 	logger->GetInstance().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename, textureFilename))
+	if (!mesh->LoadMesh(filename))
 	{
 		// Deallocate memory.
 		delete mesh;
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mesh).name());
-		return nullptr;
-	}
-
-	// Push the pointer onto a member variable list so that we don't lose it.
-	mpMeshes.push_back(mesh);
-
-	return mesh;
-}
-
-CMesh* CGraphics::LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType)
-{
-	// Allocate the mesh memory.
-	CMesh* mesh = new CMesh(mpD3D->GetDevice(), mHwnd, shaderType);
-	logger->GetInstance().MemoryAllocWriteLine(typeid(mesh).name());
-
-	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename, textureFilename))
-	{
-		// Deallocate memory.
-		delete mesh;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(mesh).name());
+		logger->WriteLine("Failed to load the mesh with name " + filename);
 		return nullptr;
 	}
 

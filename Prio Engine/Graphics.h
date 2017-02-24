@@ -74,7 +74,7 @@ private:
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
-	bool RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
+	//bool RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
@@ -96,14 +96,13 @@ private:
 public:
 	/* Model control from the engine. */
 	// Primitive creation / deletion.
-	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(std::string TextureFilename, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
-	CPrimitive* CreatePrimitive(WCHAR* TextureFilename, bool useLighting, PrioEngine::Primitives shape);
+	CPrimitive* CreatePrimitive(std::string TextureFilename, bool useLighting, PrioEngine::Primitives shape);
 	bool RemovePrimitive(CPrimitive* &model);
 
 	// Model creation / deletion.
-	CMesh* LoadMesh(char* filename, WCHAR* textureFilename);
-	CMesh* LoadMesh(char * filename, WCHAR* textureFilename, PrioEngine::ShaderType shaderType);
+	CMesh* LoadMesh(std::string filename);
 	bool RemoveMesh(CMesh* &mesh);
 
 	CTerrain* CreateTerrain(std::string mapFile);
@@ -120,7 +119,7 @@ public:
 	bool UpdateSentence(SentenceType* &sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
 	bool RemoveSentence(SentenceType* &sentence);
 
-	C2DImage* CreateUIImages(WCHAR* filename, int width, int height, int posX, int posY );
+	C2DImage* CreateUIImages(std::string filename, int width, int height, int posX, int posY );
 	bool RemoveUIImage(C2DImage* &element);
 	bool UpdateTerrainBuffers(CTerrain* &terrain, double** heightmap, int width, int height);
 	bool IsFullscreen();

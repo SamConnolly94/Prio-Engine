@@ -24,11 +24,11 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!PrioEngine)
 	{
 		// Write a message to the log to let the user know we couldn't create the engine object.
-		logger->GetInstance().GetInstance().WriteLine("Could not create the engine object.");
+		logger->GetInstance().WriteLine("Could not create the engine object.");
 		// Return 0, we're saying we're okay, implement error codes in future versions maybe? 
 		return 0;
 	}
-	logger->GetInstance().GetInstance().MemoryAllocWriteLine(typeid(PrioEngine).name());
+	logger->GetInstance().MemoryAllocWriteLine(typeid(PrioEngine).name());
 
 	// Set up the engine.
 	result = PrioEngine->Initialise();
@@ -42,9 +42,9 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Shutdown and release the engine.
 	PrioEngine->Shutdown();
 	delete PrioEngine;
-	logger->GetInstance().GetInstance().MemoryDeallocWriteLine(typeid(PrioEngine).name());
+	logger->GetInstance().MemoryDeallocWriteLine(typeid(PrioEngine).name());
 	PrioEngine = nullptr;
-	logger->GetInstance().GetInstance().Shutdown();
+	logger->GetInstance().Shutdown();
 
 	// The singleton logger will cause a memory leak. Don't worry about it. Should be no more than 64 bytes taken by it though, more likely will only take 48 bytes.
 	_CrtDumpMemoryLeaks();
@@ -69,27 +69,16 @@ void GameLoop(CEngine* &engine)
 	CCamera* myCam;
 	myCam = engine->GetMainCamera();
 
-	//CTerrain* terrain = engine->CreateTerrain("Default.map");
+	CTerrain* terrain = engine->CreateTerrain("Default.map");
 
-	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
-	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
-
-	CMesh* treeMesh = engine->LoadMesh("Resources/Models/trees9.3ds", L"Resources/Models/Oak_Leav.jpg");
-	CModel* tree = treeMesh->CreateModel();
-	tree->SetPos(0.0f, 0.0f, 10.0f);
-	//tree->Scale(20.0f);
-
-	// Camera init.
-	myCam->SetPosizionY(30.0f);
+	//SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
+	//SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
 
 	// Start the game timer running.
 	engine->StartTimer();
 
 	const float kTextUpdateInterval = 0.2f;
 	float timeSinceTextUpdate = kTextUpdateInterval;
-	TwBar* tweakBar = TwNewBar("My Tweak Bar");
-	int noVar = 0;
-	TwAddVarRW(tweakBar, "NameOfMyVariable", TW_TYPE_INT32, &noVar, "");
 
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
@@ -98,13 +87,13 @@ void GameLoop(CEngine* &engine)
 		frameTime = engine->GetFrameTime();
 
 		// Process any keys pressed this frame.
-		//Control(engine, myCam, terrain, frameTime);
+		Control(engine, myCam, terrain, frameTime);
 
 		// Update the text on our game.
 		if (timeSinceTextUpdate >= kTextUpdateInterval)
 		{
-			engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
-			engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), { 1.0f, 1.0f, 0.0f });
+			//engine->UpdateText(frametimeText, "FrameTime: " + std::to_string(frameTime), frameTimePosX, frameTimePosY, { 1.0f, 1.0f, 0.0f });
+			//engine->UpdateText(FPSText, "FPS: " + std::to_string(1.0f / frameTime), static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), { 1.0f, 1.0f, 0.0f });
 			timeSinceTextUpdate = 0.0f;
 		}
 		timeSinceTextUpdate += frameTime;
