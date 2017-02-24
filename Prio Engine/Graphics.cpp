@@ -990,7 +990,7 @@ CMesh* CGraphics::LoadMesh(std::string filename)
 		// Deallocate memory.
 		delete mesh;
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mesh).name());
-		logger->WriteLine("Failed to load the mesh with name " + filename);
+		logger->GetInstance().WriteLine("Failed to load the mesh with name " + filename);
 		return nullptr;
 	}
 

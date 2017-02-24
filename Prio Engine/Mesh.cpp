@@ -307,7 +307,7 @@ bool CMesh::CreateSubmesh(const aiMesh& mesh, SubMesh* subMesh)
 
 	if (FAILED(result))
 	{
-		logger->WriteLine("Failed to create the vertex buffer for mesh.");
+		logger->GetInstance().WriteLine("Failed to create the vertex buffer for mesh.");
 		return false;
 	}
 
@@ -322,7 +322,7 @@ bool CMesh::CreateSubmesh(const aiMesh& mesh, SubMesh* subMesh)
 	result = mpDevice->CreateBuffer(&bufferDesc, &initData, &subMesh->indexBuffer);
 	if (FAILED(result))
 	{
-		logger->WriteLine("Failed to create the vertex buffer for mesh.");
+		logger->GetInstance().WriteLine("Failed to create the vertex buffer for mesh.");
 		return false;
 	}
 
