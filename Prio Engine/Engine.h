@@ -52,7 +52,7 @@ private:
 
 	void CheckWindowsMessages(MSG &msg);
 	bool ProcessWindowsMessages();
-
+	bool AddSceneryToTerrain(CTerrain* terrainPtr);
 	CGameTimer* mTimer;
 private:
 	MSG mMsg;
@@ -65,9 +65,6 @@ public:
 	CPrimitive* CreatePrimitive(PrioEngine::RGBA colour, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(std::string textureFilename, bool useLighting, PrioEngine::Primitives shape);
 	CPrimitive* CreatePrimitive(std::string textureFilename, PrioEngine::Primitives shape);
-	
-	//CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
-	//bool RemoveLight(CLight* &light);
 
 	CTerrain* CreateTerrain(std::string mapFile);
 	CTerrain* CreateTerrain(double** heightMap, int mapWidth, int mapHeight);

@@ -469,22 +469,22 @@ CPrimitive* CEngine::CreatePrimitive(std::string textureFilename, PrioEngine::Pr
 	return mpGraphics->CreatePrimitive(textureFilename, shape);
 }
 
-/* Creates an instance of a light object which is managed by the engine.
-@Returns CLight* */
-//CLight * CEngine::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour)
-//{
-//	return mpGraphics->CreateLight(diffuseColour, ambientColour);
-//}
-
-//bool CEngine::RemoveLight(CLight *& light)
-//{
-//	return mpGraphics->RemoveLight(light);
-//}
-
 CTerrain * CEngine::CreateTerrain(std::string mapFile)
 {
 	CTerrain* terrainPtr = mpGraphics->CreateTerrain(mapFile);
+	AddSceneryToTerrain(terrainPtr);
+	return terrainPtr;
+}
 
+CTerrain * CEngine::CreateTerrain(double ** heightMap, int mapWidth, int mapHeight)
+{
+	CTerrain* terrainPtr = mpGraphics->CreateTerrain(heightMap, mapWidth, mapHeight);
+	AddSceneryToTerrain(terrainPtr);
+	return terrainPtr;
+}
+
+bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
+{
 	if (terrainPtr != nullptr)
 	{
 		CMesh* treeMesh = LoadMesh("Resources/Models/firtree3.3ds");
@@ -492,6 +492,12 @@ CTerrain * CEngine::CreateTerrain(std::string mapFile)
 		for (auto treeInfo : terrainPtr->GetTreeInformation())
 		{
 			CModel* tree = treeMesh->CreateModel();
+
+			if (tree == nullptr)
+			{
+				logger->GetInstance().WriteLine("Failed to create the tree from the tree mesh.");
+				return false;
+			}
 
 			tree->SetPos(treeInfo.position.x, treeInfo.position.y, treeInfo.position.z);
 			tree->SetRotationX(90.0f);
@@ -507,21 +513,24 @@ CTerrain * CEngine::CreateTerrain(std::string mapFile)
 		{
 			CModel* plant = plantMeshes->CreateModel();
 
+			if (plant == nullptr)
+			{
+				logger->GetInstance().WriteLine("Failed to create the plant from the plant mesh.");
+				return false;
+			}
+
 			plant->SetPos(plantInfo.position.x, plantInfo.position.y, plantInfo.position.z);
 			plant->SetRotationY(plantInfo.rotation);
 			plant->SetRotationX(90.0f);
 			plant->SetScale(plantInfo.scale);
 		}
 	}
+	else
+	{
+		return false;
+	}
 
-	return terrainPtr;
-}
-
-CTerrain * CEngine::CreateTerrain(double ** heightMap, int mapWidth, int mapHeight)
-{
-	CTerrain* terrainPtr = mpGraphics->CreateTerrain(heightMap, mapWidth, mapHeight);
-
-	return terrainPtr;
+	return true;
 }
 
 bool CEngine::RemovePrimitive(CPrimitive * model)
