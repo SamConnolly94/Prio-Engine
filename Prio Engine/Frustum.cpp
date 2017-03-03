@@ -1,7 +1,5 @@
 #include "Frustum.h"
 
-
-
 CFrustum::CFrustum()
 {
 }
@@ -77,6 +75,7 @@ bool CFrustum::CheckPoint(float x, float y, float z)
 			return false;
 		}
 	}
+
 	// Success!
 	return true;
 }

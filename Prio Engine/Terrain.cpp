@@ -789,7 +789,7 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position)
 		float rotation = static_cast<float>(rand() % 100 + 261);
 		tree.rotation = rotation;
 
-		float scale = static_cast<float>(rand() % 50 + 1) / static_cast<float>(rand() % 100 + 1);
+		float scale = static_cast<float>(rand() % 5 + 1);
 		tree.scale = scale;
 
 		mTreesInfo.push_back(tree);
@@ -825,7 +825,7 @@ bool CTerrain::CreatePlant(D3DXVECTOR3 position)
 		float rotation = static_cast<float>(rand() % 100 + 261);
 		plant.rotation = rotation;
 
-		float scale = static_cast<float>(rand() % 50 + 1) / static_cast<float>(rand() % 100 + 1);
+		float scale = static_cast<float>(rand() % 10 + 1);
 		plant.scale = scale;
 
 		mPlantsInfo.push_back(plant);

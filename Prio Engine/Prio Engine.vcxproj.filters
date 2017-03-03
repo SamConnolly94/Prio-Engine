@@ -114,6 +114,21 @@
     <ClInclude Include="SkyboxShader.h">
       <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\Engine\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShader.h">
+      <Filter>Header Files\Engine\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="RefractionShader.h">
+      <Filter>Header Files\Engine\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTexture.h">
+      <Filter>Source Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Water.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -206,6 +221,21 @@
     <ClCompile Include="TextureShader.cpp">
       <Filter>Source Files\Engine\Shader Classes</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files\Engine\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShader.cpp">
+      <Filter>Source Files\Engine\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="RefractionShader.cpp">
+      <Filter>Source Files\Engine\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTexture.cpp">
+      <Filter>Header Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Water.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Colour.ps.hlsl">
@@ -248,6 +278,18 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Skybox.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Refraction.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Refraction.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Water.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Water.vs.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

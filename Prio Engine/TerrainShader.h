@@ -1,25 +1,12 @@
 #ifndef TERRAINSHADER_H
 #define TERRAINSHADER_H
 
-#include <d3d11.h>
-#include <D3DX10math.h>
-#include <D3DX11async.h>
-#include "PrioEngineVars.h"
 #include "Texture.h"
+#include "Shader.h"
 
-
-class CTerrainShader
+class CTerrainShader : public CShader
 {
 private:
-	CLogger* logger;
-private:
-	struct MatrixBufferType
-	{
-		D3DXMATRIX world;
-		D3DXMATRIX view;
-		D3DXMATRIX projection;
-	};
-
 	struct LightBufferType
 	{
 		D3DXVECTOR4 ambientColour;

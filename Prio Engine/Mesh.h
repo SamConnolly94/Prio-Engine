@@ -13,10 +13,11 @@
 #include "SpecularLightingShader.h"
 #include "Light.h"
 #include <vector>
-#include "Dependencies/assimp-3.3.1/include/assimp/Importer.hpp"
-#include "Dependencies/assimp-3.3.1/include\assimp/scene.h"
-#include "Dependencies/assimp-3.3.1/include/assimp/postprocess.h"
+#include <Importer.hpp>
+#include <scene.h>
+#include <postprocess.h>
 #include "PrioEngineVars.h"
+#include "Frustum.h"
 
 const int mNumberOfTextures = 3;
 
@@ -67,7 +68,7 @@ public:
 	CModel* CreateModel();
 	bool LoadMesh(std::string filename);
 
-	void Render(ID3D11DeviceContext* context, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
+	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
 	void Shutdown();
 private:
 	bool LoadAssimpModel(std::string filename);

@@ -72,7 +72,8 @@ public:
 	void TurnOnBackFaceCulling();
 	void TurnOffBackFaceCulling();
 
-	//void GetGraphicsCardInfo(char* cardName, int& memory);
+	ID3D11DepthStencilView* GetDepthStencilView();
+	void SetBackBufferRenderTarget();
 /* Setup functions. */
 private:
 	void CreateSwapChainDesc(HWND hwnd, DXGI_SWAP_CHAIN_DESC& swapChainDesc, int refRateNumerator, int refRateDenominator);

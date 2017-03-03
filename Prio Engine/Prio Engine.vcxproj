@@ -40,6 +40,9 @@
     <ClInclude Include="ModelControl.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrioEngineVars.h" />
+    <ClInclude Include="RefractionShader.h" />
+    <ClInclude Include="RenderTexture.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="SkyboxShader.h" />
     <ClInclude Include="SpecularLightingShader.h" />
@@ -49,6 +52,8 @@
     <ClInclude Include="TextureShader.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="VertexTypeManager.h" />
+    <ClInclude Include="Water.h" />
+    <ClInclude Include="WaterShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2DImage.cpp" />
@@ -72,6 +77,9 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelControl.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="RefractionShader.cpp" />
+    <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="SkyboxShader.cpp" />
     <ClCompile Include="SpecularLightingShader.cpp" />
@@ -81,6 +89,8 @@
     <ClCompile Include="TextureShader.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="VertexTypeManager.cpp" />
+    <ClCompile Include="Water.cpp" />
+    <ClCompile Include="WaterShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Colour.ps.hlsl">
@@ -125,6 +135,20 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Skybox.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Refraction.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Refraction.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Water.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Water.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

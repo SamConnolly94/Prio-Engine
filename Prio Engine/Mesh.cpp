@@ -56,34 +56,37 @@ bool CMesh::LoadMesh(std::string filename)
 	return result;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights)
+void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights)
 {
 	for (auto model : mpModels)
 	{
 		model->UpdateMatrices();
-
-		for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
+		if (frustum->CheckPoint(model->GetPosX(), model->GetPosY(), model->GetPosZ()))
 		{
-			// Prepare the buffers for rendering.
-			model->RenderBuffers(context, subMeshCount, mpSubMeshes[subMeshCount].vertexBuffer, mpSubMeshes[subMeshCount].indexBuffer, sizeof(VertexType) );
 
-			// Get the textures.
-
-			bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL? true : false;
-			bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
-			shader->UpdateMapBuffer(context, useAlpha, useSpecular);
-
-			for (auto light : lights)
+			for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
 			{
-				// Pass over the textures for rendering.
-				if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
-					model->GetWorldMatrix(), view, proj,
-					mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
-					light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-				{
-					logger->GetInstance().WriteLine("Failed to render the mesh model.");
-				}
+				// Prepare the buffers for rendering.
+				model->RenderBuffers(context, subMeshCount, mpSubMeshes[subMeshCount].vertexBuffer, mpSubMeshes[subMeshCount].indexBuffer, sizeof(VertexType));
 
+				// Get the textures.
+
+				bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
+				bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
+				shader->UpdateMapBuffer(context, useAlpha, useSpecular);
+
+				for (auto light : lights)
+				{
+					// Pass over the textures for rendering.
+					if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
+						model->GetWorldMatrix(), view, proj,
+						mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
+						light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+					{
+						logger->GetInstance().WriteLine("Failed to render the mesh model.");
+					}
+
+				}
 			}
 		}
 	}

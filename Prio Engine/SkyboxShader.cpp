@@ -272,7 +272,7 @@ bool CSkyboxShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DX
 
 	dataPtr->world = world;
 	dataPtr->view = view;
-	dataPtr->proj = proj;
+	dataPtr->projection = proj;
 
 	deviceContext->Unmap(mpMatrixBuffer, 0);
 

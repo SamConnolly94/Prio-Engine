@@ -22,12 +22,16 @@
 #include <functional>
 #include "SkyBox.h"
 #include "SkyboxShader.h"
+#include "RefractionShader.h"
+#include "WaterShader.h"
+#include "Water.h"
+#include "RenderTexture.h"
 
 // Global variables.
 // Will the window run in full screen?
 
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
-const bool VSYNC_ENABLED = true;
+const bool VSYNC_ENABLED = false;
 // Far clip
 const float SCREEN_DEPTH = 1000.0f;
 // Near clip
@@ -44,7 +48,6 @@ private:
 	bool mWireframeEnabled;
 	CFrustum* mpFrustum;
 	bool mFullScreen = false;
-	CSkyboxShader* mpSkyboxShader;
 public:
 	CGraphics();
 	~CGraphics();
@@ -65,16 +68,20 @@ private:
 
 	CCamera* mpCamera;
 	CPrimitive* mpTriangle;
+	CGameText* mpText;
+	D3DXMATRIX mBaseView;
+
+	// Shaders
 	CColourShader* mpColourShader;
 	CTextureShader* mpTextureShader;
 	CDiffuseLightShader* mpDiffuseLightShader;
 	CTerrainShader* mpTerrainShader;
-	CGameText* mpText;
-	D3DXMATRIX mBaseView;
+	CSkyboxShader* mpSkyboxShader;
+	CWaterShader* mpWaterShader;
+	CRefractionShader* mpRefractionShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
-	//bool RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
@@ -125,6 +132,16 @@ public:
 	bool IsFullscreen();
 	bool SetFullscreen(bool enabled);
 	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
+private:
+	CRenderTexture* mpRefractionTexture;
+	CRenderTexture* mpReflectionTexture;
+	float mWaterHeight;
+	float mWaterTranslation;
+	CWater* mpWaterBody;
+	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderRefractionToTexture();
+	bool RenderReflectionToTexture();
+	CLight* mpWaterLight;
 };
 
 #endif

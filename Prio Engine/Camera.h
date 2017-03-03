@@ -42,7 +42,8 @@ public:
 
 	void Render();
 	void GetViewMatrix(D3DXMATRIX& viewMatrix);
-
+	void RenderReflection(float height);
+	D3DXMATRIX GetReflectionViewMatrix() { return mpReflectionViewMatrix; };
 private:
 	int mScreenWidth;
 	int mScreenHeight;
@@ -60,6 +61,7 @@ private:
 	D3DXMATRIX mViewProjMatrix;
 
 	void UpdateMatrices();
+	D3DXMATRIX mpReflectionViewMatrix;
 };
 
 #endif

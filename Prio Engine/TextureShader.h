@@ -1,23 +1,10 @@
 #ifndef TEXTURESHADER_H
 #define TEXTURESHADER_H
 
-#include <d3d11.h>
-#include <D3DX10math.h>
-#include <D3DX11async.h>
-#include "PrioEngineVars.h"
+#include "Shader.h"
 
-
-class CTextureShader
+class CTextureShader : public CShader
 {
-private:
-	CLogger* logger;
-private:
-	struct MatrixBufferType
-	{
-		D3DXMATRIX world;
-		D3DXMATRIX view;
-		D3DXMATRIX projection;
-	};
 public:
 	CTextureShader();
 	~CTextureShader();

@@ -1,23 +1,11 @@
 #ifndef SPECULARLIGHTINGSHADER_H
 #define SPECULARLIGHTINGSHADER_H
 
-#include <d3d11.h>
-#include <D3DX10math.h>
-#include <D3DX11async.h>
-#include "PrioEngineVars.h"
+#include "Shader.h"
 
-
-class CSpecularLightingShader
+class CSpecularLightingShader : public CShader
 {
 private:
-	CLogger* logger;
-	struct MatrixBufferType
-	{
-		D3DXMATRIX world;
-		D3DXMATRIX view;
-		D3DXMATRIX projection;
-	};
-
 	struct CameraBufferType
 	{
 		D3DXVECTOR3 cameraPosition;

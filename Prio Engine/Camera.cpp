@@ -152,6 +152,30 @@ void CCamera::GetViewMatrix(D3DXMATRIX & viewMatrix)
 	viewMatrix = mViewMatrix;
 }
 
+void CCamera::RenderReflection(float height)
+{
+	D3DXVECTOR3 up;
+	D3DXVECTOR3 position;
+	D3DXVECTOR3 lookAt;
+	float radians;
+
+	up.x = 0.0f;
+	up.y = 1.0f;
+	up.z = 0.0f;
+
+	position.x = mPosition.x;
+	position.y = -mPosition.y + (height * 2.0f);
+	position.z = mPosition.z;
+
+	radians = mRotation.y * 0.0174532925f;
+
+	lookAt.x = sinf(radians) + mPosition.x;
+	lookAt.y = position.y;
+	lookAt.z = cosf(radians) + mPosition.z;
+
+	D3DXMatrixLookAtLH(&mpReflectionViewMatrix, &position, &lookAt, &up);
+}
+
 /* Updates the elements of matrices used before rendering. 
 * Credit to Laurent Noel for this class.
 */

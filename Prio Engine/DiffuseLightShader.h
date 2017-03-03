@@ -1,22 +1,11 @@
 #ifndef DIFFUSELIGHTSHADER_H
 #define DIFFUSELIGHTSHADER_H
 
-#include <d3d11.h>
-#include <D3DX10math.h>
-#include <D3DX11async.h>
-#include "PrioEngineVars.h"
+#include "Shader.h"
 
-class CDiffuseLightShader
+class CDiffuseLightShader : public CShader
 {
 private:
-	CLogger* logger;
-private:
-	struct MatrixBufferType
-	{
-		D3DXMATRIX world;
-		D3DXMATRIX view;
-		D3DXMATRIX projection;
-	};
 
 	struct LightBufferType
 	{

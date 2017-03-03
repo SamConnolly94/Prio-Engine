@@ -161,7 +161,7 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	constantBufferDesc.ByteWidth = sizeof(ConstantBufferType);
+	constantBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDesc.MiscFlags = 0;
@@ -293,7 +293,7 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	ConstantBufferType* dataPtr;
+	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 	PixelBufferType* dataPtr2;
 
@@ -306,7 +306,7 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	}
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (ConstantBufferType*)mappedResource.pData;
+	dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Transpose the matrices so they are ready for the shader.
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);

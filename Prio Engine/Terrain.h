@@ -54,6 +54,7 @@ public:
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 	unsigned int GetNumberOfGrassTextures();
 	unsigned int GetNumberOfRockTextures();
+	ID3D11ShaderResourceView* GetGrassTex() { return mpGrassTextures[0]->GetTexture(); };
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();

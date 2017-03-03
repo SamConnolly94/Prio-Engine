@@ -918,3 +918,13 @@ void CD3D11::TurnOffBackFaceCulling()
 {
 	mpDeviceContext->RSSetState(mpRasterStateNoCulling);
 }
+
+ID3D11DepthStencilView * CD3D11::GetDepthStencilView()
+{
+	return mpDepthStencilView;
+}
+
+void CD3D11::SetBackBufferRenderTarget()
+{
+	mpDeviceContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
+}
