@@ -166,7 +166,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	mWaterHeight = 0.0f;
+	mWaterHeight = 10.0f;
 	mWaterTranslation = 0.0f;
 
 	// Success!
@@ -725,6 +725,8 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 
 bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
+	bool result = false;
+
 	// Reset the world matrix.
 	mpD3D->GetWorldMatrix(world);
 
@@ -734,7 +736,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mWaterTranslation -= 1.0f;
 	}
 
-	bool result = RenderRefractionToTexture();
+	result = RenderRefractionToTexture();
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to render the refraction to texture.");
@@ -748,13 +750,17 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		return false;
 	}
 
-	D3DXMatrixTranslation(&world, 0.0f, mWaterHeight, 0.0f);
+	// Reset the world matrix.
+	mpD3D->GetWorldMatrix(world);
+	D3DXMatrixTranslation(&world, 0.0f, 0.0f, 0.0f);
 
 	mpWaterBody->Render(mpD3D->GetDeviceContext());
+	
+	D3DXMATRIX reflectionMatrix = mpCamera->GetReflectionViewMatrix();
 
 	result  = mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetIndexCount(), 
-		world, view, proj, mpCamera->GetReflectionViewMatrix(), mpReflectionTexture->GetShaderResourceView(),
-		mpRefractionTexture->GetShaderResourceView(), mpWaterBody->GetTexture(), mWaterTranslation, 0.0f);
+		world, view, proj, reflectionMatrix, mpReflectionTexture->GetShaderResourceView(),
+		mpRefractionTexture->GetShaderResourceView(), mpWaterBody->GetTexture(), mWaterTranslation, 0.01f);
 
 	if (!result)
 	{
@@ -775,7 +781,7 @@ bool CGraphics::RenderRefractionToTexture()
 
 	clipPlane = D3DXVECTOR4(0.0f, -1.0f, 0.0f, mWaterHeight + 0.1f);
 	mpRefractionTexture->SetRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-	mpRefractionTexture->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
+	mpRefractionTexture->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.3f, 0.6f, 0.6f, 1.0f);
 	mpCamera->Render();
 
 	mpD3D->GetWorldMatrix(world);
@@ -785,16 +791,13 @@ bool CGraphics::RenderRefractionToTexture()
 	/////////////////////////
 	// Position goes here.
 	////////////////////////
-	D3DXMatrixTranslation(&world, 0.0f, 0.0f, 0.0f);
-
-	RenderTerrains(world, view, proj);
+	D3DXMatrixTranslation(&world, 0.0f, 2.0f, 0.0f);
 
 	for (auto terrain : mpTerrainGrids)
 	{
-		for (auto light : mpLights)
-		{
-			result = mpRefractionShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetGrassTextureArray()[0]->GetTexture(), mpWaterLight->GetDirection(), mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), clipPlane);
-		}
+		terrain->Render(mpD3D->GetDeviceContext());
+
+		result = mpRefractionShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexturesArray()[0]->GetTexture(), mpWaterLight->GetDirection(), mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), clipPlane);
 	}
 
 	if (!result)
@@ -818,6 +821,8 @@ bool CGraphics::RenderReflectionToTexture()
 	mpReflectionTexture->SetRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 	mpReflectionTexture->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
 
+	mpD3D->EnableZBuffer();
+
 	mpCamera->RenderReflection(mWaterHeight);
 
 	reflectionViewMatrix = mpCamera->GetReflectionViewMatrix();
@@ -827,8 +832,38 @@ bool CGraphics::RenderReflectionToTexture()
 	////// Position of the terrain.
 	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.0f, 0.0f);
 
-	RenderSkybox(worldMatrix, reflectionViewMatrix, projMatrix);
-	RenderTerrains(worldMatrix, reflectionViewMatrix, projMatrix);
+	// Iterate through each terrain that has been created.
+	for (auto terrain : mpTerrainGrids)
+	{
+		// Update the world matrix and perform operations on the world matrix of this object.
+		terrain->UpdateMatrices(worldMatrix);
+
+		terrain->Render(mpD3D->GetDeviceContext());
+			// Render the terrain area with the diffuse light shader.
+			if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(),
+				terrain->GetIndexCount(), worldMatrix, reflectionViewMatrix, projMatrix,
+				terrain->GetTexturesArray(),
+				terrain->GetNumberOfTextures(),
+				terrain->GetGrassTextureArray(),
+				terrain->GetNumberOfGrassTextures(),
+				terrain->GetRockTextureArray(),
+				terrain->GetNumberOfRockTextures(),
+				mpWaterLight->GetDirection(),
+				mpWaterLight->GetDiffuseColour(),
+				mpWaterLight->GetAmbientColour(),
+				terrain->GetHighestPoint(),
+				terrain->GetLowestPoint(),
+				terrain->GetPos(),
+				terrain->GetSnowHeight(),
+				terrain->GetGrassHeight(),
+				terrain->GetDirtHeight(),
+				terrain->GetSandHeight()
+			))
+			{
+				// If we failed to render, return false.
+				return false;
+			}
+	}
 	RenderMeshes(worldMatrix, reflectionViewMatrix, projMatrix);
 
 	mpD3D->SetBackBufferRenderTarget();

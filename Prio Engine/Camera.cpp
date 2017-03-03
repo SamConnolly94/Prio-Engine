@@ -176,6 +176,11 @@ void CCamera::RenderReflection(float height)
 	D3DXMatrixLookAtLH(&mpReflectionViewMatrix, &position, &lookAt, &up);
 }
 
+D3DXMATRIX CCamera::GetReflectionViewMatrix()
+{
+	return mpReflectionViewMatrix;
+}
+
 /* Updates the elements of matrices used before rendering. 
 * Credit to Laurent Noel for this class.
 */

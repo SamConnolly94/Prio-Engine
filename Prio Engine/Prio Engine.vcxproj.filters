@@ -123,10 +123,10 @@
     <ClInclude Include="RefractionShader.h">
       <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>Source Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Water.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTexture.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>
@@ -230,10 +230,10 @@
     <ClCompile Include="RefractionShader.cpp">
       <Filter>Source Files\Engine\Shader Classes</Filter>
     </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
-      <Filter>Header Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Water.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTexture.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
   </ItemGroup>

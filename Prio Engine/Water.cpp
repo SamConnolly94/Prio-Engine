@@ -7,69 +7,75 @@ CWater::CWater()
 	
 	int vertex = 0;
 
-	vertices[vertex].position.x = -4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = 4.0f;
-	vertices[vertex].texCoord.x = 0.0f;
-	vertices[vertex].texCoord.y = 0.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = -20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = 20.0f;
+	mpVertices[vertex].texCoord.x = 0.0f;
+	mpVertices[vertex].texCoord.y = 0.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
 
 	vertex = 1;
 
-	vertices[vertex].position.x = 4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = -4.0f;
-	vertices[vertex].texCoord.x = 1.0f;
-	vertices[vertex].texCoord.y = 1.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = 20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = -20.0f;
+	mpVertices[vertex].texCoord.x = 1.0f;
+	mpVertices[vertex].texCoord.y = 1.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
 
 	vertex = 2;
 
-	vertices[vertex].position.x = -4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = -4.0f;
-	vertices[vertex].texCoord.x = 0.0f;
-	vertices[vertex].texCoord.y = 1.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = -20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = -20.0f;
+	mpVertices[vertex].texCoord.x = 0.0f;
+	mpVertices[vertex].texCoord.y = 1.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
 
 	vertex = 3;
 
-	vertices[vertex].position.x = 4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = 4.0f;
-	vertices[vertex].texCoord.x = 1.0f;
-	vertices[vertex].texCoord.y = 0.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = 20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = 20.0f;
+	mpVertices[vertex].texCoord.x = 1.0f;
+	mpVertices[vertex].texCoord.y = 0.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
 
 	vertex = 4;
 
-	vertices[vertex].position.x = 4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = -4.0f;
-	vertices[vertex].texCoord.x = 1.0f;
-	vertices[vertex].texCoord.y = 1.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = 20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = -20.0f;
+	mpVertices[vertex].texCoord.x = 1.0f;
+	mpVertices[vertex].texCoord.y = 1.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
 
 	vertex = 5;
 
-	vertices[vertex].position.x = -4.0f;
-	vertices[vertex].position.y = 0.0f;
-	vertices[vertex].position.z = 4.0f;
-	vertices[vertex].texCoord.x = 0.0f;
-	vertices[vertex].texCoord.y = 0.0f;
-	vertices[vertex].normal.x = 0.0f;
-	vertices[vertex].normal.y = 1.0f;
-	vertices[vertex].normal.z = 0.0f;
+	mpVertices[vertex].position.x = -20.0f;
+	mpVertices[vertex].position.y = 0.0f;
+	mpVertices[vertex].position.z = 20.0f;
+	mpVertices[vertex].texCoord.x = 0.0f;
+	mpVertices[vertex].texCoord.y = 0.0f;
+	mpVertices[vertex].normal.x = 0.0f;
+	mpVertices[vertex].normal.y = 1.0f;
+	mpVertices[vertex].normal.z = 0.0f;
+
+
+	for (int i = 0; i < mNumVertices; i++)
+	{
+		mpIndices[i] = i;
+	}
 }
 
 
@@ -132,11 +138,6 @@ bool CWater::InitialiseBuffers(ID3D11Device * device)
 	D3D11_SUBRESOURCE_DATA indexData;
 	HRESULT result;
 
-	for (int i = 0; i < mNumVertices; i++)
-	{
-		indices[i] = i;
-	}
-
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mNumVertices;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -144,7 +145,7 @@ bool CWater::InitialiseBuffers(ID3D11Device * device)
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
 
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = mpVertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -162,7 +163,7 @@ bool CWater::InitialiseBuffers(ID3D11Device * device)
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
-	indexData.pSysMem = indices;
+	indexData.pSysMem = mpIndices;
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
@@ -176,7 +177,7 @@ bool CWater::InitialiseBuffers(ID3D11Device * device)
 	return true;
 }
 
-int CWater::GetIndexCount()
+unsigned int CWater::GetIndexCount()
 {
 	return mNumIndices;
 }
@@ -185,10 +186,14 @@ void CWater::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
+
+
 	stride = sizeof(VertexType);
 	offset = 0;
-	deviceContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
-	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	deviceContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
+
+	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

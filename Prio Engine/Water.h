@@ -27,15 +27,15 @@ public:
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 private:
-	int mNumVertices;
-	int mNumIndices;
-	VertexType vertices[kNumberOfVerticesInWater];
-	unsigned int indices[kNumberOfVerticesInWater];
+	unsigned int mNumVertices;
+	unsigned int mNumIndices;
+	VertexType mpVertices[kNumberOfVerticesInWater];
+	unsigned int mpIndices[kNumberOfVerticesInWater];
 	CTexture* mpTexture;
 	ID3D11Buffer* mpVertexBuffer;
 	ID3D11Buffer* mpIndexBuffer;
 public:
-	int GetIndexCount();
+	unsigned int GetIndexCount();
 	ID3D11ShaderResourceView* GetTexture() { return mpTexture->GetTexture(); };
 private:
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
