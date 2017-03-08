@@ -1,53 +1,120 @@
 SamplerState SampleType;
 
-Texture2D reflectionMap;
-Texture2D refractionMap;
-Texture2D normalMap;
+Texture2D normalMap : register(t0);
+Texture2D RefractionMap : register(t1);
+Texture2D ReflectionMap : register(t2);
 
-cbuffer WaterBuffer
+SamplerState BilinearMirror
 {
-	float waterTranslation;
-	float reflectRefractRatio;
-	float2 waterBufferPadding;
+	Filter = MIN_MAG_LINEAR_MIP_POINT;
+	MaxLOD = 0;
+	AddressU = Mirror;
+	AddressV = Mirror;
 };
+
+
+// Water normal map/height map is sampled four times at different sizes, then overlaid to give a complex wave pattern
+static const float WaterSize1 = 0.5f;
+static const float WaterSize2 = 1.0f;
+static const float WaterSize3 = 2.0f;
+static const float WaterSize4 = 4.0f;
+
+static const float WaterSpeed1 = 0.5f;
+static const float WaterSpeed2 = 1.0f;
+static const float WaterSpeed3 = 1.7f;
+static const float WaterSpeed4 = 2.6f;
+
+static const float  RefractionDistortion = 20.0f;
+
+static const float HeightMapHeightOverWidth = 1 / 32.0f;
+static const float WaterWidth = 400.0f;
+static const float MaxWaveHeight = WaterWidth * HeightMapHeightOverWidth;
+static const float  WaterRefractiveIndex = 1.5f;  // Refractive index of clean water is 1.33. Impurities increase this value and values up to about 7.0 are sensible
+
+cbuffer WaterBuffer : register(b0)
+{
+	float2 WaterMovement;
+	float WaveScale;
+	float RefractionStrength;
+	float ReflectionStrength;
+	float MaxDistortionDistance;
+	float2 waterBufferPadding;
+	
+};
+
+cbuffer CameraBuffer : register(b1)
+{
+	matrix CameraMatrix;
+	float3 CameraPos;
+	float cameraBufferPadding;
+};
+
+cbuffer LightBuffer : register(b2)
+{
+	float3 LightPosition;
+	float4 AmbientColour;
+	float4 DiffuseColour;
+	float3 LightDirection;
+	float SpecularPower;
+	float4 SpecularColor;
+	float lightBufferPadding;
+};
+
+cbuffer ViewportBuffer : register(b3)
+{
+	// Viewport size in pixels
+	float2 ViewportSize;
+	float2 viewportPadding;
+}
 
 struct PixelInputType
 {
-	float4 position : SV_POSITION;
+	float4 ProjPos : SV_POSITION;
+	float3 WorldPos : POSITION;
 	float2 tex : TEXCOORD0;
-	float4 reflectionPos : TEXCOORD1;
-	float4 refractionPos : TEXCOORD2;
 };
 
 float4 WaterPS(PixelInputType input) : SV_TARGET
 {
-	float blend = 0.6f;
+	float3 normal1 = normalMap.Sample(SampleType, WaterSize1 * (input.tex + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
+	float3 normal2 = normalMap.Sample(SampleType, WaterSize2 * (input.tex + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
+	float3 normal3 = normalMap.Sample(SampleType, WaterSize3 * (input.tex + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
+	float3 normal4 = normalMap.Sample(SampleType, WaterSize4 * (input.tex + WaterMovement * WaterSpeed4)).rgb * 2.0f - 1.0f;
 
-	// Add the distance which the water is to be moved by to the pos on the screen.
-	input.tex.y += waterTranslation;
+	normal1.y *= WaterSize1;
+	normal2.y *= WaterSize2;
+	normal3.y *= WaterSize3;
+	normal4.y *= WaterSize4;
 
-	float2 reflectTexCoord;
-	float2 refractionTexCoord;
+	float3 waterNormal = float3(0, 1, 0); // Not this, read comment above
 
-	// Covert tex coordinates into range -1 to + 1.
-	reflectTexCoord.x = input.reflectionPos.x / input.reflectionPos.w / 2.0f + 0.5f;
-	reflectTexCoord.y = -input.reflectionPos.y / input.reflectionPos.w / 2.0f + 0.5f;
-	refractionTexCoord.x = input.refractionPos.x / input.refractionPos.w / 2.0f + 0.5f;
-	refractionTexCoord.y = -input.refractionPos.y / input.refractionPos.w / 2.0f + 0.5f;
+	waterNormal.y /= (WaveScale + 0.001f);
+	waterNormal = normalize(waterNormal); 
 
-	// Sample the normal at the current UV coordinates passed in in the pixel input type.
-	float4 normalSample = normalMap.Sample(SampleType, input.tex);
-	// Convert the sampled normal map into range -1 to 1.
-	float3 normal = (normalSample.xyz * 2.0f) - 1.0f;
+	float2 waterNormal2D = waterNormal.xz;
+	float2 offsetDir = float2(dot(waterNormal2D, normalize(CameraMatrix[0].xz)), dot(waterNormal2D, normalize(CameraMatrix[2].xz)));
 
-	// Apply a rippling effect to the water by distorting it.
-	reflectTexCoord = reflectTexCoord + (normal.xy * reflectRefractRatio);
-	refractionTexCoord = refractionTexCoord + (normal.xy * reflectRefractRatio);
+	float2 screenUV = input.ProjPos.xy / ViewportSize;
+	float4 refractionDepth = RefractionMap.Sample(BilinearMirror, screenUV).a;
+	float4 reflectionHeight = ReflectionMap.Sample(BilinearMirror, screenUV).a;
 
-	float4 reflectionColour = reflectionMap.Sample(SampleType, reflectTexCoord);
-	float4 refractionColour = refractionMap.Sample(SampleType, refractionTexCoord);
+	float2 refractionUV = screenUV + RefractionDistortion * refractionDepth  * offsetDir / input.ProjPos.w;
+	float2 reflectionUV = screenUV; // Needs more code on this line, see comment above
+	float4 refractColour = RefractionMap.Sample(BilinearMirror, refractionUV) * RefractionStrength;
+	float4 reflectColour = ReflectionMap.Sample(BilinearMirror, reflectionUV) * ReflectionStrength;
+	reflectColour = lerp(refractColour, reflectColour, saturate(refractionDepth * MaxDistortionDistance / (0.5f * MaxWaveHeight * WaveScale)));
+	float3 normalToCamera = normalize(CameraPos - input.WorldPos);
 
-	float4 colour = lerp(reflectionColour, refractionColour, blend);
+	float3 vectorToLight = LightPosition - input.WorldPos;
+	float3 normalToLight = normalize(vectorToLight);
+	float3 halfwayVector = normalize(normalToLight + normalToCamera);
+	float3 specularLight1 = LightPosition * pow(max(dot(waterNormal, halfwayVector), 0), SpecularPower) / length(vectorToLight);
 
-	return colour;
+	reflectColour.rgb += SpecularPower * (specularLight1);
+
+	float n1 = 1.0;
+	float n2 = WaterRefractiveIndex;
+	float fresnel = 0.25f;
+
+	return lerp(refractColour, reflectColour, fresnel);
 }

@@ -13,6 +13,7 @@ protected:
 	D3DXVECTOR3 mRotation;
 	D3DXVECTOR3 mScale;
 	CModelControl* mpParent;
+	D3DXMATRIX mWorldMatrix;
 public:
 	/* Rotation. */
 	void RotateX(float x);
@@ -64,6 +65,9 @@ public:
 	void AttatchToParent(CModelControl* parent);
 	void SeperateFromParent();
 
+	void UpdateMatrices();
+
+	void GetWorldMatrix(D3DXMATRIX& world) { world = mWorldMatrix; };
 public:
 	CModelControl();
 	~CModelControl();

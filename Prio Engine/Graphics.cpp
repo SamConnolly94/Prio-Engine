@@ -16,7 +16,6 @@ CGraphics::CGraphics()
 	mFullScreen = false;
 	mpFrustum = nullptr;
 	mpSkyboxShader = nullptr;
-	mpRefractionShader = nullptr;
 	mpWaterShader = nullptr;
 }
 
@@ -141,30 +140,22 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpWaterLight->SetDiffuseColour({1.0f, 1.0f, 1.0f, 1.0f});
 	mpWaterLight->SetAmbientColour({0.15f, 0.15f, 0.15f, 1.0f});
 	mpWaterLight->SetDirection({ 0.0f, -1.0f, 0.5f });
+	mpWaterLight->SetSpecularColour({ 1.0f, 1.0f, 1.0f, 1.0f });
+	mpWaterLight->SetSpecularPower(100.0f);
 
-	mpRefractionShader = new CRefractionShader();
-	mpRefractionShader->Initialise(mpD3D->GetDevice(), mHwnd);
 	mpWaterShader = new CWaterShader();
-	mpWaterShader->Initialise(mpD3D->GetDevice(), mHwnd);
+	if (!mpWaterShader->Initialise(mpD3D->GetDevice(), mHwnd))
+	{
+		logger->GetInstance().WriteSubtitle("Critical Error!");
+		logger->GetInstance().WriteLine("Failed to initialise the water shader, shutting down.");
+		logger->GetInstance().CloseSubtitle();
+
+		return false;
+	}
 
 	mpWaterBody = new CWater();
-	mpWaterBody->Initialise(mpD3D->GetDevice(), "Resources/Textures/water01.dds");
-
-	mpRefractionTexture = new CRenderTexture();
-	result = mpRefractionTexture->Initialise(mpD3D->GetDevice(), screenWidth, screenHeight);
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to initialise the refraction render texture.");
-		return false;
-	}
-
-	mpReflectionTexture = new CRenderTexture();
-	result = mpReflectionTexture->Initialise(mpD3D->GetDevice(), screenWidth, screenHeight);
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to initialise the reflection render texture.");
-		return false;
-	}
+	
+	mpWaterBody->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(0.0F,0.0F, 0.0F), D3DXVECTOR3(200.0F, 0.0F, 200.0F), mScreenWidth, mScreenHeight, 100.0f, 100.0f, "Resources/Textures/WaterNormalHeight.png");
 
 	mWaterHeight = 10.0f;
 	mWaterTranslation = 0.0f;
@@ -178,21 +169,10 @@ void CGraphics::Shutdown()
 {
 	delete mpWaterLight;
 
-	mpWaterBody->Shutdown();
-	delete mpWaterBody;
-
-	if (mpReflectionTexture)
+	if (mpWaterBody != nullptr)
 	{
-		mpReflectionTexture->Shutdown();
-		delete mpReflectionTexture;
-		mpReflectionTexture = nullptr;
-	}
-
-	if (mpRefractionTexture)
-	{
-		mpRefractionTexture->Shutdown();
-		delete mpRefractionTexture;
-		mpRefractionTexture = nullptr;
+		mpWaterBody->Shutdown();
+		delete mpWaterBody;
 	}
 
 	for (auto skybox : mpSkyboxList)
@@ -217,14 +197,6 @@ void CGraphics::Shutdown()
 		delete mpWaterShader;
 		mpWaterShader = nullptr;
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpWaterShader).name());
-	}
-
-	if (mpRefractionShader)
-	{
-		mpRefractionShader->Shutdown();
-		delete mpRefractionShader;
-		mpRefractionShader = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpRefractionShader).name());
 	}
 
 	if (mpText)
@@ -372,6 +344,10 @@ bool CGraphics::Render()
 	D3DXMATRIX projMatrix;
 	D3DXMATRIX orthoMatrix;
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
+
+	// Set the back buffer as the render target
+	mpD3D->SetBackBufferRenderTarget();
+	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Clear buffers so we can begin to render the scene.
 	mpD3D->BeginScene(0.6f, 0.9f, 1.0f, 1.0f);
@@ -725,146 +701,58 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 
 bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-	bool result = false;
-
 	// Reset the world matrix.
 	mpD3D->GetWorldMatrix(world);
 
-	mWaterTranslation += 0.001f;
-	if (mWaterTranslation > 1.0f)
-	{
-		mWaterTranslation -= 1.0f;
-	}
+	// Acquire the camera world matrix.
+	D3DXMATRIX cameraWorld;
+	mpCamera->GetWorldMatrix(cameraWorld);
 
-	result = RenderRefractionToTexture();
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to render the refraction to texture.");
-		return false;
-	}
+	////////////////////
+	// Water surface.
+	///////////////////
 
-	result = RenderReflectionToTexture();
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to render the reflection to texture.");
-		return false;
-	}
+	// Acquire the target we want to render to.
+	ID3D11RenderTargetView* waterHeightRenderTarget = mpWaterBody->GetWaterHeightRenderTarget();
 
-	// Reset the world matrix.
-	mpD3D->GetWorldMatrix(world);
-	D3DXMatrixTranslation(&world, 0.0f, 0.0f, 0.0f);
+	// Tell Direct X we want to render to this target.
+	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &waterHeightRenderTarget, mpD3D->GetDepthStencilView());
 
-	mpWaterBody->Render(mpD3D->GetDeviceContext());
+	// Define a default colour to clear the acquired render target to.
+	float Zero[4] = { 0,0,0,0 };
+	// Clear the render target.
+	mpD3D->GetDeviceContext()->ClearRenderTargetView(waterHeightRenderTarget, Zero);
+	// Clear the depth buffer.
+	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	mpWaterBody->RenderWaterSurfaceBuffers(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterShader, proj, mpCamera, mpWaterLight);
 	
-	D3DXMATRIX reflectionMatrix = mpCamera->GetReflectionViewMatrix();
+	// Render the model.
+	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(), 
+		world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(), 
+		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 
+		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight );
 
-	result  = mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetIndexCount(), 
-		world, view, proj, reflectionMatrix, mpReflectionTexture->GetShaderResourceView(),
-		mpRefractionTexture->GetShaderResourceView(), mpWaterBody->GetTexture(), mWaterTranslation, 0.01f);
+	// Set the tex as the render target
+	//mpWaterBody->RenderRefractionBuffers(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterShader, proj, mpCamera, mpWaterLight);
 
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to render the body of water with water shader in graphics class.");
-		return false;
-	}
+	/////////////////////
+	// Water refraction.
+	////////////////////
+	ID3D11RenderTargetView* refractionTarget = mpWaterBody->GetRefractionRenderTarget();
+	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &refractionTarget, mpD3D->GetDepthStencilView());
 
-	return true;
-}
+	// Render skybox and terrain with refraction techniques.
+	CCamera* reflectionCamera = new CCamera(;
+	D3DXMATRIX invertedMatrix;
+	mpCamera->GetWorldMatrix(invertedMatrix);
+	
+	invertedMatrix._12 = -invertedMatrix._12;
+	invertedMatrix._22 = -invertedMatrix._22;
+	invertedMatrix._23 = -invertedMatrix._23;
+	reflectionCamera->SetWorldMatrix(invertedMatrix);
 
-bool CGraphics::RenderRefractionToTexture()
-{
-	D3DXVECTOR4 clipPlane;
-	D3DXMATRIX world;
-	D3DXMATRIX view;
-	D3DXMATRIX proj;
-	bool result;
-
-	clipPlane = D3DXVECTOR4(0.0f, -1.0f, 0.0f, mWaterHeight + 0.1f);
-	mpRefractionTexture->SetRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-	mpRefractionTexture->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.3f, 0.6f, 0.6f, 1.0f);
-	mpCamera->Render();
-
-	mpD3D->GetWorldMatrix(world);
-	mpCamera->GetViewMatrix(view);
-	mpD3D->GetProjectionMatrix(proj);
-
-	/////////////////////////
-	// Position goes here.
-	////////////////////////
-	D3DXMatrixTranslation(&world, 0.0f, 2.0f, 0.0f);
-
-	for (auto terrain : mpTerrainGrids)
-	{
-		terrain->Render(mpD3D->GetDeviceContext());
-
-		result = mpRefractionShader->Render(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, terrain->GetTexturesArray()[0]->GetTexture(), mpWaterLight->GetDirection(), mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), clipPlane);
-	}
-
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to render the water with the refraction shader.");
-		return false;
-	}
-
-	mpD3D->SetBackBufferRenderTarget();
-
-	return true;
-}
-
-bool CGraphics::RenderReflectionToTexture()
-{
-	D3DXMATRIX reflectionViewMatrix;
-	D3DXMATRIX worldMatrix;
-	D3DXMATRIX projMatrix;
-	bool result;
-
-	mpReflectionTexture->SetRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-	mpReflectionTexture->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 1.0f);
-
-	mpD3D->EnableZBuffer();
-
-	mpCamera->RenderReflection(mWaterHeight);
-
-	reflectionViewMatrix = mpCamera->GetReflectionViewMatrix();
-	mpD3D->GetWorldMatrix(worldMatrix);
-	mpD3D->GetProjectionMatrix(projMatrix);
-
-	////// Position of the terrain.
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.0f, 0.0f);
-
-	// Iterate through each terrain that has been created.
-	for (auto terrain : mpTerrainGrids)
-	{
-		// Update the world matrix and perform operations on the world matrix of this object.
-		terrain->UpdateMatrices(worldMatrix);
-
-		terrain->Render(mpD3D->GetDeviceContext());
-			// Render the terrain area with the diffuse light shader.
-			if (!mpTerrainShader->Render(mpD3D->GetDeviceContext(),
-				terrain->GetIndexCount(), worldMatrix, reflectionViewMatrix, projMatrix,
-				terrain->GetTexturesArray(),
-				terrain->GetNumberOfTextures(),
-				terrain->GetGrassTextureArray(),
-				terrain->GetNumberOfGrassTextures(),
-				terrain->GetRockTextureArray(),
-				terrain->GetNumberOfRockTextures(),
-				mpWaterLight->GetDirection(),
-				mpWaterLight->GetDiffuseColour(),
-				mpWaterLight->GetAmbientColour(),
-				terrain->GetHighestPoint(),
-				terrain->GetLowestPoint(),
-				terrain->GetPos(),
-				terrain->GetSnowHeight(),
-				terrain->GetGrassHeight(),
-				terrain->GetDirtHeight(),
-				terrain->GetSandHeight()
-			))
-			{
-				// If we failed to render, return false.
-				return false;
-			}
-	}
-	RenderMeshes(worldMatrix, reflectionViewMatrix, projMatrix);
+	reflectionCamera->SetPosizionY(mpWaterBody->GetPos().y * 2.0f - reflectionCamera->GetPosition().y);
 
 	mpD3D->SetBackBufferRenderTarget();
 

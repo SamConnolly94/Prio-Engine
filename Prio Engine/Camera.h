@@ -41,9 +41,9 @@ public:
 	D3DXVECTOR3 GetRotation();
 
 	void Render();
+	void GetWorldMatrix(D3DXMATRIX& worldMatrix);
 	void GetViewMatrix(D3DXMATRIX& viewMatrix);
-	void RenderReflection(float height);
-	D3DXMATRIX GetReflectionViewMatrix();
+	void SetWorldMatrix(D3DXMATRIX& world) { mWorldMatrix = world; };
 private:
 	int mScreenWidth;
 	int mScreenHeight;
@@ -61,7 +61,7 @@ private:
 	D3DXMATRIX mViewProjMatrix;
 
 	void UpdateMatrices();
-	D3DXMATRIX mpReflectionViewMatrix;
+
 };
 
 #endif

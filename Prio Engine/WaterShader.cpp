@@ -7,9 +7,11 @@ CWaterShader::CWaterShader()
 	mpPixelShader = nullptr;
 	mpLayout = nullptr;
 	mpMatrixBuffer = nullptr;
-	mpSampleState = nullptr;
-	mpReflectionBuffer = nullptr;
+	mpTrilinearWrapSampleState = nullptr;
+	mpWaveBuffer = nullptr;
 	mpWaterBuffer = nullptr;
+	mpCameraBuffer = nullptr;
+	mpLightBuffer = nullptr;
 }
 
 CWaterShader::~CWaterShader()
@@ -39,14 +41,15 @@ void CWaterShader::Shutdown()
 }
 
 bool CWaterShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, D3DXMATRIX reflectionMatrix, ID3D11ShaderResourceView* reflectionTex, ID3D11ShaderResourceView* refractionTex,
-	ID3D11ShaderResourceView* normalMap, float waterTranslation, float reflectRefractRatio )
+	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale,
+	int screenWidth, int screenHeight, CCamera* camera, CLight* light)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix, projMatrix, reflectionMatrix, reflectionTex, refractionTex,
-		normalMap, waterTranslation, reflectRefractRatio);
+	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix,
+		projMatrix, waterMovement, strength, distortionDistance, waveScale,
+		screenWidth, screenHeight, camera, light);
 
 	if (!result)
 	{
@@ -66,12 +69,16 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_BUFFER_DESC reflectionBufferDesc;
-	D3D11_BUFFER_DESC waterBufferDesc;
+	D3D11_BUFFER_DESC waveBufferDesc;
+	D3D11_BUFFER_DESC waterPosBufferDesc;
+	D3D11_BUFFER_DESC cameraBufferDesc;
+	D3D11_BUFFER_DESC lightBufferDesc;
+	D3D11_BUFFER_DESC viewportBufferDesc;
+
 
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
@@ -152,6 +159,14 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = 0;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
@@ -186,7 +201,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
+	result = device->CreateSamplerState(&samplerDesc, &mpTrilinearWrapSampleState);
 
 	if (FAILED(result))
 	{
@@ -212,38 +227,90 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	}
 	
 	/////////////////////////
-	// Reflection buffer.
+	// Wave buffer.
 	////////////////////////
 
-	reflectionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	reflectionBufferDesc.ByteWidth = sizeof(ReflectionBufferType);
-	reflectionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	reflectionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	reflectionBufferDesc.MiscFlags = 0;
-	reflectionBufferDesc.StructureByteStride = 0;
+	waveBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	waveBufferDesc.ByteWidth = sizeof(WaveBufferType);
+	waveBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	waveBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	waveBufferDesc.MiscFlags = 0;
+	waveBufferDesc.StructureByteStride = 0;
 
 	// Create constant buffer.
-	result = device->CreateBuffer(&reflectionBufferDesc, NULL, &mpReflectionBuffer);
+	result = device->CreateBuffer(&waveBufferDesc, NULL, &mpWaveBuffer);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the reflection buffer in water shader class.");
+		logger->GetInstance().WriteLine("Failed to create the wave buffer in water shader class.");
 		return false;
 	}
 
 	///////////////////////
 	// Water buffer.
 	///////////////////////
-	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
-	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	waterBufferDesc.MiscFlags = 0;
-	waterBufferDesc.StructureByteStride = 0;
+	waterPosBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	waterPosBufferDesc.ByteWidth = sizeof(WaterBufferType);
+	waterPosBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	waterPosBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	waterPosBufferDesc.MiscFlags = 0;
+	waterPosBufferDesc.StructureByteStride = 0;
 
-	result = device->CreateBuffer(&waterBufferDesc, NULL, &mpWaterBuffer);
+	result = device->CreateBuffer(&waterPosBufferDesc, NULL, &mpWaterBuffer);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the water buffer from provided description in water shader class.");
+		logger->GetInstance().WriteLine("Failed to create the water position from provided description in water shader class.");
+		return false;
+	}
+
+	/////////////////////////////////////////
+	// Camera buffer.
+	/////////////////////////////////////////
+
+	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cameraBufferDesc.MiscFlags = 0;
+	cameraBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&cameraBufferDesc, NULL, &mpCameraBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the camera buffer from provided description in water shader class.");
+		return false;
+	}
+
+	//////////////////////////////////////
+	// Light buffer
+	//////////////////////////////////////
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the light buffer from provided description in water shader class.");
+		return false;
+	}
+
+	//////////////////////////////////
+	// Viewport buffer desc.
+	/////////////////////////////////
+	viewportBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	viewportBufferDesc.ByteWidth = sizeof(ViewportBufferType);
+	viewportBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	viewportBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	viewportBufferDesc.MiscFlags = 0;
+	viewportBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&viewportBufferDesc, NULL, &mpViewportBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the viewport buffer from provided description in water shader class.");
 		return false;
 	}
 
@@ -252,10 +319,10 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 
 void CWaterShader::ShutdownShader()
 {
-	if (mpSampleState)
+	if (mpTrilinearWrapSampleState)
 	{
-		mpSampleState->Release();
-		mpSampleState = nullptr;
+		mpTrilinearWrapSampleState->Release();
+		mpTrilinearWrapSampleState = nullptr;
 	}
 
 	if (mpMatrixBuffer)
@@ -264,16 +331,34 @@ void CWaterShader::ShutdownShader()
 		mpMatrixBuffer = nullptr;
 	}
 
-	if (mpReflectionBuffer)
-	{
-		mpReflectionBuffer->Release();
-		mpReflectionBuffer = nullptr;
-	}
-
 	if (mpWaterBuffer)
 	{
 		mpWaterBuffer->Release();
 		mpWaterBuffer = nullptr;
+	}
+	
+	if (mpWaveBuffer)
+	{
+		mpWaveBuffer->Release();
+		mpWaveBuffer = nullptr;
+	}
+
+	if (mpCameraBuffer)
+	{
+		mpCameraBuffer->Release();
+		mpCameraBuffer = nullptr;
+	}
+
+	if (mpLightBuffer)
+	{
+		mpLightBuffer->Release();
+		mpLightBuffer = nullptr;
+	}
+
+	if (mpViewportBuffer)
+	{
+		mpViewportBuffer->Release();
+		mpViewportBuffer = nullptr;
 	}
 
 	if (mpLayout)
@@ -328,114 +413,67 @@ void CWaterShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd,
 }
 
 bool CWaterShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, D3DXMATRIX reflectionMatrix, ID3D11ShaderResourceView* reflectionTex, ID3D11ShaderResourceView* refractionTex,
-	ID3D11ShaderResourceView* normalMap, float waterTranslation, float reflectRefractRatio)
+	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale,
+	int screenWidth, int screenHeight, CCamera* camera, CLight* light)
 {
-	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	unsigned int bufferNumber;
-	MatrixBufferType* matrixBufferPtr;
-	ReflectionBufferType* reflectionBufferPtr;
-	WaterBufferType* waterBufferPtr;
 
 	// Transpose the matrices to prepare them for the shader.
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
 	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
 	D3DXMatrixTranspose(&projMatrix, &projMatrix);
-	D3DXMatrixTranspose(&reflectionMatrix, &reflectionMatrix);
 	
 	////////////////////////////
 	// Update the matrices constant buffer.
 	///////////////////////////
 
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if (FAILED(result))
+	if (!UpdateMatrixBuffer(deviceContext, mappedResource, worldMatrix, viewMatrix, projMatrix))
 	{
-		logger->GetInstance().WriteLine("Failed to lock the constant buffer for matrices in WaterShader class.");
+		logger->GetInstance().WriteLine("Failed to set the matrix constant buffer.");
 		return false;
 	}
 
-	// Get a pointer to the data in the constant buffer.
-	matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	matrixBufferPtr->world = worldMatrix;
-	matrixBufferPtr->view = viewMatrix;
-	matrixBufferPtr->projection = projMatrix;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(mpMatrixBuffer, 0);
-
-	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
-
-	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
-
 	/////////////////////////////////
-	// Update the reflection constant buffer.
+	// Update the wave constant buffer.
 	/////////////////////////////////
-	result = deviceContext->Map(mpReflectionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
-	if (FAILED(result))
+	if (!UpdateWaveBuffer(deviceContext, mappedResource, 1.0f))
 	{
-		logger->GetInstance().WriteLine("Failed to set the reflection constant buffer in water shader class.");
+		logger->GetInstance().WriteLine("Failed to set the wave constant buffer.");
 		return false;
 	}
-
-	// Get pointer to the data inside the constant buffer.
-	reflectionBufferPtr = (ReflectionBufferType*)mappedResource.pData;
-
-	// Copy the current value of the reflection matrix into the constant buffer.
-	reflectionBufferPtr->reflection = reflectionMatrix;
-
-	// Unlock the constnat buffer so we can write to it elsewhere.
-	deviceContext->Unmap(mpReflectionBuffer, 0);
-
-	// Update the position of our constant buffer in the shader.
-	bufferNumber = 1;
-
-	// Set the constant buffer in the shader.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpReflectionBuffer);
-
-	//////////////////////////////
-	// Set textures in shader.
-	/////////////////////////////
-
-	deviceContext->PSSetShaderResources(0, 1, &reflectionTex);
-	deviceContext->PSSetShaderResources(1, 1, &refractionTex);
-	deviceContext->PSSetShaderResources(2, 1, &normalMap);
 
 	//////////////////////////////
 	// Update the water constant buffer.
 	//////////////////////////////
 
-	result = deviceContext->Map(mpWaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-	if (FAILED(result))
+	if (!UpdateWaterBuffer(deviceContext, mappedResource, D3DXVECTOR2(1.0F, 1.0F), strength.x, strength.y, distortionDistance, 1.0f))
 	{
-		logger->GetInstance().WriteLine("Failed to set the water constant buffer in water shader class.");
+		logger->GetInstance().WriteLine("Failed to set the water constant buffer.");
 		return false;
 	}
 
-	// Get pointer to the data inside the constant buffer.
-	waterBufferPtr = (WaterBufferType*)mappedResource.pData;
+	//////////////////////////////
+	// Camera buffer.
+	/////////////////////////////
+	D3DXMATRIX camWorld;
+	camera->GetWorldMatrix(camWorld);
+	if (!UpdateCameraBuffer(deviceContext, mappedResource, camWorld, camera->GetPosition()))
+	{
+		logger->GetInstance().WriteLine("Failed to set the camera constant buffer.");
+		return false;
+	}
 
-	// Copy the current water buffer values into the constant buffer.
-	waterBufferPtr->waterTranslation = waterTranslation;
-	waterBufferPtr->reflectRefractRatio = reflectRefractRatio;
-	waterBufferPtr->waterBufferPadding = D3DXVECTOR2(0.0F, 0.0F);
+	////////////////////////////
+	// Light buffer
+	////////////////////////////
 
-	// Unlock the constnat buffer so we can write to it elsewhere.
-	deviceContext->Unmap(mpWaterBuffer, 0);
+	if (!UpdateLightBuffer(deviceContext, mappedResource, light))
+	{
+		logger->GetInstance().WriteLine("Failed to set the light constant buffer.");
+		return false;
+	}
 
-	// Update the position of our constant buffer in the shader.
-	bufferNumber = 0;
-
-	// Set the constant buffer in the shader.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpWaterBuffer);
-	
 	return true;
 }
 
@@ -449,10 +487,205 @@ void CWaterShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCo
 	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrapSampleState);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+bool CWaterShader::UpdateMatrixBuffer(ID3D11DeviceContext * deviceContext, D3D11_MAPPED_SUBRESOURCE & mappedResource, D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
+	// Lock the constant buffer so it can be written to.
+	HRESULT result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to lock the constant buffer for matrices in WaterShader class.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	MatrixBufferType* matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
+
+	// Copy the matrices into the constant buffer.
+	matrixBufferPtr->world = world;
+	matrixBufferPtr->view = view;
+	matrixBufferPtr->projection = proj;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpMatrixBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	int bufferNumber = 0;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
+
+	return true;
+}
+
+bool CWaterShader::UpdateWaveBuffer(ID3D11DeviceContext* deviceContext, D3D11_MAPPED_SUBRESOURCE& mappedResource, float waveScale)
+{
+	HRESULT result = deviceContext->Map(mpWaveBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the wave constant buffer in water shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	WaveBufferType* waveBufferPtr = (WaveBufferType*)mappedResource.pData;
+
+	// Copy the current value of the reflection matrix into the constant buffer.
+	waveBufferPtr->WaveScale = waveScale;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpWaveBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	int bufferNumber = 1;
+
+	// Set the constant buffer in the shader.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpWaveBuffer);
+
+	return true;
+}
+
+bool CWaterShader::UpdateWaterBuffer(ID3D11DeviceContext* deviceContext,
+	D3D11_MAPPED_SUBRESOURCE& mappedResource, D3DXVECTOR2 WaterMovement, float refractionStrength, 
+	float reflectionStrength, float maxDistortionDistance, float WaveScale)
+{
+	// Lock the constant buffer so it can be written to.
+	HRESULT result = deviceContext->Map(mpWaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to lock the constant buffer for water position in WaterShader class.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	WaterBufferType* waterBufferPtr = (WaterBufferType*)mappedResource.pData;
+
+	// Copy the water values into the constant buffer.
+	waterBufferPtr->WaterMovement = WaterMovement;
+	waterBufferPtr->WaveScale = WaveScale;
+	waterBufferPtr->RefractionStrength = refractionStrength;
+	waterBufferPtr->ReflectionStrength = reflectionStrength;
+	waterBufferPtr->MaxDistortionDistance = maxDistortionDistance;
+	waterBufferPtr->waterBufferPadding = D3DXVECTOR2(0.0f, 0.0f);
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpWaterBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	int bufferNumber = 0;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpWaterBuffer);
+
+	return true;
+}
+
+bool CWaterShader::UpdateCameraBuffer(ID3D11DeviceContext * deviceContext, D3D11_MAPPED_SUBRESOURCE & mappedResource, D3DXMATRIX CameraWorldMatrix, D3DXVECTOR3 CameraPosition)
+{
+	// Lock the constant buffer so it can be written to.
+	HRESULT result = deviceContext->Map(mpCameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to lock the constant buffer for water position in WaterShader class.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	CameraBufferType* cameraBufferPtr = (CameraBufferType*)mappedResource.pData;
+
+	// Copy the water values into the constant buffer.
+	cameraBufferPtr->CameraMatrix = CameraWorldMatrix;
+	cameraBufferPtr->CameraPos = CameraPosition;
+	cameraBufferPtr->cameraBufferPadding = 0.0f;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpCameraBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	int bufferNumber = 1;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpCameraBuffer);
+
+	return true;
+}
+
+bool CWaterShader::UpdateLightBuffer(ID3D11DeviceContext * deviceContext, D3D11_MAPPED_SUBRESOURCE & mappedResource, CLight* light)
+{	
+	// Lock the constant buffer so it can be written to.
+	HRESULT result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to lock the constant buffer for light in WaterShader class.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	LightBufferType* lightBufferPtr = (LightBufferType*)mappedResource.pData;
+
+	// Copy the water values into the constant buffer.
+	lightBufferPtr->LightPosition = light->GetPos();
+	lightBufferPtr->AmbientColour = light->GetAmbientColour();
+	lightBufferPtr->DiffuseColour = light->GetDiffuseColour();
+	lightBufferPtr->LightDirection = light->GetDirection();
+	lightBufferPtr->SpecularColor = light->GetSpecularColour();
+	lightBufferPtr->SpecularPower = light->GetSpecularPower();
+	lightBufferPtr->lightBufferPadding = 0.0f;
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpLightBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	int bufferNumber = 2;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
+
+	return true;
+}
+
+bool CWaterShader::UpdateViewportBuffer(ID3D11DeviceContext * deviceContext, D3D11_MAPPED_SUBRESOURCE & mappedResource, int screenWidth, int screenHeight)
+{
+	// Lock the constant buffer so it can be written to.
+	HRESULT result = deviceContext->Map(mpViewportBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to lock the constant buffer for light in WaterShader class.");
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	ViewportBufferType* viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
+
+	// Copy the water values into the constant buffer.
+	viewportBufferPtr->ViewportSize = D3DXVECTOR2(screenWidth, screenHeight);
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(mpViewportBuffer, 0);
+
+	// Set the position of the constant buffer in the vertex shader.
+	int bufferNumber = 3;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpViewportBuffer);
+
+	return true;
+}
+
+void CWaterShader::SetHeightMap(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * resource)
+{
+	deviceContext->VSSetShaderResources(0, 1, &resource);
+}
+
+void CWaterShader::SetRefractionMap(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * resource)
+{
+	deviceContext->PSSetShaderResources(0, 1, &resource);
 }

@@ -78,7 +78,6 @@ private:
 	CTerrainShader* mpTerrainShader;
 	CSkyboxShader* mpSkyboxShader;
 	CWaterShader* mpWaterShader;
-	CRefractionShader* mpRefractionShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -133,14 +132,10 @@ public:
 	bool SetFullscreen(bool enabled);
 	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
 private:
-	CRenderTexture* mpRefractionTexture;
-	CRenderTexture* mpReflectionTexture;
 	float mWaterHeight;
 	float mWaterTranslation;
 	CWater* mpWaterBody;
 	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderRefractionToTexture();
-	bool RenderReflectionToTexture();
 	CLight* mpWaterLight;
 };
 

@@ -1,54 +1,52 @@
-cbuffer MatrixBuffer
+cbuffer MatrixBuffer : register(b0)
 {
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projMatrix;
 };
 
-cbuffer ReflectionBuffer
+cbuffer WaveBuffer : register(b1)
 {
-	matrix reflectionMatrix;
+	float WaveScale;
+	float3 waveScalePadding;
 };
 
 struct VertexInputType
 {
-	float4 position : POSITION;
+	float3 position : POSITION;
 	float2 tex : TEXCOORD0;
+	float3 Normal : NORMAL;
 };
 
 struct PixelInputType
 {
-	float4 position : SV_POSITION;
+	float4 ProjPos : SV_POSITION;
+	float3 WorldPos : POSITION;
 	float2 tex : TEXCOORD0;
-	float4 reflectionPosition : TEXCOORD1;
-	float4 refractionPosition : TEXCOORD2;
 };
+
+static const float HeightMapHeightOverWidth = 1 / 32.0f;
+static const float WaterWidth = 400.0f; 
+static const float MaxWaveHeight = WaterWidth * HeightMapHeightOverWidth;
 
 // Vertex shader
 PixelInputType WaterVS(VertexInputType input)
 {
 	PixelInputType output;
-	matrix reflectProjWorld;
-	matrix viewProjWorld;
 
-	input.position.w = 1.0f;
+	float4 modelPos = float4(input.position, 1.0f);
 
-	// Calculate the pos of vertex.
-	output.position = mul(input.position, worldMatrix);
-	output.position = mul(output.position, viewMatrix);
-	output.position = mul(output.position, projMatrix);
+	// Sample the height of the normal map at this point in order to get the correct height of this wave.
+	float height = 2.0f;
+
+	modelPos.y += (0.25f * height - 0.5f) * MaxWaveHeight * WaveScale;
+
+	float4 worldPosition = mul(modelPos, worldMatrix);
+	output.WorldPos = worldPosition.xyz;
+
+	float4 viewPosition = mul(worldPosition, viewMatrix);
+	output.ProjPos = mul(viewPosition, projMatrix);
 
 	output.tex = input.tex;
-
-	reflectProjWorld = mul(reflectionMatrix, projMatrix);
-	reflectProjWorld = mul(worldMatrix, reflectProjWorld);
-
-	output.reflectionPosition = mul(input.position, reflectProjWorld);
-	
-	viewProjWorld = mul(viewMatrix, projMatrix);
-	viewProjWorld = mul(worldMatrix, viewProjWorld);
-
-	output.refractionPosition = mul(input.position, viewProjWorld);
-
 	return output;
 }

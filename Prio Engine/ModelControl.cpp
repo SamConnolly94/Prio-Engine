@@ -234,3 +234,25 @@ void CModelControl::SeperateFromParent()
 {
 	mpParent = nullptr;
 }
+
+void CModelControl::UpdateMatrices()
+{
+
+		// Rotation
+		D3DXMATRIX matrixRotationX;
+		D3DXMATRIX matrixRotationY;
+		D3DXMATRIX matrixRotationZ;
+		// Position
+		D3DXMATRIX matrixTranslation;
+
+		// Calculate the rotation of the camera.
+		D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
+		D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
+		D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
+
+		// Calculate the translation of the camera.
+		D3DXMatrixTranslation(&matrixTranslation, mPosition.x, mPosition.y, mPosition.z);
+
+		// Calculate the world matrix
+		mWorldMatrix = matrixRotationZ * matrixRotationX * matrixRotationY * matrixTranslation;
+}
