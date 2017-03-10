@@ -43,7 +43,7 @@ public:
 	void Render();
 	void GetWorldMatrix(D3DXMATRIX& worldMatrix);
 	void GetViewMatrix(D3DXMATRIX& viewMatrix);
-	void SetWorldMatrix(D3DXMATRIX& world) { mWorldMatrix = world; };
+	void SetWorldMatrix(D3DXMATRIX world) { mWorldMatrix = world; };
 private:
 	int mScreenWidth;
 	int mScreenHeight;

@@ -155,7 +155,11 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	mpWaterBody = new CWater();
 	
-	mpWaterBody->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(0.0F,0.0F, 0.0F), D3DXVECTOR3(200.0F, 0.0F, 200.0F), mScreenWidth, mScreenHeight, 100.0f, 100.0f, "Resources/Textures/WaterNormalHeight.png");
+	if (!mpWaterBody->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(0.0F, 0.0F, 0.0F), D3DXVECTOR3(200.0F, 0.0F, 200.0F), mScreenWidth, mScreenHeight, 100.0f, 100.0f, "Resources/Textures/WaterNormalHeight.png"))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
+		return false;
+	}
 
 	mpWaterBody->SetXPos(mpWaterBody->GetPosX() - 200.0f);
 	mpWaterBody->SetZPos(mpWaterBody->GetPosZ() - 200.0f);
@@ -721,24 +725,24 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	vp.TopLeftY = 0;
 	mpD3D->GetDeviceContext()->RSSetViewports(1, &vp);
 
-	float Zero[4] = { 0, 0, 0, 0 };
+
+	for (auto terrain : mpTerrainGrids)
+	{
+		mpWaterShader->SetReflectionTex(mpD3D->GetDeviceContext(), terrain->GetGrassTex());
+	}
 
 	////////////////////
 	// Water height.
 	///////////////////
 
-	ID3D11RenderTargetView* heightMapTarget = mpWaterBody->GetWaterHeightRenderTarget();
-	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &heightMapTarget, mpD3D->GetDepthStencilView());
-	// Clear the render target.
-	mpD3D->GetDeviceContext()->ClearRenderTargetView(heightMapTarget, Zero);
-	// Clear the depth buffer.
-	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	mpWaterBody->SetWaterHeightRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 
 	mpWaterBody->UpdateMatrices();
 	mpWaterBody->GetWorldMatrix(world);
 
-	mpWaterBody->Render(mpD3D->GetDeviceContext());
 	mpWaterShader->SetRenderState(CWaterShader::RenderState::Height);
+
+	mpWaterBody->Render(mpD3D->GetDeviceContext());
 
 	// Render the model.
 	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(), 
@@ -749,39 +753,52 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	/////////////////////
 	// Water refraction.
 	////////////////////
-	ID3D11RenderTargetView* refractionTarget = mpWaterBody->GetRefractionRenderTarget();
-	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &refractionTarget, mpD3D->GetDepthStencilView());
-	// Clear the render target.
-	mpD3D->GetDeviceContext()->ClearRenderTargetView(refractionTarget, Zero);
-	// Clear the depth buffer.
-	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	mpWaterBody->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 
 	mpWaterShader->SetRenderState(CWaterShader::RenderState::Refraction);
 	
 	for (auto terrain : mpTerrainGrids)
 	{
-		mpWaterShader->SetReflectionTex(mpD3D->GetDeviceContext(), terrain->GetGrassTex());
-
 		terrain->UpdateMatrices();
 		terrain->GetWorldMatrix(world);
 
 		terrain->Render(mpD3D->GetDeviceContext());
 
-		mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
-			world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
-			mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
-			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+		mpWaterShader->Render(mpD3D->GetDeviceContext(), 
+			mpWaterBody->GetNumberOfIndices(),
+			world, view, proj,
+			mpWaterBody->GetMovement(), 
+			mpWaterBody->GetStrength(),
+			mpWaterBody->GetDistortionDistance(), 
+			mpWaterBody->GetWaveScale(), 
+			2.0f,
+			mpWaterBody->GetWidth(),
+			mpWaterBody->GetHeight(), 
+			mpCamera, 
+			mpWaterLight, 
+			mpWaterBody->GetHeightMap(), 
+			mpWaterBody->GetRefractionMap(), 
+			mpWaterBody->GetReflectionMap());
 	}
 
 	//////////////////////
 	// Water reflection
 	/////////////////////
-	ID3D11RenderTargetView* reflectionTarget = mpWaterBody->GetReflectionRenderTarget();
-	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &reflectionTarget, mpD3D->GetDepthStencilView());
-	// Clear the render target.
-	mpD3D->GetDeviceContext()->ClearRenderTargetView(reflectionTarget, Zero);
-	// Clear the depth buffer.
-	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	CCamera reflectionCamera = *mpCamera;
+	D3DXMATRIX cameraWorld;
+	reflectionCamera.Render();
+	reflectionCamera.GetWorldMatrix(cameraWorld);
+
+	// Invert the y component of each axis.
+	cameraWorld._12 = -cameraWorld._12;
+	cameraWorld._22 = -cameraWorld._22;
+	cameraWorld._32 = -cameraWorld._32;
+
+	reflectionCamera.SetWorldMatrix(cameraWorld);
+	reflectionCamera.SetPosizionY(mpWaterBody->GetPosY() * 2.0f - reflectionCamera.GetY());
+	reflectionCamera.Render();
+
+	mpWaterBody->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 
 	mpWaterShader->SetRenderState(CWaterShader::RenderState::Reflection);
 	for (auto terrain : mpTerrainGrids)
@@ -792,15 +809,15 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
 			world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
 			mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
-			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), &reflectionCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
 	}
 
 	/////////////////////
 	// Water surface
 	////////////////////
-	mpWaterShader->SetRenderState(CWaterShader::RenderState::Surface);
-
 	mpD3D->SetBackBufferRenderTarget();
+
+	mpWaterShader->SetRenderState(CWaterShader::RenderState::Surface);
 
 	mpWaterBody->UpdateMatrices();
 	mpWaterBody->GetWorldMatrix(world);

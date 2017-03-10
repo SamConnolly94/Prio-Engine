@@ -3,7 +3,7 @@
 CWater::CWater()
 {
 	waterPos = { 0.0f, 0.0f };
-	mpNormalMap = nullptr;
+	mpNormalHeightMap = nullptr;
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
 	mpReflectionMap = nullptr;
@@ -26,8 +26,8 @@ bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 
 		return false;
 	}
 
-	mpNormalMap = new CTexture();
-	if (!mpNormalMap->Initialise(device, normalMap))
+	mpNormalHeightMap = new CTexture();
+	if (!mpNormalHeightMap->Initialise(device, normalMap))
 	{
 		logger->GetInstance().WriteLine("Failed to load the normal map for water. Filename was: " + normalMap);
 		return false;
@@ -55,11 +55,11 @@ bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 
 
 void CWater::Shutdown()
 {
-	if (mpNormalMap)
+	if (mpNormalHeightMap)
 	{
-		mpNormalMap->Shutdown();
-		delete mpNormalMap;
-		mpNormalMap = nullptr;
+		mpNormalHeightMap->Shutdown();
+		delete mpNormalHeightMap;
+		mpNormalHeightMap = nullptr;
 	}
 
 	if (mpIndexBuffer)
@@ -376,9 +376,42 @@ unsigned int CWater::GetNumberOfIndices()
 	return mNumIndices;
 }
 
-CTexture * CWater::GetNormalMap()
+CTexture * CWater::GetNormalHeightMap()
 {
-	return mpNormalMap;
+	return mpNormalHeightMap;
+}
+
+void CWater::SetWaterHeightRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView)
+{
+	deviceContext->OMSetRenderTargets(1, &mpHeightMapTarget, depthStencilView);
+
+	float Zero[4] = { 0, 0, 0, 0 };
+	// Clear the render target.
+	deviceContext->ClearRenderTargetView(mpHeightMapTarget, Zero);
+	// Clear the depth buffer.
+	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+void CWater::SetRefractionRenderTarget(ID3D11DeviceContext * deviceContext, ID3D11DepthStencilView * depthStencilView)
+{
+	deviceContext->OMSetRenderTargets(1, &mpRefractionTarget, depthStencilView);
+
+	float Zero[4] = { 0, 0, 0, 0 };
+	// Clear the render target.
+	deviceContext->ClearRenderTargetView(mpRefractionTarget, Zero);
+	// Clear the depth buffer.
+	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+void CWater::SetReflectionRenderTarget(ID3D11DeviceContext * deviceContext, ID3D11DepthStencilView * depthStencilView)
+{
+	deviceContext->OMSetRenderTargets(1, &mpReflectionTarget, depthStencilView);
+
+	float Zero[4] = { 0, 0, 0, 0 };
+	// Clear the render target.
+	deviceContext->ClearRenderTargetView(mpReflectionTarget, Zero);
+	// Clear the depth buffer.
+	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void CWater::Update(float updateTime)

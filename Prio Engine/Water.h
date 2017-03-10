@@ -30,7 +30,7 @@ private:
 	unsigned int mNumIndices;
 	ID3D11Buffer* mpVertexBuffer;
 	ID3D11Buffer* mpIndexBuffer;
-	CTexture* mpNormalMap;
+	CTexture* mpNormalHeightMap;
 	D3DXVECTOR2 waterPos;
 
 	ID3D11ShaderResourceView* mpReflectionResource;
@@ -48,10 +48,10 @@ private:
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 public:
 	unsigned int GetNumberOfIndices();
-	CTexture* GetNormalMap();
-	ID3D11RenderTargetView* &GetWaterHeightRenderTarget() { return mpHeightMapTarget; };
-	ID3D11RenderTargetView* &GetRefractionRenderTarget() { return mpRefractionTarget; };
-	ID3D11RenderTargetView* &GetReflectionRenderTarget() { return mpReflectionTarget; };
+	CTexture* GetNormalHeightMap();
+	void SetWaterHeightRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView);
+	void SetRefractionRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView);
+	void SetReflectionRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView);
 private:
 	void Update(float updateTime);
 	bool InitialiseBuffers(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool useNormals, bool useUv);
