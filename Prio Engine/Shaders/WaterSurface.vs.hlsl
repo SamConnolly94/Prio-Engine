@@ -14,8 +14,8 @@ cbuffer WaveBuffer : register(b1)
 struct VertexInputType
 {
 	float3 position : POSITION;
-	float2 tex : TEXCOORD0;
 	float3 Normal : NORMAL;
+	float2 tex : TEXCOORD0;
 };
 
 struct PixelInputType

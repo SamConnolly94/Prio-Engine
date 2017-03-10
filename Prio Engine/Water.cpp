@@ -75,6 +75,11 @@ void CWater::Shutdown()
 	}
 }
 
+void CWater::Render(ID3D11DeviceContext * deviceContext)
+{
+	RenderBuffers(deviceContext);
+}
+
 bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool useNormals, bool useUV)
 {
 	D3D11_BUFFER_DESC vertexBufferDesc;
@@ -202,7 +207,9 @@ bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DX
 	}
 
 	delete[] vertices;
+	vertices = nullptr;
 	delete[] indices;
+	indices = nullptr;
 
 	return true;
 }
@@ -349,56 +356,51 @@ bool CWater::CreateTextureResources(ID3D11Device* device, int screenWidth, int s
 	return true;
 }
 
+ID3D11ShaderResourceView * CWater::GetHeightMap()
+{
+	return mpHeightMapResource;
+}
+
+ID3D11ShaderResourceView * CWater::GetRefractionMap()
+{
+	return mpRefractionResource;
+}
+
+ID3D11ShaderResourceView * CWater::GetReflectionMap()
+{
+	return mpReflectionResource;
+}
+
+unsigned int CWater::GetNumberOfIndices()
+{
+	return mNumIndices;
+}
+
+CTexture * CWater::GetNormalMap()
+{
+	return mpNormalMap;
+}
+
 void CWater::Update(float updateTime)
 {
 	waterPos += updateTime * D3DXVECTOR2{ 0.01f, 0.015f };
 }
 
-void CWater::RenderWaterSurfaceBuffers(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, CWaterShader* &waterShader, D3DXMATRIX proj, CCamera* camera, CLight* light)
+void CWater::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
 
+	// Set the vertex buffer stride and offset.
 	stride = sizeof(VertexType);
 	offset = 0;
 
-	ID3D11ShaderResourceView* normalMap = mpNormalMap->GetTexture();
-	deviceContext->PSSetShaderResources(0, 1, &normalMap);
-	deviceContext->PSSetShaderResources(1, 1, &mpRefractionResource);
-	deviceContext->PSSetShaderResources(2, 1, &mpReflectionResource);
-
+	// Set the vertex buffer to active in the input assembler.
 	deviceContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
+
+	// Set the index buffer to active in the input assembler.
 	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Tell directx we've passed it a triangle list in the form of indices.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
-void CWater::RenderRefractionBuffers(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, CWaterShader* &waterShader, D3DXMATRIX proj, CCamera* camera, CLight* light)
-{
-	unsigned int stride;
-	unsigned int offset;
-
-
-	stride = sizeof(VertexType);
-	offset = 0;
-
-	deviceContext->OMSetRenderTargets(1, &mpHeightMapTarget, depthStencilView);
-
-	D3DXCOLOR blue = { 0.0f, 0.0f, 0.7f, 0.5f };
-	deviceContext->ClearRenderTargetView(mpHeightMapTarget, blue);
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	
-	// Set the shader resources in the constant buffer.
-	D3D11_MAPPED_SUBRESOURCE mappedresource;
-	waterShader->UpdateWaterBuffer(deviceContext, mappedresource, mMovement, mStrength.x, mStrength.y, mDistortionDistance, mWaveScale);
-
-	// Set the model to be rendered.
-	deviceContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
-	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	
-	UpdateMatrices();
-	D3DXMATRIX modelWorld;
-	GetWorldMatrix(modelWorld);
-	D3DXMATRIX viewMatrix;
-	camera->GetViewMatrix(viewMatrix);
 }

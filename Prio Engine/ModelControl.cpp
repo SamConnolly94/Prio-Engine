@@ -237,7 +237,6 @@ void CModelControl::SeperateFromParent()
 
 void CModelControl::UpdateMatrices()
 {
-
 		// Rotation
 		D3DXMATRIX matrixRotationX;
 		D3DXMATRIX matrixRotationY;

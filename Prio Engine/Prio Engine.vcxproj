@@ -139,16 +139,24 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Refraction.ps.hlsl">
+    <None Include="Shaders\WaterSurface.ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Refraction.vs.hlsl">
+    <None Include="Shaders\WaterSurface.vs.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Water.ps.hlsl">
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\WaterHeight.ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Water.vs.hlsl">
+    <None Include="Shaders\WaterModel.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\WaterReflection.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\WaterRefraction.ps.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

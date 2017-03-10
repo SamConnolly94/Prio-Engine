@@ -3,15 +3,20 @@
 
 CWaterShader::CWaterShader()
 {
-	mpVertexShader = nullptr;
-	mpPixelShader = nullptr;
+	mpSurfaceVertexShader = nullptr;
+	mpSurfacePixelShader = nullptr;
+	mpRefractionPixelShader = nullptr;
+	mpReflectionPixelShader = nullptr;
+	mpWaterModelVertexShader = nullptr;
+	mpWaterHeightPixelShader = nullptr;
 	mpLayout = nullptr;
 	mpMatrixBuffer = nullptr;
-	mpTrilinearWrapSampleState = nullptr;
 	mpWaveBuffer = nullptr;
 	mpWaterBuffer = nullptr;
 	mpCameraBuffer = nullptr;
 	mpLightBuffer = nullptr;
+
+	mCurrentRenderState = RenderState::Height;
 }
 
 CWaterShader::~CWaterShader()
@@ -23,7 +28,9 @@ bool CWaterShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, "Shaders/Water.vs.hlsl", "Shaders/Water.ps.hlsl");
+	result = InitialiseShader(device, hwnd, "Shaders/WaterSurface.vs.hlsl", "Shaders/WaterSurface.ps.hlsl", 
+											"Shaders/WaterModel.vs.hlsl", "Shaders/WaterHeight.ps.hlsl",
+											 "Shaders/WaterReflection.ps.hlsl", "Shaders/WaterRefraction.ps.hlsl");
 
 	if (!result)
 	{
@@ -41,15 +48,17 @@ void CWaterShader::Shutdown()
 }
 
 bool CWaterShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale,
-	int screenWidth, int screenHeight, CCamera* camera, CLight* light)
+	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale, float WaterPlaneY,
+	int screenWidth, int screenHeight, CCamera* camera, CLight* light, ID3D11ShaderResourceView* normalMap, ID3D11ShaderResourceView* refractionMap,
+	ID3D11ShaderResourceView* reflectionMap)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix,
-		projMatrix, waterMovement, strength, distortionDistance, waveScale,
-		screenWidth, screenHeight, camera, light);
+		projMatrix, waterMovement, strength, distortionDistance, waveScale, WaterPlaneY,
+		screenWidth, screenHeight, camera, light, normalMap, refractionMap,
+		reflectionMap);
 
 	if (!result)
 	{
@@ -58,20 +67,24 @@ bool CWaterShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderBuffers(deviceContext, indexCount);
 
 	return true;
 }
 
-bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string waterSurfaceVSFilename, std::string waterSurfacePSFilename, std::string waterBodyVSName, std::string waterHeightPSName, std::string reflectionPSName, std::string refractionPSName)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
-	ID3D10Blob* vertexShaderBuffer;
-	ID3D10Blob* pixelShaderBuffer;
+	ID3D10Blob* waterSurfaceVertexShaderBuffer;
+	ID3D10Blob* waterSurfacePixelShaderBuffer;
+	ID3D10Blob* waterModelVertexShaderBuffer;
+	ID3D10Blob* waterHeightPixelShaderBuffer;
+	ID3D10Blob* waterReflectionPixelShaderBuffer;
+	ID3D10Blob* waterRefractionPixelShaderBuffer;
+
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
-	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC waveBufferDesc;
 	D3D11_BUFFER_DESC waterPosBufferDesc;
@@ -82,58 +95,187 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
-	vertexShaderBuffer = nullptr;
-	pixelShaderBuffer = nullptr;
+	waterSurfaceVertexShaderBuffer = nullptr;
+	waterSurfacePixelShaderBuffer = nullptr;
+	waterModelVertexShaderBuffer = nullptr;
+	waterHeightPixelShaderBuffer = nullptr;
+	waterReflectionPixelShaderBuffer = nullptr;
+	waterRefractionPixelShaderBuffer = nullptr;
+
+	/////////////////////////////
+	// Surface shader.
+	/////////////////////////////
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "WaterVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(waterSurfaceVSFilename.c_str(), NULL, NULL, "WaterVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterSurfaceVertexShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+			OutputShaderErrorMessage(errorMessage, hwnd, waterSurfaceVSFilename);
 		}
 		else
 		{
 			std::string errMsg = "Missing shader file. ";
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
-			MessageBox(hwnd, vsFilename.c_str(), errMsg.c_str(), MB_OK);
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + waterSurfaceVSFilename + "'");
+			MessageBox(hwnd, waterSurfaceVSFilename.c_str(), errMsg.c_str(), MB_OK);
 		}
-		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilename + "'");
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + waterSurfaceVSFilename + "'");
 		return false;
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "WaterPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(waterSurfacePSFilename.c_str(), NULL, NULL, "WaterPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterSurfacePixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+			OutputShaderErrorMessage(errorMessage, hwnd, waterSurfacePSFilename);
 		}
 		else
 		{
 			std::string errMsg = "Missing shader file.";
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilename + "'");
-			MessageBox(hwnd, psFilename.c_str(), errMsg.c_str(), MB_OK);
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + waterSurfacePSFilename + "'");
+			MessageBox(hwnd, waterSurfacePSFilename.c_str(), errMsg.c_str(), MB_OK);
 		}
-		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilename + "'");
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + waterSurfacePSFilename + "'");
 		return false;
 	}
 
 	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
+	result = device->CreateVertexShader(waterSurfaceVertexShaderBuffer->GetBufferPointer(), waterSurfaceVertexShaderBuffer->GetBufferSize(), NULL, &mpSurfaceVertexShader);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
+		logger->GetInstance().WriteLine("Failed to create the water surface vertex shader from the buffer.");
 		return false;
 	}
 
 	// Create the pixel shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
+	result = device->CreatePixelShader(waterSurfacePixelShaderBuffer->GetBufferPointer(), waterSurfacePixelShaderBuffer->GetBufferSize(), NULL, &mpSurfacePixelShader);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
+		logger->GetInstance().WriteLine("Failed to create the water surface pixel shader from the buffer.");
+		return false;
+	}
+
+	////////////////////////////
+	// Water model
+	////////////////////////////
+
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(waterBodyVSName.c_str(), NULL, NULL, "WaterModelVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterModelVertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, waterBodyVSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file. ";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + waterBodyVSName + "'");
+			MessageBox(hwnd, waterBodyVSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + waterBodyVSName + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(waterModelVertexShaderBuffer->GetBufferPointer(), waterModelVertexShaderBuffer->GetBufferSize(), NULL, &mpWaterModelVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the water model vertex shader from the buffer.");
+		return false;
+	}
+
+	///////////////////////
+	// Water height
+	//////////////////////
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(waterHeightPSName.c_str(), NULL, NULL, "WaterHeightPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterHeightPixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, waterHeightPSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + waterHeightPSName + "'");
+			MessageBox(hwnd, waterHeightPSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + waterHeightPSName + "'");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(waterHeightPixelShaderBuffer->GetBufferPointer(), waterHeightPixelShaderBuffer->GetBufferSize(), NULL, &mpWaterHeightPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the water surface pixel shader from the buffer.");
+		return false;
+	}
+
+	///////////////////////
+	// Reflection
+	//////////////////////
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(reflectionPSName.c_str(), NULL, NULL, "ReflectionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterReflectionPixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, reflectionPSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + reflectionPSName + "'");
+			MessageBox(hwnd, reflectionPSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + reflectionPSName + "'");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(waterReflectionPixelShaderBuffer->GetBufferPointer(), waterReflectionPixelShaderBuffer->GetBufferSize(), NULL, &mpReflectionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the reflection pixel shader from the buffer.");
+		return false;
+	}
+
+	//////////////////////
+	// Refraction
+	/////////////////////
+
+	// Compile the pixel shader code.
+
+	result = D3DX11CompileFromFile(refractionPSName.c_str(), NULL, NULL, "RefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &waterRefractionPixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, refractionPSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + refractionPSName + "'");
+			MessageBox(hwnd, refractionPSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + refractionPSName + "'");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(waterRefractionPixelShaderBuffer->GetBufferPointer(), waterRefractionPixelShaderBuffer->GetBufferSize(), NULL, &mpRefractionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the refraction pixel shader from the buffer.");
 		return false;
 	}
 
@@ -171,7 +313,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
+	result = device->CreateInputLayout(polygonLayout, numElements, waterSurfaceVertexShaderBuffer->GetBufferPointer(), waterSurfaceVertexShaderBuffer->GetBufferSize(), &mpLayout);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create polygon layout.");
@@ -179,35 +321,15 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	}
 
 	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = nullptr;
+	waterSurfaceVertexShaderBuffer->Release();
+	waterSurfaceVertexShaderBuffer = nullptr;
 
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = nullptr;
+	waterSurfacePixelShaderBuffer->Release();
+	waterSurfacePixelShaderBuffer = nullptr;
 
-	// Set up the sampler state descriptor.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &mpTrilinearWrapSampleState);
-
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the sampler state in WaterShader.cpp");
-		return false;
-	}
+	/////////////////////////
+	// Matrix buffer
+	///////////////////////
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -248,6 +370,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	///////////////////////
 	// Water buffer.
 	///////////////////////
+
 	waterPosBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	waterPosBufferDesc.ByteWidth = sizeof(WaterBufferType);
 	waterPosBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -283,6 +406,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	//////////////////////////////////////
 	// Light buffer
 	//////////////////////////////////////
+
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
 	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -300,6 +424,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	//////////////////////////////////
 	// Viewport buffer desc.
 	/////////////////////////////////
+
 	viewportBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	viewportBufferDesc.ByteWidth = sizeof(ViewportBufferType);
 	viewportBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -314,17 +439,14 @@ bool CWaterShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 		return false;
 	}
 
+	// Initialise the pixel and vertex shaders we'll be using.
+	SetRenderState(RenderState::Height);
+
 	return true;
 }
 
 void CWaterShader::ShutdownShader()
 {
-	if (mpTrilinearWrapSampleState)
-	{
-		mpTrilinearWrapSampleState->Release();
-		mpTrilinearWrapSampleState = nullptr;
-	}
-
 	if (mpMatrixBuffer)
 	{
 		mpMatrixBuffer->Release();
@@ -367,16 +489,47 @@ void CWaterShader::ShutdownShader()
 		mpLayout = nullptr;
 	}
 
-	if (mpPixelShader)
+	if (mpReflectionPixelShader)
 	{
-		mpPixelShader->Release();
-		mpPixelShader = nullptr;
+		mpReflectionPixelShader->Release();
+		mpReflectionPixelShader = nullptr;
 	}
 
-	if (mpVertexShader)
+	if (mpSurfacePixelShader)
 	{
-		mpVertexShader->Release();
-		mpVertexShader = nullptr;
+		mpSurfacePixelShader->Release();
+		mpSurfacePixelShader = nullptr;
+	}
+
+	if (mpSurfaceVertexShader)
+	{
+		mpSurfaceVertexShader->Release();
+		mpSurfaceVertexShader = nullptr;
+	}
+
+	if (mpWaterModelVertexShader)
+	{
+		mpWaterModelVertexShader->Release();
+		mpWaterModelVertexShader = nullptr;
+	}
+	
+	if (mpWaterHeightPixelShader)
+	{
+		mpWaterHeightPixelShader->Release();
+		mpWaterHeightPixelShader = nullptr;
+	}
+
+
+	if (mpReflectionPixelShader)
+	{
+		mpReflectionPixelShader->Release();
+		mpReflectionPixelShader = nullptr;
+	}
+
+	if (mpRefractionPixelShader)
+	{
+		mpRefractionPixelShader->Release();
+		mpRefractionPixelShader = nullptr;
 	}
 }
 
@@ -413,8 +566,9 @@ void CWaterShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd,
 }
 
 bool CWaterShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale,
-	int screenWidth, int screenHeight, CCamera* camera, CLight* light)
+	D3DXMATRIX projMatrix, D3DXVECTOR2 waterMovement, D3DXVECTOR2 strength, float distortionDistance, float waveScale, float WaterPlaneY,
+	int screenWidth, int screenHeight, CCamera* camera, CLight* light, ID3D11ShaderResourceView* normalMap, ID3D11ShaderResourceView* refractionMap,
+	ID3D11ShaderResourceView* reflectionMap)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
@@ -447,7 +601,7 @@ bool CWaterShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, int i
 	// Update the water constant buffer.
 	//////////////////////////////
 
-	if (!UpdateWaterBuffer(deviceContext, mappedResource, D3DXVECTOR2(1.0F, 1.0F), strength.x, strength.y, distortionDistance, 1.0f))
+	if (!UpdateWaterBuffer(deviceContext, mappedResource, D3DXVECTOR2(1.0F, 1.0F), strength.x, strength.y, distortionDistance, 1.0f, WaterPlaneY))
 	{
 		logger->GetInstance().WriteLine("Failed to set the water constant buffer.");
 		return false;
@@ -474,20 +628,31 @@ bool CWaterShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, int i
 		return false;
 	}
 
+	/////////////////////////
+	// Viewport buffer
+	////////////////////////
+
+	if (!UpdateViewportBuffer(deviceContext, mappedResource, screenWidth, screenHeight))
+	{
+		logger->GetInstance().WriteLine("Failed to set the viewport constant buffer.");
+		return false;
+	}
+
+	SetHeightMap(deviceContext, normalMap);
+	SetRefractionMap(deviceContext, refractionMap);
+	SetReflectionMap(deviceContext, reflectionMap);
+
 	return true;
 }
 
-void CWaterShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CWaterShader::RenderBuffers(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
-	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrapSampleState);
+	deviceContext->VSSetShader(mpCurrentVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpCurrentPixelShader, NULL, 0);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
@@ -555,7 +720,7 @@ bool CWaterShader::UpdateWaveBuffer(ID3D11DeviceContext* deviceContext, D3D11_MA
 
 bool CWaterShader::UpdateWaterBuffer(ID3D11DeviceContext* deviceContext,
 	D3D11_MAPPED_SUBRESOURCE& mappedResource, D3DXVECTOR2 WaterMovement, float refractionStrength, 
-	float reflectionStrength, float maxDistortionDistance, float WaveScale)
+	float reflectionStrength, float maxDistortionDistance, float WaveScale, float WaterPlaneY)
 {
 	// Lock the constant buffer so it can be written to.
 	HRESULT result = deviceContext->Map(mpWaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -574,7 +739,8 @@ bool CWaterShader::UpdateWaterBuffer(ID3D11DeviceContext* deviceContext,
 	waterBufferPtr->RefractionStrength = refractionStrength;
 	waterBufferPtr->ReflectionStrength = reflectionStrength;
 	waterBufferPtr->MaxDistortionDistance = maxDistortionDistance;
-	waterBufferPtr->waterBufferPadding = D3DXVECTOR2(0.0f, 0.0f);
+	waterBufferPtr->WaterPlaneY = WaterPlaneY;
+	waterBufferPtr->waterBufferPadding = 0.0f;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpWaterBuffer, 0);
@@ -666,7 +832,8 @@ bool CWaterShader::UpdateViewportBuffer(ID3D11DeviceContext * deviceContext, D3D
 	ViewportBufferType* viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
 
 	// Copy the water values into the constant buffer.
-	viewportBufferPtr->ViewportSize = D3DXVECTOR2(screenWidth, screenHeight);
+	viewportBufferPtr->ViewportSize = D3DXVECTOR2(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
+	viewportBufferPtr->viewportPadding = D3DXVECTOR2(0.0F, 0.0F);
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpViewportBuffer, 0);
@@ -687,5 +854,43 @@ void CWaterShader::SetHeightMap(ID3D11DeviceContext * deviceContext, ID3D11Shade
 
 void CWaterShader::SetRefractionMap(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * resource)
 {
-	deviceContext->PSSetShaderResources(0, 1, &resource);
+	deviceContext->PSSetShaderResources(1, 1, &resource);
+}
+
+void CWaterShader::SetReflectionMap(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * resource)
+{
+	deviceContext->PSSetShaderResources(2, 1, &resource);
+}
+
+void CWaterShader::SetRenderState(RenderState renderState)
+{
+	mCurrentRenderState = renderState;
+
+	switch (mCurrentRenderState)
+	{
+	case RenderState::Height:
+		mpCurrentVertexShader = mpSurfaceVertexShader;
+		mpCurrentPixelShader = mpWaterHeightPixelShader;
+		break;
+	case RenderState::Surface:
+		mpCurrentVertexShader = mpSurfaceVertexShader;
+		mpCurrentPixelShader = mpSurfacePixelShader;
+		break;
+	case RenderState::Refraction:
+		mpCurrentVertexShader = mpWaterModelVertexShader;
+		mpCurrentPixelShader = mpRefractionPixelShader;
+	case RenderState::Reflection:
+		mpCurrentVertexShader = mpWaterModelVertexShader;
+		mpCurrentPixelShader = mpReflectionPixelShader;
+		break;
+	default:
+		mpCurrentPixelShader = nullptr;
+		mpCurrentPixelShader = nullptr;
+		break;
+	}
+}
+
+void CWaterShader::SetReflectionTex(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* resource)
+{
+	deviceContext->PSSetShaderResources(3, 1, &resource);
 }

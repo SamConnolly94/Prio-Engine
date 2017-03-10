@@ -744,25 +744,6 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 	return true;
 }
 
-void CTerrain::UpdateMatrices(D3DXMATRIX & world)
-{
-	// Render any terrains.
-	D3DXMATRIX modelWorld;
-	// Define three matrices to hold x, y and z rotations.
-	D3DXMATRIX rotX;
-	D3DXMATRIX rotY;
-	D3DXMATRIX rotZ;
-
-	D3DXMatrixTranslation(&modelWorld, GetPosX(), GetPosY(), GetPosZ());
-
-	// Use Direct X to rotate the matrices and pass the matrix after rotation back into the rotation matrix we defined.
-	D3DXMatrixRotationX(&rotX, GetRotationX());
-	D3DXMatrixRotationY(&rotY, GetRotationY());
-	D3DXMatrixRotationZ(&rotZ, GetRotationZ());
-	world = modelWorld * rotX * rotY * rotZ;
-
-}
-
 bool CTerrain::PositionTreeHere()
 {
 	// Generate a random number from 0 - 100

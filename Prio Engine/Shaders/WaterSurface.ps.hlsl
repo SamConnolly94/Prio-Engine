@@ -1,8 +1,27 @@
-SamplerState SampleType;
+/////////////////////////////////////
+// Author: Sam Connolly
+// Date: 09/03/2017
+// Purpose: To draw the height map of the water onto a texture, this will describe how the water should currently look.
+////////////////////////////////////
 
-Texture2D normalMap : register(t0);
+//////////////////////////////
+// Textures
+/////////////////////////////
+
+Texture2D WaterHeightMap : register(t0);
 Texture2D RefractionMap : register(t1);
 Texture2D ReflectionMap : register(t2);
+
+//////////////////////
+// Sampler states.
+//////////////////////
+
+SamplerState TrilinearWrap
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
 
 SamplerState BilinearMirror
 {
@@ -12,24 +31,9 @@ SamplerState BilinearMirror
 	AddressV = Mirror;
 };
 
-
-// Water normal map/height map is sampled four times at different sizes, then overlaid to give a complex wave pattern
-static const float WaterSize1 = 0.5f;
-static const float WaterSize2 = 1.0f;
-static const float WaterSize3 = 2.0f;
-static const float WaterSize4 = 4.0f;
-
-static const float WaterSpeed1 = 0.5f;
-static const float WaterSpeed2 = 1.0f;
-static const float WaterSpeed3 = 1.7f;
-static const float WaterSpeed4 = 2.6f;
-
-static const float  RefractionDistortion = 20.0f;
-
-static const float HeightMapHeightOverWidth = 1 / 32.0f;
-static const float WaterWidth = 400.0f;
-static const float MaxWaveHeight = WaterWidth * HeightMapHeightOverWidth;
-static const float  WaterRefractiveIndex = 1.5f;  // Refractive index of clean water is 1.33. Impurities increase this value and values up to about 7.0 are sensible
+//////////////////////////
+// Constant buffers
+/////////////////////////
 
 cbuffer WaterBuffer : register(b0)
 {
@@ -38,8 +42,8 @@ cbuffer WaterBuffer : register(b0)
 	float RefractionStrength;
 	float ReflectionStrength;
 	float MaxDistortionDistance;
-	float2 waterBufferPadding;
-	
+	float WaterPlaneY;
+	float waterBufferPadding;
 };
 
 cbuffer CameraBuffer : register(b1)
@@ -67,6 +71,10 @@ cbuffer ViewportBuffer : register(b3)
 	float2 viewportPadding;
 }
 
+//////////////////////////
+// Pixel input structures
+/////////////////////////
+
 struct PixelInputType
 {
 	float4 ProjPos : SV_POSITION;
@@ -74,19 +82,45 @@ struct PixelInputType
 	float2 tex : TEXCOORD0;
 };
 
+//////////////////////
+// Globals
+///////////////////////
+
+// Water normal map/height map is sampled four times at different sizes, then overlaid to give a complex wave pattern
+static const float WaterSize1 = 0.5f;
+static const float WaterSize2 = 1.0f;
+static const float WaterSize3 = 2.0f;
+static const float WaterSize4 = 4.0f;
+
+static const float WaterSpeed1 = 0.5f;
+static const float WaterSpeed2 = 1.0f;
+static const float WaterSpeed3 = 1.7f;
+static const float WaterSpeed4 = 2.6f;
+
+static const float  RefractionDistortion = 20.0f;
+
+static const float HeightMapHeightOverWidth = 1 / 32.0f;
+static const float WaterWidth = 400.0f;
+static const float MaxWaveHeight = WaterWidth * HeightMapHeightOverWidth;
+static const float  WaterRefractiveIndex = 1.5f;  // Refractive index of clean water is 1.33. Impurities increase this value and values up to about 7.0 are sensible
+
+////////////////////////
+// Shader 
+///////////////////////
+
 float4 WaterPS(PixelInputType input) : SV_TARGET
 {
-	float3 normal1 = normalMap.Sample(SampleType, WaterSize1 * (input.tex + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
-	float3 normal2 = normalMap.Sample(SampleType, WaterSize2 * (input.tex + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
-	float3 normal3 = normalMap.Sample(SampleType, WaterSize3 * (input.tex + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
-	float3 normal4 = normalMap.Sample(SampleType, WaterSize4 * (input.tex + WaterMovement * WaterSpeed4)).rgb * 2.0f - 1.0f;
+	float3 normal1 = WaterHeightMap.Sample(TrilinearWrap, WaterSize1 * (input.tex + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
+	float3 normal2 = WaterHeightMap.Sample(TrilinearWrap, WaterSize2 * (input.tex + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
+	float3 normal3 = WaterHeightMap.Sample(TrilinearWrap, WaterSize3 * (input.tex + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
+	float3 normal4 = WaterHeightMap.Sample(TrilinearWrap, WaterSize4 * (input.tex + WaterMovement * WaterSpeed4)).rgb * 2.0f - 1.0f;
 
 	normal1.y *= WaterSize1;
 	normal2.y *= WaterSize2;
 	normal3.y *= WaterSize3;
 	normal4.y *= WaterSize4;
 
-	float3 waterNormal = float3(0, 1, 0); // Not this, read comment above
+	float3 waterNormal = float3(0, 1, 0); // Not this, refer to laurents water lab
 
 	waterNormal.y /= (WaveScale + 0.001f);
 	waterNormal = normalize(waterNormal); 
@@ -99,7 +133,7 @@ float4 WaterPS(PixelInputType input) : SV_TARGET
 	float4 reflectionHeight = ReflectionMap.Sample(BilinearMirror, screenUV).a;
 
 	float2 refractionUV = screenUV + RefractionDistortion * refractionDepth  * offsetDir / input.ProjPos.w;
-	float2 reflectionUV = screenUV; // Needs more code on this line, see comment above
+	float2 reflectionUV = screenUV; // Needs more code on this line, refer to laurents water lab
 	float4 refractColour = RefractionMap.Sample(BilinearMirror, refractionUV) * RefractionStrength;
 	float4 reflectColour = ReflectionMap.Sample(BilinearMirror, reflectionUV) * ReflectionStrength;
 	reflectColour = lerp(refractColour, reflectColour, saturate(refractionDepth * MaxDistortionDistance / (0.5f * MaxWaveHeight * WaveScale)));

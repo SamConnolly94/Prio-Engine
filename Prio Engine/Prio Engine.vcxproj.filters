@@ -22,6 +22,21 @@
     <Filter Include="Source Files\Engine\Shader Classes">
       <UniqueIdentifier>{ca8e88a9-323d-4da0-b5ff-0b26eaad7b7e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Water">
+      <UniqueIdentifier>{ede2c024-4b35-4069-9914-63282c847811}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Font">
+      <UniqueIdentifier>{28c3da6d-36d3-41c2-96cd-962f09e1f674}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Skybox">
+      <UniqueIdentifier>{31b2d19b-522a-4d70-bf45-c447acf3d436}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Textures and Lighting">
+      <UniqueIdentifier>{54bba06a-05a8-45c0-b7c1-9b8a4d114931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Terrain">
+      <UniqueIdentifier>{d94e3de6-a570-4a5d-a95d-310b4d7a9dc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="2DImage.h">
@@ -238,59 +253,65 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Colour.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Colour.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseLight.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\DiffuseLight.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\Font.ps.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Font</Filter>
     </None>
     <None Include="Shaders\Font.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\SpecularLight.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\SpecularLight.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Terrain.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Terrain.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Texture.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Texture.vs.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\Skybox.vs.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Font</Filter>
     </None>
     <None Include="Shaders\Skybox.ps.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Skybox</Filter>
     </None>
-    <None Include="Shaders\Refraction.ps.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\Skybox.vs.hlsl">
+      <Filter>Shaders\Skybox</Filter>
     </None>
-    <None Include="Shaders\Refraction.vs.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\DiffuseLight.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
     </None>
-    <None Include="Shaders\Water.ps.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\DiffuseLight.vs.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
     </None>
-    <None Include="Shaders\Water.vs.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\SpecularLight.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\SpecularLight.vs.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\Texture.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\Texture.vs.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\Colour.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\Colour.vs.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+    <None Include="Shaders\Terrain.ps.hlsl">
+      <Filter>Shaders\Terrain</Filter>
+    </None>
+    <None Include="Shaders\Terrain.vs.hlsl">
+      <Filter>Shaders\Terrain</Filter>
+    </None>
+    <None Include="Shaders\WaterSurface.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterSurface.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterHeight.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterModel.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterReflection.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\WaterRefraction.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
     </None>
   </ItemGroup>
 </Project>

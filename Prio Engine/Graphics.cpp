@@ -157,6 +157,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	
 	mpWaterBody->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(0.0F,0.0F, 0.0F), D3DXVECTOR3(200.0F, 0.0F, 200.0F), mScreenWidth, mScreenHeight, 100.0f, 100.0f, "Resources/Textures/WaterNormalHeight.png");
 
+	mpWaterBody->SetXPos(mpWaterBody->GetPosX() - 200.0f);
+	mpWaterBody->SetZPos(mpWaterBody->GetPosZ() - 200.0f);
+
 	mWaterHeight = 10.0f;
 	mWaterTranslation = 0.0f;
 
@@ -446,7 +449,8 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 	for (auto terrain : mpTerrainGrids)
 	{
 		// Update the world matrix and perform operations on the world matrix of this object.
-		terrain->UpdateMatrices(world);
+		terrain->UpdateMatrices();
+		terrain->GetWorldMatrix(world);
 
 		terrain->Render(mpD3D->GetDeviceContext());
 
@@ -704,57 +708,108 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	// Reset the world matrix.
 	mpD3D->GetWorldMatrix(world);
 
-	// Acquire the camera world matrix.
-	D3DXMATRIX cameraWorld;
-	mpCamera->GetWorldMatrix(cameraWorld);
+	// Send viewport size to shaders
+	D3DXVECTOR2 ViewportSize = { (float)mScreenWidth, (float)mScreenHeight};
+
+	// Setup the viewport - defines which part of the back-buffer we will render to (usually all of it)
+	D3D11_VIEWPORT vp;
+	vp.Width = static_cast<FLOAT>(mScreenWidth);
+	vp.Height = static_cast<FLOAT>(mScreenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	mpD3D->GetDeviceContext()->RSSetViewports(1, &vp);
+
+	float Zero[4] = { 0, 0, 0, 0 };
 
 	////////////////////
-	// Water surface.
+	// Water height.
 	///////////////////
 
-	// Acquire the target we want to render to.
-	ID3D11RenderTargetView* waterHeightRenderTarget = mpWaterBody->GetWaterHeightRenderTarget();
-
-	// Tell Direct X we want to render to this target.
-	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &waterHeightRenderTarget, mpD3D->GetDepthStencilView());
-
-	// Define a default colour to clear the acquired render target to.
-	float Zero[4] = { 0,0,0,0 };
+	ID3D11RenderTargetView* heightMapTarget = mpWaterBody->GetWaterHeightRenderTarget();
+	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &heightMapTarget, mpD3D->GetDepthStencilView());
 	// Clear the render target.
-	mpD3D->GetDeviceContext()->ClearRenderTargetView(waterHeightRenderTarget, Zero);
+	mpD3D->GetDeviceContext()->ClearRenderTargetView(heightMapTarget, Zero);
 	// Clear the depth buffer.
 	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	mpWaterBody->RenderWaterSurfaceBuffers(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterShader, proj, mpCamera, mpWaterLight);
-	
+	mpWaterBody->UpdateMatrices();
+	mpWaterBody->GetWorldMatrix(world);
+
+	mpWaterBody->Render(mpD3D->GetDeviceContext());
+	mpWaterShader->SetRenderState(CWaterShader::RenderState::Height);
+
 	// Render the model.
 	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(), 
 		world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(), 
-		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 
-		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight );
-
-	// Set the tex as the render target
-	//mpWaterBody->RenderRefractionBuffers(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterShader, proj, mpCamera, mpWaterLight);
+		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
+		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
 
 	/////////////////////
 	// Water refraction.
 	////////////////////
 	ID3D11RenderTargetView* refractionTarget = mpWaterBody->GetRefractionRenderTarget();
 	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &refractionTarget, mpD3D->GetDepthStencilView());
+	// Clear the render target.
+	mpD3D->GetDeviceContext()->ClearRenderTargetView(refractionTarget, Zero);
+	// Clear the depth buffer.
+	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	// Render skybox and terrain with refraction techniques.
-	CCamera* reflectionCamera = new CCamera(;
-	D3DXMATRIX invertedMatrix;
-	mpCamera->GetWorldMatrix(invertedMatrix);
+	mpWaterShader->SetRenderState(CWaterShader::RenderState::Refraction);
 	
-	invertedMatrix._12 = -invertedMatrix._12;
-	invertedMatrix._22 = -invertedMatrix._22;
-	invertedMatrix._23 = -invertedMatrix._23;
-	reflectionCamera->SetWorldMatrix(invertedMatrix);
+	for (auto terrain : mpTerrainGrids)
+	{
+		mpWaterShader->SetReflectionTex(mpD3D->GetDeviceContext(), terrain->GetGrassTex());
 
-	reflectionCamera->SetPosizionY(mpWaterBody->GetPos().y * 2.0f - reflectionCamera->GetPosition().y);
+		terrain->UpdateMatrices();
+		terrain->GetWorldMatrix(world);
+
+		terrain->Render(mpD3D->GetDeviceContext());
+
+		mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
+			world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
+			mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
+			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+	}
+
+	//////////////////////
+	// Water reflection
+	/////////////////////
+	ID3D11RenderTargetView* reflectionTarget = mpWaterBody->GetReflectionRenderTarget();
+	mpD3D->GetDeviceContext()->OMSetRenderTargets(1, &reflectionTarget, mpD3D->GetDepthStencilView());
+	// Clear the render target.
+	mpD3D->GetDeviceContext()->ClearRenderTargetView(reflectionTarget, Zero);
+	// Clear the depth buffer.
+	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	mpWaterShader->SetRenderState(CWaterShader::RenderState::Reflection);
+	for (auto terrain : mpTerrainGrids)
+	{
+		terrain->GetWorldMatrix(world);
+		terrain->Render(mpD3D->GetDeviceContext());
+
+		mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
+			world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
+			mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
+			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+	}
+
+	/////////////////////
+	// Water surface
+	////////////////////
+	mpWaterShader->SetRenderState(CWaterShader::RenderState::Surface);
 
 	mpD3D->SetBackBufferRenderTarget();
+
+	mpWaterBody->UpdateMatrices();
+	mpWaterBody->GetWorldMatrix(world);
+
+	mpWaterBody->Render(mpD3D->GetDeviceContext());
+	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
+		world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
+		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
+		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
 
 	return true;
 }

@@ -95,6 +95,7 @@ private:
 	bool CreateTerrainShader(HWND hwnd);
 	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
+	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 
 	float mRotation;
 
@@ -135,7 +136,6 @@ private:
 	float mWaterHeight;
 	float mWaterTranslation;
 	CWater* mpWaterBody;
-	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	CLight* mpWaterLight;
 };
 

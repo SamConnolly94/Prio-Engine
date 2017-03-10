@@ -23,8 +23,7 @@ public:
 	~CWater();
 	bool Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, int screenWidth, int screenHeight, unsigned int subDivisionX, unsigned int subDivisionZ, std::string normalMap, bool useNormals = true, bool useUV = true);
 	void Shutdown();
-	void RenderWaterSurfaceBuffers(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, CWaterShader* &waterShader, D3DXMATRIX proj, CCamera* camera, CLight* light);
-	void RenderRefractionBuffers(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView, CWaterShader* &waterShader, D3DXMATRIX proj, CCamera* camera, CLight* light);
+	void Render(ID3D11DeviceContext* deviceContext);
 
 private:
 	unsigned int mNumVertices;
@@ -45,11 +44,14 @@ private:
 	ID3D11ShaderResourceView* mpHeightMapResource;
 	ID3D11Texture2D* mpHeightMap;
 	ID3D11RenderTargetView* mpHeightMapTarget;
+
+	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 public:
-	unsigned int GetNumberOfIndices() { return mNumIndices; };
-	CTexture* GetNormalMap() { return mpNormalMap; };
+	unsigned int GetNumberOfIndices();
+	CTexture* GetNormalMap();
 	ID3D11RenderTargetView* &GetWaterHeightRenderTarget() { return mpHeightMapTarget; };
 	ID3D11RenderTargetView* &GetRefractionRenderTarget() { return mpRefractionTarget; };
+	ID3D11RenderTargetView* &GetReflectionRenderTarget() { return mpReflectionTarget; };
 private:
 	void Update(float updateTime);
 	bool InitialiseBuffers(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool useNormals, bool useUv);
@@ -72,6 +74,10 @@ public:
 	float GetWaveScale() { return mWaveScale; };
 	int GetWidth() { return mWidth; };
 	int GetHeight() { return mHeight; };
+
+	ID3D11ShaderResourceView* GetHeightMap();
+	ID3D11ShaderResourceView* GetRefractionMap();
+	ID3D11ShaderResourceView* GetReflectionMap();
 };
 
 #endif
