@@ -2,12 +2,20 @@
 
 CWater::CWater()
 {
-	waterPos = { 0.0f, 0.0f };
 	mpNormalHeightMap = nullptr;
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
-	mpReflectionMap = nullptr;
-	mpRefractionMap = nullptr;
+
+	mSize = { 0.5f, 1.0f, 2.0f, 4.0f };
+	mSpeed = { 0.5, 1.0f, 1.7f, 2.6f };
+	mTranslation = { 0.0f, 0.0f };
+	mWaveHeight = 400.0f * (1.0f / 32.0f);
+	mWaveScale = 0.6f;
+	mRefractionDistortion = 16.0f;
+	mReflectionDistortion = 20.0f;
+	mMaxDistortionDistance = 40.0f;
+	mRefractionStrength = 0.9f;
+	mReflectionStrength = 0.95f;
 }
 
 
@@ -15,12 +23,12 @@ CWater::~CWater()
 {
 }
 
-bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, int screenWidth, int screenHeight, unsigned int subDivisionX, unsigned int subDivisionZ, std::string normalMap, bool useNormals, bool useUV)
+bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, std::string normalMap, int screenWidth, int screenHeight)
 {
 	// Release the existing data.
 	Shutdown();
 
-	if (!InitialiseBuffers(device, minPoint, maxPoint, subDivisionX, subDivisionZ, useNormals, useUV))
+	if (!InitialiseBuffers(device, minPoint, maxPoint, subDivisionX, subDivisionZ))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the buffers of the body of water.");
 		return false;
@@ -33,28 +41,67 @@ bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 
 		return false;
 	}
 
-	if (!CreateTextureResources(device, screenWidth, screenHeight))
+	///////////////////////////
+	// Refraction render target
+	//////////////////////////
+
+	mpRefractionRenderTexture = new CRenderTexture();
+	if (!mpRefractionRenderTexture->Initialise(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM))
 	{
-		logger->GetInstance().WriteLine("Failed to create the texture resources for body of water in water.cpp.");
+		logger->GetInstance().WriteLine("Failed to initialise the refraction render texture.");
 		return false;
 	}
 
-	mMovement = D3DXVECTOR2( 0.0f, 0.0f );
-	D3DXVECTOR3 pos = (minPoint + maxPoint) / 2.0f;
-	SetPos(pos.x, pos.y, pos.z);
-	mWaveScale = 1.0f;
-	mDistortionDistance = 30.0f;
-	mDistortion = D3DXVECTOR2(16.0f, 20.0f);
-	mStrength = D3DXVECTOR2(0.95f, 0.9f);
-	mWidth = screenWidth;
-	mHeight = screenHeight;
+	///////////////////////////
+	// Reflection render target
+	///////////////////////////
+
+	mpReflectionRenderTexture = new CRenderTexture();
+	if (!mpReflectionRenderTexture->Initialise(device, screenWidth, screenHeight, DXGI_FORMAT_R8G8B8A8_UNORM))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the reflection render texture.");
+		return false;
+	}
+
+	///////////////////////////
+	// Height map render target
+	///////////////////////////
+
+	mpHeightRenderTexture = new CRenderTexture();
+	if (!mpHeightRenderTexture->Initialise(device, screenWidth, screenHeight, DXGI_FORMAT_R32_FLOAT))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the height render texture.");
+		return false;
+	}
 
 	logger->GetInstance().WriteLine("Successfully loaded the texture for the water model.");
+
 	return true;
 }
 
 void CWater::Shutdown()
 {
+	if (mpHeightRenderTexture)
+	{
+		mpHeightRenderTexture->Shutdown();
+		delete mpHeightRenderTexture;
+		mpHeightRenderTexture = nullptr;
+	}
+
+	if (mpRefractionRenderTexture)
+	{
+		mpRefractionRenderTexture->Shutdown();
+		delete mpRefractionRenderTexture;
+		mpRefractionRenderTexture = nullptr;
+	}
+
+	if (mpReflectionRenderTexture)
+	{
+		mpReflectionRenderTexture->Shutdown();
+		delete mpReflectionRenderTexture;
+		mpReflectionRenderTexture = nullptr;
+	}
+
 	if (mpNormalHeightMap)
 	{
 		mpNormalHeightMap->Shutdown();
@@ -80,295 +127,109 @@ void CWater::Render(ID3D11DeviceContext * deviceContext)
 	RenderBuffers(deviceContext);
 }
 
-bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool useNormals, bool useUV)
+void CWater::Update()
 {
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	D3D11_BUFFER_DESC indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData;
-	D3D11_SUBRESOURCE_DATA indexData;
-	HRESULT result;
-	VertexType* vertices;
-	unsigned int* indices;
+	mTranslation.x += 0.00001f;
 
-	mNumVertices = (subDivisionX) * (subDivisionZ);
+	if (mTranslation.x > 1.0f)
+	{
+		mTranslation.x -= 1.0f;
+	}
 
-	D3DXVECTOR3 point = minPoint;
+	//mTranslation.y += 0.00001f;
+
+	//if (mTranslation.y > 1.0f)
+	//{
+	//	mTranslation.y -= 1.0f;
+	//}
+}
+
+bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool uvs /* = true */, bool normals/* = true*/)
+{
+	unsigned int vertexSize = sizeof(VertexType);
+	mNumVertices = (subDivisionX + 1) * (subDivisionZ + 1);
 	float xStep = (maxPoint.x - minPoint.x) / subDivisionX;
 	float zStep = (maxPoint.z - minPoint.z) / subDivisionZ;
-
-	D3DXVECTOR2 uv = { 0.0f, 1.0f };
 	float uStep = 1.0f / subDivisionX;
 	float vStep = 1.0f / subDivisionZ;
+	D3DXVECTOR3 pt = minPoint;
+	D3DXVECTOR3 normal = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
+	D3DXVECTOR2 uv = D3DXVECTOR2(0.0f, 1.0f);
 
-	vertices = new VertexType[mNumVertices];
-	int vertex = 0;
+	auto vertices = std::make_unique<char[]>(mNumVertices * vertexSize);
 
-	for (int z = 0; z < subDivisionZ; z++)
+	auto vert = vertices.get();
+	for (int z = 0; z <= subDivisionZ; ++z)
 	{
-		for (int x = 0; x < subDivisionX; x++)
+		for (int x = 0; x <= subDivisionX; ++x)
 		{
-			vertices[vertex].position = point;
-			
-			if (useNormals)
-			{
-				vertices[vertex].normal = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
-			}
+			*reinterpret_cast<D3DXVECTOR3*>(vert) = pt;
+			vert += sizeof(D3DXVECTOR3);
 
-			if (useUV)
-			{
-				vertices[vertex].texCoord = uv;
-			}
+			*reinterpret_cast<D3DXVECTOR3*>(vert) = normal;
+			vert += sizeof(D3DXVECTOR3);
 
-			point.x += xStep;
+			*reinterpret_cast<D3DXVECTOR2*>(vert) = uv;
+			vert += sizeof(D3DXVECTOR2);
+
+			pt.x += xStep;
 			uv.x += uStep;
-
-			vertex++;
 		}
-
-		// reset the point on x back to what it was.
-		point.x = minPoint.x;
-		point.z += zStep;
-		uv.x = 0.0f;
-		uv.y -= vStep;
+		pt.x = minPoint.x;
+		pt.z += zStep;
+		uv.x = 0;
+		uv.y -= vStep; // V axis is opposite direction to Z
 	}
+
 
 	mNumIndices = subDivisionX * subDivisionZ * 6;
-	indices = new unsigned int[mNumIndices];
+	int mIndexSize = 4;
+	auto indices = std::make_unique<char[]>(mNumIndices * mIndexSize);
 
-	int index = 0;
-	vertex = 0;
+	uint32_t tlIndex = 0;
+	auto index = reinterpret_cast<uint32_t*>(indices.get());
 
-	for (int z = 0; z < subDivisionZ; z++)
+	for (int z = 0; z < subDivisionZ; ++z)
 	{
-		for (int x = 0; x < subDivisionX; x++)
+		for (int x = 0; x < subDivisionX; ++x)
 		{
-			/// Calculate indices.
+			*index++ = tlIndex;
+			*index++ = tlIndex + subDivisionX + 1;
+			*index++ = tlIndex + 1;
 
-			/// Triangle 1.
-
-			// Starting point.
-			indices[index] = vertex;
-			// Directly above.
-			indices[index + 1] = vertex + subDivisionX;
-			// Directly to the right.
-			indices[index + 2] = vertex + 1;
-
-			/// Triangle 2.
-
-			// Directly to the right.
-			indices[index + 3] = vertex + 1;
-			// Directly above.
-			indices[index + 4] = vertex + subDivisionX;
-			// Above and to the right.
-			indices[index + 5] = vertex + subDivisionX + 1;
-
-			// We've added 6 indices so increment the count by 6.
-			index += 6;
-
-			// Increase the vertex which is our primary point.
-			vertex++;
+			*index++ = tlIndex + 1;
+			*index++ = tlIndex + subDivisionX + 1;
+			*index++ = tlIndex + subDivisionX + 2;
+			++tlIndex;
 		}
+		++tlIndex;
 	}
 
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mNumVertices;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
-	if (FAILED(result))
+	D3D11_BUFFER_DESC bufferDesc;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = mNumVertices * sizeof(VertexType);
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA initData;
+	initData.pSysMem = vertices.get();
+	if (FAILED(device->CreateBuffer(&bufferDesc, &initData, &mpVertexBuffer)))
 	{
-		logger->GetInstance().WriteLine("Failed to create the body of water from vertex description provided.");
 		return false;
 	}
-
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned int) * mNumIndices;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
-
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &mpIndexBuffer);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the body of water from the indices descriptor provided.");
-		return false;
-	}
-
-	delete[] vertices;
-	vertices = nullptr;
-	delete[] indices;
-	indices = nullptr;
-
-	return true;
-}
-
-bool CWater::CreateTextureResources(ID3D11Device* device, int screenWidth, int screenHeight)
-{
-	// A description for creating a texture to be used with the water. We can use this descriptor for both the refraction and reflection textures, as they're both the same size.
-	D3D11_TEXTURE2D_DESC texDesc;
 	
-	texDesc.Width = screenWidth;
-	texDesc.Height = screenHeight;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	texDesc.CPUAccessFlags = 0;
-	texDesc.MiscFlags = 0;
-
-	//////////////////////
-	// Reflection resources.
-	/////////////////////
-
-	// Create the instance of the texture from the description.
-	HRESULT result = device->CreateTexture2D(&texDesc, nullptr, &mpReflectionMap);
-
-	// If we failed to create the instance of that texture.
-	if (FAILED(result))
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = mNumIndices * mIndexSize;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+	initData.pSysMem = indices.get();
+	if (FAILED(device->CreateBuffer(&bufferDesc, &initData, &mpIndexBuffer)))
 	{
-		// Output error message to the log.
-		logger->GetInstance().WriteLine("Failed to create the reflection map texture from description provided.");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create an instance of the render target view for the reflection texture.
-	result = device->CreateRenderTargetView(mpReflectionMap, nullptr, &mpReflectionTarget);
-
-	// If we failed to create the render target view for reflection.
-	if (FAILED(result))
-	{
-		// Output an error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the reflection render target view from the reflection texture provided. Did it successfully initialise?");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create the shader resource for reflection map.
-	result = device->CreateShaderResourceView(mpReflectionMap, nullptr, &mpReflectionResource);
-
-	// If we failed to create the shader resource view.
-	if (FAILED(result))
-	{
-		// Output error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the shader resource view from the reflection map provided. Was the reflection map successfully initialised?");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	//////////////////////
-	// Refraction resources.
-	/////////////////////
-
-	// Create the instance of the texture from the description.
-	result = device->CreateTexture2D(&texDesc, nullptr, &mpRefractionMap);
-
-	// If we failed to create the instance of that texture.
-	if (FAILED(result))
-	{
-		// Output error message to the log.
-		logger->GetInstance().WriteLine("Failed to create the refraction map texture from description provided.");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create an instance of the render target view for the refraction texture.
-	result = device->CreateRenderTargetView(mpRefractionMap, nullptr, &mpRefractionTarget);
-
-	// If we failed to create the render target view for refraction.
-	if (FAILED(result))
-	{
-		// Output an error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the refraction render target view from the refraction texture provided. Did it successfully initialise?");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create the shader resource for refraction map.
-	result = device->CreateShaderResourceView(mpRefractionMap, nullptr, &mpRefractionResource);
-
-	// If we failed to create the shader resource view.
-	if (FAILED(result))
-	{
-		// Output error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the shader resource view from the refraction map provided. Was the refraction map successfully initialised?");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	//////////////////////
-	// Height map resources.
-	/////////////////////
-
-	texDesc.Format = DXGI_FORMAT_R32_FLOAT;
-
-	// Create the instance of the texture from the description.
-	result = device->CreateTexture2D(&texDesc, nullptr, &mpHeightMap);
-
-	// If we failed to create the instance of that texture.
-	if (FAILED(result))
-	{
-		// Output error message to the log.
-		logger->GetInstance().WriteLine("Failed to create the height map texture from description provided.");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create an instance of the render target view for the height map texture.
-	result = device->CreateRenderTargetView(mpHeightMap, nullptr, &mpHeightMapTarget);
-
-	// If we failed to create the render target view for height map.
-	if (FAILED(result))
-	{
-		// Output an error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the refraction render target view from the height map texture provided. Did it successfully initialise?");
-		// Don't continue any further, init should fail.
-		return false;
-	}
-
-	// Create the shader resource for height map.
-	result = device->CreateShaderResourceView(mpHeightMap, nullptr, &mpHeightMapResource);
-
-	// If we failed to create the shader resource view.
-	if (FAILED(result))
-	{
-		// Output error message to the logs.
-		logger->GetInstance().WriteLine("Failed to create the shader resource view from the height map provided. Was the height map successfully initialised?");
-		// Don't continue any further, init should fail.
 		return false;
 	}
 
 	return true;
-}
-
-ID3D11ShaderResourceView * CWater::GetHeightMap()
-{
-	return mpHeightMapResource;
-}
-
-ID3D11ShaderResourceView * CWater::GetRefractionMap()
-{
-	return mpRefractionResource;
-}
-
-ID3D11ShaderResourceView * CWater::GetReflectionMap()
-{
-	return mpReflectionResource;
 }
 
 unsigned int CWater::GetNumberOfIndices()
@@ -381,42 +242,34 @@ CTexture * CWater::GetNormalHeightMap()
 	return mpNormalHeightMap;
 }
 
-void CWater::SetWaterHeightRenderTarget(ID3D11DeviceContext* deviceContext, ID3D11DepthStencilView* depthStencilView)
+CRenderTexture * CWater::GetRefractionTexture()
 {
-	deviceContext->OMSetRenderTargets(1, &mpHeightMapTarget, depthStencilView);
+	return mpRefractionRenderTexture;
+}
 
-	float Zero[4] = { 0, 0, 0, 0 };
-	// Clear the render target.
-	deviceContext->ClearRenderTargetView(mpHeightMapTarget, Zero);
-	// Clear the depth buffer.
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+CRenderTexture * CWater::GetReflectionTexture()
+{
+	return mpReflectionRenderTexture;
+}
+
+CRenderTexture * CWater::GetHeightTexture()
+{
+	return mpHeightRenderTexture;
 }
 
 void CWater::SetRefractionRenderTarget(ID3D11DeviceContext * deviceContext, ID3D11DepthStencilView * depthStencilView)
 {
-	deviceContext->OMSetRenderTargets(1, &mpRefractionTarget, depthStencilView);
-
-	float Zero[4] = { 0, 0, 0, 0 };
-	// Clear the render target.
-	deviceContext->ClearRenderTargetView(mpRefractionTarget, Zero);
-	// Clear the depth buffer.
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	mpRefractionRenderTexture->SetRenderTarget(deviceContext, depthStencilView);
 }
 
 void CWater::SetReflectionRenderTarget(ID3D11DeviceContext * deviceContext, ID3D11DepthStencilView * depthStencilView)
 {
-	deviceContext->OMSetRenderTargets(1, &mpReflectionTarget, depthStencilView);
-
-	float Zero[4] = { 0, 0, 0, 0 };
-	// Clear the render target.
-	deviceContext->ClearRenderTargetView(mpReflectionTarget, Zero);
-	// Clear the depth buffer.
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	mpReflectionRenderTexture->SetRenderTarget(deviceContext, depthStencilView);
 }
 
-void CWater::Update(float updateTime)
+void CWater::SetHeightMapRenderTarget(ID3D11DeviceContext * deviceContext, ID3D11DepthStencilView * depthStencilView)
 {
-	waterPos += updateTime * D3DXVECTOR2{ 0.01f, 0.015f };
+	mpHeightRenderTexture->SetRenderTarget(deviceContext, depthStencilView);
 }
 
 void CWater::RenderBuffers(ID3D11DeviceContext* deviceContext)
@@ -436,4 +289,54 @@ void CWater::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	// Tell directx we've passed it a triangle list in the form of indices.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+D3DXVECTOR4 CWater::GetSize()
+{
+	return mSize;
+}
+
+D3DXVECTOR4 CWater::GetSpeed()
+{
+	return mSpeed;
+}
+
+D3DXVECTOR2 CWater::GetTranslation()
+{
+	return mTranslation;
+}
+
+float CWater::GetWaveHeight()
+{
+	return mWaveHeight;
+}
+
+float CWater::GetWaveScale()
+{
+	return mWaveScale;
+}
+
+float CWater::GetRefractionDistortion()
+{
+	return mRefractionDistortion;
+}
+
+float CWater::GetReflectionDistortion()
+{
+	return mReflectionDistortion;
+}
+
+float CWater::GetMaxDistortionDistance()
+{
+	return mMaxDistortionDistance;
+}
+
+float CWater::GetRefractionStrength()
+{
+	return mRefractionStrength;
+}
+
+float CWater::GetReflectionStrength()
+{
+	return mReflectionStrength;
 }

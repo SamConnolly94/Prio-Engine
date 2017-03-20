@@ -33,7 +33,7 @@ void CColourShader::Shutdown()
 	ShutdownShader();
 }
 
-bool CColourShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CColourShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	bool result;
 
@@ -233,7 +233,7 @@ void CColourShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwn
 	MessageBox(hwnd, "Error compiling shader. Check logs for a detailed error message.", shaderFilename.c_str(), MB_OK);
 }
 
-bool CColourShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
+bool CColourShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

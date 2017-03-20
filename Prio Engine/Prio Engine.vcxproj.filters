@@ -135,14 +135,14 @@
     <ClInclude Include="WaterShader.h">
       <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
-    <ClInclude Include="RefractionShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
-    </ClInclude>
     <ClInclude Include="Water.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="RenderTexture.h">
       <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="RefractReflectShader.h">
+      <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -242,14 +242,14 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Source Files\Engine\Shader Classes</Filter>
     </ClCompile>
-    <ClCompile Include="RefractionShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
-    </ClCompile>
     <ClCompile Include="Water.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="RenderTexture.cpp">
       <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="RefractReflectShader.cpp">
+      <Filter>Source Files\Engine\Shader Classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -295,22 +295,22 @@
     <None Include="Shaders\Terrain.vs.hlsl">
       <Filter>Shaders\Terrain</Filter>
     </None>
-    <None Include="Shaders\WaterSurface.ps.hlsl">
+    <None Include="Shaders\RefractedModel.vs.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-    <None Include="Shaders\WaterSurface.vs.hlsl">
+    <None Include="Shaders\TerrainReflection.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\TerrainRefraction.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
     <None Include="Shaders\WaterHeight.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-    <None Include="Shaders\WaterModel.vs.hlsl">
+    <None Include="Shaders\WaterSurface.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-    <None Include="Shaders\WaterReflection.ps.hlsl">
-      <Filter>Shaders\Water</Filter>
-    </None>
-    <None Include="Shaders\WaterRefraction.ps.hlsl">
+    <None Include="Shaders\WaterSurface.vs.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
   </ItemGroup>

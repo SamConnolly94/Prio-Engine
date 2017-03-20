@@ -301,6 +301,8 @@ bool CTextureShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, D3
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	// Set the shader texture resource in the pixel shader.
+	ID3D11ShaderResourceView* nullShader = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullShader);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	return true;

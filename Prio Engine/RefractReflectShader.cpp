@@ -1,9 +1,17 @@
-#include "RefractionShader.h"
+#include "RefractReflectShader.h"
 
 
 
 CRefractionShader::CRefractionShader()
 {
+	mpVertexShader = nullptr;
+	mpRefractionPixelShader = nullptr;
+	mpLayout = nullptr;
+	mpTrilinearWrap = nullptr;
+	mpMatrixBuffer = nullptr;
+	mpLightBuffer = nullptr;
+	mpViewportBuffer = nullptr;
+	mpReflectionPixelShader = nullptr;
 }
 
 
@@ -16,11 +24,11 @@ bool CRefractionShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, "Shaders/Refraction.vs.hlsl", "Shaders/Refraction.ps.hlsl");
+	result = InitialiseShader(device, hwnd, "Shaders/RefractedModel.vs.hlsl", "Shaders/TerrainRefraction.ps.hlsl", "Shaders/TerrainReflection.ps.hlsl");
 
 	if (!result)
 	{
-		logger->WriteLine("Failed to initialise refraction shader.");
+		logger->GetInstance().WriteLine("Failed to initialise refraction shader.");
 		return false;
 	}
 
@@ -33,14 +41,14 @@ void CRefractionShader::Shutdown()
 	ShutdownShader();
 }
 
-bool CRefractionShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* refractionTex, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour,
-	D3DXVECTOR4 clipPlane)
+bool CRefractionShader::RefractionRender(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+	D3DXMATRIX projMatrix, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour,
+	D3DXVECTOR2 viewportSize, ID3D11ShaderResourceView* waterHeightMap, ID3D11ShaderResourceView* refractionTex)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix, projMatrix, refractionTex, lightDirection, ambientColour, diffuseColour, clipPlane);
+	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix, projMatrix, lightDirection, ambientColour, diffuseColour, viewportSize, waterHeightMap, refractionTex);
 
 	if (!result)
 	{
@@ -48,12 +56,30 @@ bool CRefractionShader::Render(ID3D11DeviceContext* deviceContext, int indexCoun
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderRefractionShader(deviceContext, indexCount);
 
 	return true;
 }
 
-bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+bool CRefractionShader::ReflectionRender(ID3D11DeviceContext * deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR2 viewportSize, ID3D11ShaderResourceView * waterHeightMap, ID3D11ShaderResourceView * refractionTex)
+{
+	bool result;
+
+	// Set the shader parameters that it will use for rendering.
+	result = SetShaderParameters(deviceContext, indexCount, worldMatrix, viewMatrix, projMatrix, lightDirection, ambientColour, diffuseColour, viewportSize, waterHeightMap, refractionTex);
+
+	if (!result)
+	{
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderReflectionShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -63,8 +89,9 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC viewportBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
-	D3D11_BUFFER_DESC clipPlaneBufferDesc;
+
 
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
@@ -90,7 +117,7 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	}
 
 	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "RefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "TerrainRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
@@ -116,10 +143,35 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	}
 
 	// Create the pixel shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpRefractionPixelShader);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
+		return false;
+	}
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(reflectionPSFilename.c_str(), NULL, NULL, "TerrainReflectionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, reflectionPSFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + reflectionPSFilename + "'");
+			MessageBox(hwnd, reflectionPSFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + reflectionPSFilename + "'");
+		return false;
+	}
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpReflectionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the reflection pixel shader from the buffer.");
 		return false;
 	}
 
@@ -187,11 +239,26 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	// Create the texture sampler state.
-	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
+	result = device->CreateSamplerState(&samplerDesc, &mpTrilinearWrap);
 
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the sampler state in WaterShader.cpp");
+		logger->GetInstance().WriteLine("Failed to create the sampler state in RefractionShader.cpp");
+		return false;
+	}
+
+	// Create a texture sampler state description.
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &mpBilinearMirror);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the bilinear mirror sampler state in RefractionShader.cpp");
 		return false;
 	}
 
@@ -209,6 +276,25 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the water shader class.");
+		return false;
+	}
+
+	//////////////////////////////////
+	// Set up viewport buffer
+	/////////////////////////////////
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	viewportBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	viewportBufferDesc.ByteWidth = sizeof(ViewportBufferType);
+	viewportBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	viewportBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	viewportBufferDesc.MiscFlags = 0;
+	viewportBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&viewportBufferDesc, NULL, &mpViewportBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the viewport buffer to from within the refraction shader class.");
 		return false;
 	}
 
@@ -231,33 +317,15 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 		return false;
 	}
 
-	//////////////////////////////////
-	// Set up clip plane buffer
-	/////////////////////////////////
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	clipPlaneBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	clipPlaneBufferDesc.ByteWidth = sizeof(ClipPlaneBufferType);
-	clipPlaneBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	clipPlaneBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	clipPlaneBufferDesc.MiscFlags = 0;
-	clipPlaneBufferDesc.StructureByteStride = 0;
-
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&clipPlaneBufferDesc, NULL, &mpClipPlaneBuffer);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the clip plane buffer to from within the refraction shader class.");
-		return false;
-	}
 	return true;
 }
 
 void CRefractionShader::ShutdownShader()
 {
-	if (mpSampleState)
+	if (mpTrilinearWrap)
 	{
-		mpSampleState->Release();
-		mpSampleState = nullptr;
+		mpTrilinearWrap->Release();
+		mpTrilinearWrap = nullptr;
 	}
 
 	if (mpMatrixBuffer)
@@ -272,10 +340,10 @@ void CRefractionShader::ShutdownShader()
 		mpLightBuffer = nullptr;
 	}
 
-	if (mpClipPlaneBuffer)
+	if (mpViewportBuffer)
 	{
-		mpClipPlaneBuffer->Release();
-		mpClipPlaneBuffer = nullptr;
+		mpViewportBuffer->Release();
+		mpViewportBuffer = nullptr;
 	}
 
 	if (mpLayout)
@@ -284,10 +352,10 @@ void CRefractionShader::ShutdownShader()
 		mpLayout = nullptr;
 	}
 
-	if (mpPixelShader)
+	if (mpRefractionPixelShader)
 	{
-		mpPixelShader->Release();
-		mpPixelShader = nullptr;
+		mpRefractionPixelShader->Release();
+		mpRefractionPixelShader = nullptr;
 	}
 
 	if (mpVertexShader)
@@ -330,15 +398,15 @@ void CRefractionShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND 
 }
 
 bool CRefractionShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-	D3DXMATRIX projMatrix, ID3D11ShaderResourceView* refractionTex, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour,
-	D3DXVECTOR4 clipPlane)
+	D3DXMATRIX projMatrix, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour,
+	D3DXVECTOR2 viewportSize, ID3D11ShaderResourceView* waterHeightMap, ID3D11ShaderResourceView* refractionTex)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 	MatrixBufferType* matrixBufferPtr;
 	LightBufferType* lightBufferPtr;
-	ClipPlaneBufferType* clipPlaneBufferPtr;
+	ViewportBufferType* viewportBufferPtr;
 
 	// Transpose the matrices to prepare them for the shader.
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
@@ -374,6 +442,33 @@ bool CRefractionShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, 
 	// Now set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
+	//////////////////////////////
+	// Update the viewport constant buffer.
+	//////////////////////////////
+
+	result = deviceContext->Map(mpViewportBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the clip plane constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
+
+	// Copy the current water buffer values into the constant buffer.
+	viewportBufferPtr->ViewportSize = viewportSize;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpViewportBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpViewportBuffer);
+
 	/////////////////////////////////
 	// Update the light constant buffer.
 	/////////////////////////////////
@@ -389,61 +484,60 @@ bool CRefractionShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, 
 	lightBufferPtr = (LightBufferType*)mappedResource.pData;
 
 	// Copy the current light values into the constant buffer.
-	lightBufferPtr->ambientColour = ambientColour;
-	lightBufferPtr->diffuseColour = diffuseColour;
-	lightBufferPtr->lightDirection = lightDirection;
+	lightBufferPtr->AmbientColour = ambientColour;
+	lightBufferPtr->DiffuseColour = diffuseColour;
+	lightBufferPtr->LightDirection = lightDirection;
 	lightBufferPtr->padding = 0.0f;
 
 	// Unlock the constnat buffer so we can write to it elsewhere.
 	deviceContext->Unmap(mpLightBuffer, 0);
 
 	// Update the position of our constant buffer in the shader.
-	bufferNumber = 0;
+	bufferNumber = 1;
 
 	// Set the constant buffer in the shader.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
 
-	//////////////////////////////
-	// Update the clip plane constant buffer.
-	//////////////////////////////
-
-	result = deviceContext->Map(mpClipPlaneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to set the clip plane constant buffer in refraction shader class.");
-		return false;
-	}
-
-	// Get pointer to the data inside the constant buffer.
-	clipPlaneBufferPtr = (ClipPlaneBufferType*)mappedResource.pData;
-
-	// Copy the current water buffer values into the constant buffer.
-	clipPlaneBufferPtr->clipPlane = clipPlane;
-
-	// Unlock the constnat buffer so we can write to it elsewhere.
-	deviceContext->Unmap(mpClipPlaneBuffer, 0);
-
-	// Update the position of our constant buffer in the shader.
-	bufferNumber = 1;
-
-	// Set the constant buffer in the shader.
-	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpClipPlaneBuffer);
+	/////////////////////////////////
+	// Update shader resources
+	/////////////////////////////////
+	deviceContext->PSSetShaderResources(0, 1, &waterHeightMap);
+	deviceContext->PSSetShaderResources(1, 1, &refractionTex);
 
 	return true;
 }
 
-void CRefractionShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CRefractionShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
-	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
+	deviceContext->PSSetShader(mpReflectionPixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
-	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+	return;
+}
+
+void CRefractionShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(mpLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpRefractionPixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);

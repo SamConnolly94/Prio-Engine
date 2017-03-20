@@ -5,6 +5,7 @@
 #include <D3DX10math.h>
 #include <D3DX11async.h>
 #include "PrioEngineVars.h"
+#include "Texture.h"
 
 class CShader
 {

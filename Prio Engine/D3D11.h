@@ -13,8 +13,7 @@
 #include <d3dx10math.h>
 #include <string>
 #include "PrioEngineVars.h"
-
-const int STRING_NUMBER_OF_BITS = 128;
+#include <AntTweakBar.h>
 
 class CD3D11
 {

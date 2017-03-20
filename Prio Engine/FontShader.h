@@ -9,6 +9,7 @@ private:
 	struct PixelBufferType
 	{
 		D3DXVECTOR4 pixelColour;
+		D3DXVECTOR4 pixelBufferPadding;
 	};
 public:
 	CFontShader();

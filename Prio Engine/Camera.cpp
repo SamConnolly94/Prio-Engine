@@ -157,6 +157,11 @@ void CCamera::GetViewMatrix(D3DXMATRIX & viewMatrix)
 	viewMatrix = mViewMatrix;
 }
 
+void CCamera::GetViewProjMatrix(D3DXMATRIX & ViewProjMatrix)
+{
+	ViewProjMatrix = mViewProjMatrix;
+}
+
 /* Updates the elements of matrices used before rendering. 
 * Credit to Laurent Noel for this class.
 */

@@ -20,6 +20,7 @@ private:
 		bool useAlphaMap;
 		bool useSpecularMap;
 		D3DXVECTOR3 padding2;
+		D3DXVECTOR4 padding3;
 	};
 
 public:

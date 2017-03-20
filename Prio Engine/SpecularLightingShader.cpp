@@ -38,7 +38,7 @@ void CSpecularLightingShader::Shutdown()
 }
 
 bool CSpecularLightingShader::Render(	ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-										D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, 
+										D3DXMATRIX projMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour,
 										D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower)
 {
 	bool result;
@@ -387,6 +387,8 @@ bool CSpecularLightingShader::SetShaderParameters(	ID3D11DeviceContext * deviceC
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpCameraBuffer);
 
 	// Set shader texture resource in the pixel shader.
+	ID3D11ShaderResourceView* nullShader = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullShader);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	// Lock the light constant buffer so it can be written to.

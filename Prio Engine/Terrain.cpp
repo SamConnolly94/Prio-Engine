@@ -469,6 +469,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 		return false;
 	}
 
+
 	// Clean up the memory allocated to arrays.
 	delete[] vertices;
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(vertices).name());

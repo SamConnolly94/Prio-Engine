@@ -312,6 +312,8 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
 	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
 	D3DXMatrixTranspose(&projMatrix, &projMatrix);
+	D3DXMATRIX empty;
+	D3DXMatrixTranspose(&empty, &empty);
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;
@@ -328,6 +330,8 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMA
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpConstantBuffer);
 
 	// Set the shader texture resource in the pixel shader.
+	ID3D11ShaderResourceView* nullShader = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullShader);
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 
 	// Lock pixel buffer so we can write to it.

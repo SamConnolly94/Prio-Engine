@@ -360,6 +360,12 @@ bool CDiffuseLightShader::SetShaderParameters(ID3D11DeviceContext * deviceContex
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	// Set shader texture resource in the pixel shader.
+	ID3D11ShaderResourceView* nullShader = nullptr;
+	for (int i = 0; i < numberOfTextures; i++)
+	{
+		deviceContext->PSSetShaderResources(i, 1, &nullShader);
+	}
+
 	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
 
 	// Lock the light constant buffer so it can be written to.

@@ -40,7 +40,7 @@
     <ClInclude Include="ModelControl.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrioEngineVars.h" />
-    <ClInclude Include="RefractionShader.h" />
+    <ClInclude Include="RefractReflectShader.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SkyBox.h" />
@@ -77,7 +77,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelControl.cpp" />
     <ClCompile Include="Primitive.cpp" />
-    <ClCompile Include="RefractionShader.cpp" />
+    <ClCompile Include="RefractReflectShader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SkyBox.cpp" />
@@ -139,6 +139,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\TerrainReflection.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\TerrainRefraction.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\WaterHeight.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Shaders\WaterSurface.ps.hlsl">
       <FileType>Document</FileType>
     </None>
@@ -147,16 +156,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\WaterHeight.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\WaterModel.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\WaterReflection.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\WaterRefraction.ps.hlsl">
+    <None Include="Shaders\RefractedModel.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

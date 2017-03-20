@@ -11,51 +11,38 @@ CRenderTexture::~CRenderTexture()
 {
 }
 
-bool CRenderTexture::Initialise(ID3D11Device * device, int width, int height)
+bool CRenderTexture::Initialise(ID3D11Device * device, int width, int height, DXGI_FORMAT format)
 {
-	D3D11_TEXTURE2D_DESC texDesc;
-	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 	HRESULT result;
 
-	ZeroMemory(&texDesc, sizeof(texDesc));
+	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = format;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
 
-	texDesc.Width = width;
-	texDesc.Height = height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	texDesc.CPUAccessFlags = 0;
-	texDesc.MiscFlags = 0;
-
-	result = device->CreateTexture2D(&texDesc, NULL, &mpRenderTargetTexture);
+	result = device->CreateTexture2D(&textureDesc, NULL, &mpRenderTargetTexture);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the render target texture from the texture description provided in rendertexture class.");
 		return false;
 	}
 
-	// Copy the same format as what we used for tex desc.
-	renderTargetViewDesc.Format = texDesc.Format;
-	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-	result = device->CreateRenderTargetView(mpRenderTargetTexture, &renderTargetViewDesc, &mpRenderTargetView);
+	result = device->CreateRenderTargetView(mpRenderTargetTexture, NULL, &mpRenderTargetView);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the render target view from the render target view desc provided in rendertexture class.");
 		return false;
 	}
 
-	shaderResourceViewDesc.Format = texDesc.Format;
-	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-	shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-	result = device->CreateShaderResourceView(mpRenderTargetTexture, &shaderResourceViewDesc, &mpShaderResourceView);
+	result = device->CreateShaderResourceView(mpRenderTargetTexture, NULL, &mpShaderResourceView);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the shader resource view from the desc provided in render texture class.");
@@ -108,7 +95,7 @@ void CRenderTexture::ClearRenderTarget(ID3D11DeviceContext * deviceContext, ID3D
 
 }
 
-ID3D11ShaderResourceView * CRenderTexture::GetShaderResourceView()
+ID3D11ShaderResourceView * &CRenderTexture::GetShaderResourceView()
 {
 	return mpShaderResourceView;
 }

@@ -433,6 +433,15 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3D
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	// Set shader texture resource in the pixel shader.
+	ID3D11ShaderResourceView* nullShader = nullptr;
+
+	// Unbind shaders
+	for (unsigned int i = 0; i < numberOfTextures + numberOfGrassTextures + 1 + numberOfRockTextures; i++)
+	{
+		deviceContext->PSSetShaderResources(i, 1, &nullShader);
+	}
+
+
 	deviceContext->PSSetShaderResources(0, numberOfTextures, textures);
 	deviceContext->PSSetShaderResources(numberOfTextures, numberOfGrassTextures, grassTextures);
 	deviceContext->PSSetShaderResources(numberOfTextures + numberOfGrassTextures, 1, &patchMap);

@@ -1,11 +1,20 @@
-struct PS_WATER_INPUT
+//////////////////////////
+// Structures
+//////////////////////////
+
+struct PixelInputType
 {
-	float4 ProjPos : SV_POSITION;
-	float3 WorldPos : POSITION;
+	float4 ProjectedPosition : SV_POSITION;
 	float2 UV : TEXCOORD0;
+	float4 WorldPosition : POSITION;
 };
 
-float WaterHeightPS( PS_WATER_INPUT input ) : SV_TARGET
+
+//////////////////////////
+// Pixel shader
+//////////////////////////
+
+float4 WaterHeightPS(PixelInputType input) : SV_TARGET
 {
-	return input.WorldPos.y;
+	return input.WorldPosition.y;
 }

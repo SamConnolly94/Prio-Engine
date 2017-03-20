@@ -27,8 +27,6 @@ private:
 	ID3D11InputLayout* mpLayout;
 	ID3D11Buffer* mpMatrixBuffer;
 	ID3D11SamplerState* mpSampleState;
-
-	;
 };
 
 #endif

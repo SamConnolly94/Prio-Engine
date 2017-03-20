@@ -138,8 +138,8 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Set the colour to our colour variable passed in.
 	mpWaterLight->SetDiffuseColour({1.0f, 1.0f, 1.0f, 1.0f});
-	mpWaterLight->SetAmbientColour({0.15f, 0.15f, 0.15f, 1.0f});
-	mpWaterLight->SetDirection({ 0.0f, -1.0f, 0.5f });
+	mpWaterLight->SetAmbientColour({1.0f, 1.0f, 1.0f, 1.0f});
+	mpWaterLight->SetDirection({ 0.0f, -1.0f, 0.0f });
 	mpWaterLight->SetSpecularColour({ 1.0f, 1.0f, 1.0f, 1.0f });
 	mpWaterLight->SetSpecularPower(100.0f);
 
@@ -153,19 +153,25 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	mpWaterBody = new CWater();
-	
-	if (!mpWaterBody->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(0.0F, 0.0F, 0.0F), D3DXVECTOR3(200.0F, 0.0F, 200.0F), mScreenWidth, mScreenHeight, 100.0f, 100.0f, "Resources/Textures/WaterNormalHeight.png"))
+	mpRefractionShader = new CRefractionShader();
+
+	if (!mpRefractionShader->Initialise(mpD3D->GetDevice(), hwnd))
+	{
+		logger->GetInstance().WriteSubtitle("Critical Error!");
+		logger->GetInstance().WriteLine("Failed to initialise the refraction shader, shutting down.");
+		logger->GetInstance().CloseSubtitle();
+		return false;
+	}
+
+	mpWater = new CWater();
+
+	if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-100.0f, 1.0f, 0.0f), D3DXVECTOR3(100.0f, 1.0f, 200.0f), 100, 100, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
 		return false;
 	}
 
-	mpWaterBody->SetXPos(mpWaterBody->GetPosX() - 200.0f);
-	mpWaterBody->SetZPos(mpWaterBody->GetPosZ() - 200.0f);
-
-	mWaterHeight = 10.0f;
-	mWaterTranslation = 0.0f;
+	mpWater->SetPos(0.0f, 5.0f, 0.0f);
 
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
@@ -176,10 +182,17 @@ void CGraphics::Shutdown()
 {
 	delete mpWaterLight;
 
-	if (mpWaterBody != nullptr)
+	if (mpWater != nullptr)
 	{
-		mpWaterBody->Shutdown();
-		delete mpWaterBody;
+		mpWater->Shutdown();
+		delete mpWater;
+	}
+
+	if (mpRefractionShader)
+	{
+		mpRefractionShader->Shutdown();
+		delete mpRefractionShader;
+		mpRefractionShader = nullptr;
 	}
 
 	for (auto skybox : mpSkyboxList)
@@ -349,6 +362,7 @@ bool CGraphics::Render()
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX worldMatrix;
 	D3DXMATRIX projMatrix;
+	D3DXMATRIX viewProj;
 	D3DXMATRIX orthoMatrix;
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
@@ -367,6 +381,7 @@ bool CGraphics::Render()
 	mpD3D->GetWorldMatrix(worldMatrix);
 	mpD3D->GetProjectionMatrix(projMatrix);
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
+	mpCamera->GetViewProjMatrix(viewProj);
 
 	mpFrustum->ConstructFrustum(SCREEN_DEPTH, projMatrix, viewMatrix);
 	
@@ -493,7 +508,7 @@ bool CGraphics::RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX pro
 
 }
 
-bool CGraphics::RenderSkybox(D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj)
+bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
 	for (auto skybox : mpSkyboxList)
 	{
@@ -532,6 +547,9 @@ bool CGraphics::RenderSkybox(D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &pr
 /* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
+	if (!RenderWater(world, view, proj))
+		return false;
+
 	if (!RenderPrimitives(world, view, proj))
 		return false;
 
@@ -539,9 +557,6 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		return false;
 
 	if (!RenderTerrains(world, view, proj))
-		return false;
-
-	if (!RenderWater(world, view, proj))
 		return false;
 
 	return true;
@@ -709,152 +724,113 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 
 bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
+	bool result = true;
+
 	// Reset the world matrix.
 	mpD3D->GetWorldMatrix(world);
+	mpD3D->GetProjectionMatrix(proj);
 
-	// Send viewport size to shaders
-	D3DXVECTOR2 ViewportSize = { (float)mScreenWidth, (float)mScreenHeight};
+	//mpWater->Update();
 
-	// Setup the viewport - defines which part of the back-buffer we will render to (usually all of it)
-	D3D11_VIEWPORT vp;
-	vp.Width = static_cast<FLOAT>(mScreenWidth);
-	vp.Height = static_cast<FLOAT>(mScreenHeight);
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	mpD3D->GetDeviceContext()->RSSetViewports(1, &vp);
+	/////////////////////////////////
+	// Height
+	////////////////////////////////
 
+	// Reset the water world matrix	
+	mpWater->UpdateMatrices();
+	mpWater->GetWorldMatrix(world);
 
-	for (auto terrain : mpTerrainGrids)
+	// Set render target to the height texture map.
+	mpWater->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+	mpWater->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Render the water height map.
+	mpWater->Render(mpD3D->GetDeviceContext());
+	result = mpWaterShader->RenderHeight(mpD3D->GetDeviceContext(), mpWater->GetNumberOfIndices(), world, view, proj,
+		mpWater->GetSize(), mpWater->GetSpeed(), mpWater->GetTranslation(), mpWater->GetWaveHeight(), mpWater->GetWaveScale(), mpWater->GetRefractionDistortion(),
+		mpWater->GetReflectionDistortion(), mpWater->GetMaxDistortionDistance(), mpWater->GetRefractionStrength(), mpWater->GetReflectionStrength(), mpWater->GetNormalHeightMap()->GetTexture());
+
+	if (!result)
 	{
-		mpWaterShader->SetReflectionTex(mpD3D->GetDeviceContext(), terrain->GetGrassTex());
+		return false;
 	}
-
-	////////////////////
-	// Water height.
-	///////////////////
-
-	mpWaterBody->SetWaterHeightRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-
-	mpWaterBody->UpdateMatrices();
-	mpWaterBody->GetWorldMatrix(world);
-
-	mpWaterShader->SetRenderState(CWaterShader::RenderState::Height);
-
-	mpWaterBody->Render(mpD3D->GetDeviceContext());
-
-	// Render the model.
-	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(), 
-		world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(), 
-		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
-		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
-
-	/////////////////////
-	// Water refraction.
-	////////////////////
-	mpWaterBody->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-
-	mpWaterShader->SetRenderState(CWaterShader::RenderState::Refraction);
-	
+	/////////////////////////////////
+	// Refraction
+	////////////////////////////////
 	for (auto terrain : mpTerrainGrids)
 	{
+		mpD3D->GetWorldMatrix(world);
 		terrain->UpdateMatrices();
+		// Reset the terrain world matrix
 		terrain->GetWorldMatrix(world);
 
-		terrain->Render(mpD3D->GetDeviceContext());
+		mpWater->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+		mpWater->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 
-		mpWaterShader->Render(mpD3D->GetDeviceContext(), 
-			mpWaterBody->GetNumberOfIndices(),
-			world, view, proj,
-			mpWaterBody->GetMovement(), 
-			mpWaterBody->GetStrength(),
-			mpWaterBody->GetDistortionDistance(), 
-			mpWaterBody->GetWaveScale(), 
-			2.0f,
-			mpWaterBody->GetWidth(),
-			mpWaterBody->GetHeight(), 
-			mpCamera, 
-			mpWaterLight, 
-			mpWaterBody->GetHeightMap(), 
-			mpWaterBody->GetRefractionMap(), 
-			mpWaterBody->GetReflectionMap());
+		terrain->Render(mpD3D->GetDeviceContext());
+		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, mpWaterLight->GetDirection(),
+			mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), D3DXVECTOR2(mScreenWidth, mScreenHeight), mpWater->GetHeightTexture()->GetShaderResourceView(),
+			terrain->GetGrassTextureArray()[0]->GetTexture());
+
+			if (!result)
+			{
+			logger->GetInstance().WriteLine("Failed to render the refraction shader for water. ");
+			return false;
+		}
 	}
 
-	//////////////////////
-	// Water reflection
-	/////////////////////
-	CCamera reflectionCamera = *mpCamera;
-	D3DXMATRIX cameraWorld;
-	reflectionCamera.Render();
-	reflectionCamera.GetWorldMatrix(cameraWorld);
-
-	// Invert the y component of each axis.
-	cameraWorld._12 = -cameraWorld._12;
-	cameraWorld._22 = -cameraWorld._22;
-	cameraWorld._32 = -cameraWorld._32;
-
-	reflectionCamera.SetWorldMatrix(cameraWorld);
-	reflectionCamera.SetPosizionY(mpWaterBody->GetPosY() * 2.0f - reflectionCamera.GetY());
-	reflectionCamera.Render();
-
-	mpWaterBody->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-
-	mpWaterShader->SetRenderState(CWaterShader::RenderState::Reflection);
+	/////////////////////////////////
+	// Reflection
+	/////////////////////////////////
+	mpD3D->TurnOffBackFaceCulling();
 	for (auto terrain : mpTerrainGrids)
 	{
+		mpD3D->GetWorldMatrix(world);
+		terrain->UpdateMatrices();
+		// Reset the terrain world matrix
 		terrain->GetWorldMatrix(world);
+
+		mpWater->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+		mpWater->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+
 		terrain->Render(mpD3D->GetDeviceContext());
+		result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), terrain->GetIndexCount(), world, view, proj, mpWaterLight->GetDirection(),
+			mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), D3DXVECTOR2(mScreenWidth, mScreenHeight), mpWater->GetHeightTexture()->GetShaderResourceView(),
+			terrain->GetGrassTextureArray()[0]->GetTexture());
 
-		mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
-			world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
-			mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
-			mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), &reflectionCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+		if (!result)
+		{
+			logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
+			return false;
+		}
 	}
+	mpD3D->TurnOnBackFaceCulling();
 
-	/////////////////////
-	// Water surface
-	////////////////////
+	/////////////////////////////////
+	// Water Model
+	/////////////////////////////////
 	mpD3D->SetBackBufferRenderTarget();
+	mpWater->UpdateMatrices();
+	mpWater->GetWorldMatrix(world);
+	D3DXMATRIX cameraWorld;
+	mpCamera->GetWorldMatrix(cameraWorld);
 
-	mpWaterShader->SetRenderState(CWaterShader::RenderState::Surface);
+	mpWater->Render(mpD3D->GetDeviceContext());
 
-	mpWaterBody->UpdateMatrices();
-	mpWaterBody->GetWorldMatrix(world);
+	result =  mpWaterShader->RenderSurface(mpD3D->GetDeviceContext(), mpWater->GetNumberOfIndices(), world, view, proj, mpWater->GetSize(), mpWater->GetSpeed(),
+		mpWater->GetTranslation(), mpWater->GetWaveHeight(), mpWater->GetWaveScale(), mpWater->GetRefractionDistortion(),
+		mpWater->GetReflectionDistortion(), mpWater->GetMaxDistortionDistance(), mpWater->GetRefractionStrength(), mpWater->GetReflectionStrength(), cameraWorld, mpCamera->GetPosition(), D3DXVECTOR2(mScreenWidth, mScreenHeight),
+		mpWaterLight->GetAmbientColour(), mpWaterLight->GetDiffuseColour(), mpWaterLight->GetDirection(), mpWater->GetNormalHeightMap()->GetTexture(), mpWater->GetRefractionTexture()->GetShaderResourceView(), 
+		mpWater->GetReflectionTexture()->GetShaderResourceView());
 
-	mpWaterBody->Render(mpD3D->GetDeviceContext());
-	mpWaterShader->Render(mpD3D->GetDeviceContext(), mpWaterBody->GetNumberOfIndices(),
-		world, view, proj, mpWaterBody->GetMovement(), mpWaterBody->GetStrength(),
-		mpWaterBody->GetDistortionDistance(), mpWaterBody->GetWaveScale(), 2.0f,
-		mpWaterBody->GetWidth(), mpWaterBody->GetHeight(), mpCamera, mpWaterLight, mpWaterBody->GetHeightMap(), mpWaterBody->GetRefractionMap(), mpWaterBody->GetReflectionMap());
+
+	if (!result)
+	{
+		return false;
+	}
 
 	return true;
 }
-
-//bool CGraphics::RenderPrimitiveWithTextureAndDiffuseLight(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix)
-//{
-//	bool success = false;
-//
-//	// Attempt to render the model with the texture specified.
-//	std::list<CLight*>::iterator it;
-//	it = mpLights.begin();
-//
-//	// Render each diffuse light in the list.
-//	do
-//	{
-//		success = mpDiffuseLightShader->Render(mpD3D->GetDeviceContext(), model->GetIndex(), worldMatrix, viewMatrix, projMatrix, model->GetTexture(), (*it)->GetDirection(), (*it)->GetDiffuseColour(), (*it)->GetAmbientColour());
-//		it++;
-//	} while (it != mpLights.end());
-//
-//	// If we did not successfully render.
-//	if (!success)
-//	{
-//		logger->GetInstance().WriteLine("Failed to render the model using the texture shader in graphics.cpp.");
-//		return false;
-//	}
-//
-//	return true;
-//}
 
 bool CGraphics::RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix)
 {
@@ -1362,6 +1338,8 @@ void CGraphics::SetCameraPos(float x, float y, float z)
 
 void CGraphics::ToggleWireframe()
 {
+	mWireframeEnabled = !mWireframeEnabled;
+
 	if (!mWireframeEnabled)
 	{
 		mpD3D->EnableSolidFill();
@@ -1370,6 +1348,4 @@ void CGraphics::ToggleWireframe()
 	{
 		mpD3D->EnableWireframeFill();
 	}
-
-	mWireframeEnabled = !mWireframeEnabled;
 }

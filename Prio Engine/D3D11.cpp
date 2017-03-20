@@ -405,6 +405,8 @@ void CD3D11::Shutdown()
 		mpRenderTargetView = nullptr;
 	}
 
+	TwTerminate();
+
 	// If device context has been initialised.
 	if (mpDeviceContext)
 	{
@@ -675,7 +677,7 @@ bool CD3D11::CreateSwapChain(D3D_FEATURE_LEVEL & featureLevel, DXGI_SWAP_CHAIN_D
 	featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	// Create swap chain from the descriptor we have set.
-	HRESULT result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
+	HRESULT result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, /*NULL*/ D3D11_CREATE_DEVICE_DEBUG, &featureLevel, 1,
 		D3D11_SDK_VERSION, &swapChainDesc, &mpSwapChain, &mpDevice, NULL, &mpDeviceContext);
 
 	// If we did not successfully create the device and swap chain.
@@ -747,6 +749,9 @@ bool CD3D11::CreateDepthStencilView(D3D11_DEPTH_STENCIL_VIEW_DESC& depthStencilV
 		// Stop!
 		return false;
 	}
+
+	ID3D11RenderTargetView* nullRenderTarget = nullptr;
+	GetDeviceContext()->OMSetRenderTargets(1, &nullRenderTarget, nullptr);
 
 	// Bind the render target view and depth stencil buffer to the output render pipeline.
 	mpDeviceContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
@@ -926,5 +931,8 @@ ID3D11DepthStencilView * CD3D11::GetDepthStencilView()
 
 void CD3D11::SetBackBufferRenderTarget()
 {
+	ID3D11RenderTargetView* nullRenderTarget = nullptr;
+	GetDeviceContext()->OMSetRenderTargets(1, &nullRenderTarget, nullptr);
+
 	mpDeviceContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
 }

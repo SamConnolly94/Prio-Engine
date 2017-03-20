@@ -1,7 +1,6 @@
 #ifndef TERRAINSHADER_H
 #define TERRAINSHADER_H
 
-#include "Texture.h"
 #include "Shader.h"
 
 class CTerrainShader : public CShader
@@ -20,12 +19,14 @@ private:
 		float highestPosition;
 		float lowestPosition;
 		D3DXVECTOR2 padding2;
+		D3DXVECTOR4 terrainInfoPadding;
 	};
 
 	struct PositioningBufferType
 	{
 		float yOffset;
 		D3DXVECTOR3 posPadding;
+		D3DXVECTOR4 posPadding2;
 	};
 	struct TerrainAreaBufferType
 	{
@@ -33,6 +34,7 @@ private:
 		float grassHeight;
 		float dirtHeight;
 		float sandHeight;
+		D3DXVECTOR4 terrainAreaPadding;
 	};
 public:
 	CTerrainShader();

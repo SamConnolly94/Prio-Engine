@@ -22,10 +22,9 @@
 #include <functional>
 #include "SkyBox.h"
 #include "SkyboxShader.h"
-#include "RefractionShader.h"
-#include "WaterShader.h"
+#include "RefractReflectShader.h"
 #include "Water.h"
-#include "RenderTexture.h"
+#include "WaterShader.h"
 
 // Global variables.
 // Will the window run in full screen?
@@ -62,7 +61,8 @@ private:
 	bool RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderSkybox(D3DXMATRIX &world, D3DXMATRIX &view, D3DXMATRIX &proj);
+	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 private:
 	CD3D11* mpD3D;
 
@@ -78,6 +78,7 @@ private:
 	CTerrainShader* mpTerrainShader;
 	CSkyboxShader* mpSkyboxShader;
 	CWaterShader* mpWaterShader;
+	CRefractionShader* mpRefractionShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -95,7 +96,6 @@ private:
 	bool CreateTerrainShader(HWND hwnd);
 	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
-	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 
 	float mRotation;
 
@@ -133,9 +133,7 @@ public:
 	bool SetFullscreen(bool enabled);
 	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
 private:
-	float mWaterHeight;
-	float mWaterTranslation;
-	CWater* mpWaterBody;
+	CWater* mpWater;
 	CLight* mpWaterLight;
 };
 
