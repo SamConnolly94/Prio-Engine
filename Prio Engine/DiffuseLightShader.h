@@ -34,7 +34,7 @@ public:
 	bool UpdateMapBuffer(ID3D11DeviceContext* deviceContext, bool useAlphaMap, bool useSpecularMap);
 
 private:
-	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename);
+	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string transparentPSFilename);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename);
 
@@ -44,11 +44,17 @@ private:
 private:
 	ID3D11VertexShader* mpVertexShader;
 	ID3D11PixelShader* mpPixelShader;
+	ID3D11PixelShader* mpTransparentPixelShader;
 	ID3D11InputLayout* mpLayout;
 	ID3D11Buffer* mpMatrixBuffer;
 	ID3D11SamplerState* mpSampleState;
 	ID3D11Buffer* mpLightBuffer;
 	ID3D11Buffer* mpMapBuffer;
+
+	bool mUseTransparent = false;
+
+public:
+	void SetUseTransparent(bool enabled);
 };
 
 #endif

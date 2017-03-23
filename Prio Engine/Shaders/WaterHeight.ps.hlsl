@@ -1,14 +1,19 @@
 //////////////////////////
+// Sample states
+//////////////////////////
+
+SamplerState TrilinearWrap : register(s0);
+
+//////////////////////////
 // Structures
 //////////////////////////
 
 struct PixelInputType
 {
-	float4 ProjectedPosition : SV_POSITION;
-	float2 UV : TEXCOORD0;
-	float4 WorldPosition : POSITION;
+	float4 ProjectedPosition	: SV_POSITION;
+	float2 UV					: TEXCOORD0;
+	float4 WorldPosition		: POSITION;
 };
-
 
 //////////////////////////
 // Pixel shader

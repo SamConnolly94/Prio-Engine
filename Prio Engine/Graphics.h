@@ -53,7 +53,7 @@ public:
 
 	bool Initialise(int screenWidth, int screenHeight, HWND hwnd);
 	void Shutdown();
-	bool Frame();
+	bool Frame(float updateTime);
 private:
 	bool Render();
 private:
@@ -85,10 +85,12 @@ private:
 
 	std::list<CPrimitive*> mpPrimitives;
 	std::list<CMesh*> mpMeshes;
-	std::list<CLight*> mpLights;
-	std::list<CTerrain*> mpTerrainGrids;
 	std::list<C2DImage*> mpUIImages;
-	std::vector<CSkyBox*> mpSkyboxList;
+
+	CLight* mpSceneLight;
+	CLight* mpWaterLight;
+	CSkyBox* mpSkybox;
+	CTerrain* mpTerrain;
 
 	bool CreateTextureShaderForModel(HWND hwnd);
 	bool CreateColourShader(HWND hwnd);
@@ -97,7 +99,7 @@ private:
 	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 
-	float mRotation;
+	float mFrameTime;
 
 	HWND mHwnd;
 public:
@@ -115,8 +117,6 @@ public:
 	CTerrain* CreateTerrain(std::string mapFile);
 	CTerrain* CreateTerrain(double ** heightMap, int mapWidth, int mapHeight);
 
-	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour);
-	bool RemoveLight(CLight* &light);
 	/* Camera control, required by the engine. */
 	CCamera* CreateCamera();
 	void SetCameraPos(float x, float y, float z);
@@ -132,9 +132,12 @@ public:
 	bool IsFullscreen();
 	bool SetFullscreen(bool enabled);
 	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
+	CWater* GetWater();
+	void UpdateScene(float updateTime);
+private:
+	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 specularColour, float specularPower, D3DXVECTOR4 ambientColour, D3DXVECTOR3 direction);
 private:
 	CWater* mpWater;
-	CLight* mpWaterLight;
 };
 
 #endif

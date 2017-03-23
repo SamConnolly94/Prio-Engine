@@ -56,8 +56,13 @@ bool CMesh::LoadMesh(std::string filename)
 	return result;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights)
+void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light)
 {
+	if (mRenderType == Transparent)
+	{
+		shader->SetUseTransparent(true);
+	}
+
 	for (auto model : mpModels)
 	{
 		model->UpdateMatrices();
@@ -75,21 +80,21 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 				bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
 				shader->UpdateMapBuffer(context, useAlpha, useSpecular);
 
-				for (auto light : lights)
-				{
-					// Pass over the textures for rendering.
-					if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
-						model->GetWorldMatrix(), view, proj,
-						mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
-						light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-					{
-						logger->GetInstance().WriteLine("Failed to render the mesh model.");
-					}
 
+				// Pass over the textures for rendering.
+				if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
+					model->GetWorldMatrix(), view, proj,
+					mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
+					light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+				{
+					logger->GetInstance().WriteLine("Failed to render the mesh model.");
 				}
+
 			}
 		}
 	}
+
+	shader->SetUseTransparent(false);
 }
 
 /* Create an instance of this mesh.
@@ -119,6 +124,14 @@ CModel* CMesh::CreateModel()
 bool CMesh::LoadAssimpModel(std::string filename)
 {
 	// Grab the mesh object for the last mesh we loaded.
+	if (filename == "Resources/Models/Light.x")
+	{
+		mRenderType = RenderType::Transparent;
+	}
+	else
+	{
+		mRenderType = RenderType::Opaque;
+	}
 
 	Assimp::Importer importer;
 	const std::string name = filename;

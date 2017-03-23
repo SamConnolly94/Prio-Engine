@@ -304,6 +304,7 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 	 blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	 blendStateDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
 
+
 	 result = mpDevice->CreateBlendState(&blendStateDesc, &mpAlphaBlendingStateEnabled);
 	 if (FAILED(result))
 	 {
@@ -931,8 +932,5 @@ ID3D11DepthStencilView * CD3D11::GetDepthStencilView()
 
 void CD3D11::SetBackBufferRenderTarget()
 {
-	ID3D11RenderTargetView* nullRenderTarget = nullptr;
-	GetDeviceContext()->OMSetRenderTargets(1, &nullRenderTarget, nullptr);
-
 	mpDeviceContext->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
 }

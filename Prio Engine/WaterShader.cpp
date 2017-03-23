@@ -2,7 +2,7 @@
 
 CWaterShader::CWaterShader()
 {
-	mpVertexShader = nullptr;
+	mpSurfaceVertexShader = nullptr;
 	mpSurfacePixelShader = nullptr;
 	mpHeightPixelShader = nullptr;
 	mpLayout = nullptr;
@@ -23,7 +23,10 @@ bool CWaterShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, "Shaders/WaterSurface.vs.hlsl", "Shaders/WaterSurface.ps.hlsl", "Shaders/WaterHeight.ps.hlsl");
+	std::string surfaceVSName = "Shaders/WaterSurface.vs.hlsl";
+	std::string surfacePSName = "Shaders/WaterSurface.ps.hlsl";
+	std::string heightPSName = "Shaders/WaterHeight.ps.hlsl";
+	result = InitialiseShader(device, hwnd, surfaceVSName, surfacePSName, heightPSName);
 
 	if (!result)
 	{
@@ -40,17 +43,12 @@ void CWaterShader::Shutdown()
 	ShutdownShader();
 }
 
-bool CWaterShader::RenderSurface(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-	D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion, float maxDistortion,
-	float refractionStrength, float reflectionStrength, D3DXMATRIX cameraMatrix, D3DXVECTOR3 cameraPosition, D3DXVECTOR2 viewportSize, D3DXVECTOR4 ambientColour,
-	D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection, ID3D11ShaderResourceView* normalHeightMap, ID3D11ShaderResourceView* refractionMap, ID3D11ShaderResourceView* reflectionMap)
+bool CWaterShader::RenderSurface(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetSurfaceShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, waterSize, waterSize, waterTranslation, waveHeight, waveScale, 
-		refractionDistortion, reflectionDistortion, maxDistortion, refractionStrength, reflectionStrength, cameraMatrix, cameraPosition, viewportSize, ambientColour, diffuseColour, lightDirection,
-		normalHeightMap, refractionMap, reflectionMap);
+	result = SetSurfaceShaderParameters(deviceContext);
 	if (!result)
 	{
 		return false;
@@ -62,15 +60,12 @@ bool CWaterShader::RenderSurface(ID3D11DeviceContext* deviceContext, int indexCo
 	return true;
 }
 
-bool CWaterShader::RenderHeight(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-	D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion,
-	float maxDistortion, float refractionStrength, float reflectionStrength, ID3D11ShaderResourceView* normalHeightMap)
+bool CWaterShader::RenderHeight(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetHeightShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, waterSize, waterSize, waterTranslation, waveHeight, waveScale,
-		refractionDistortion, reflectionDistortion, maxDistortion, refractionStrength, reflectionStrength, normalHeightMap);
+	result = SetHeightShaderParameters(deviceContext);
 	if (!result)
 	{
 		return false;
@@ -82,7 +77,7 @@ bool CWaterShader::RenderHeight(ID3D11DeviceContext* deviceContext, int indexCou
 	return true;
 }
 
-bool CWaterShader::InitialiseShader(ID3D11Device* device, HWND hwnd, std::string vsFilename, std::string surfacePsFilename, std::string heightPsFilename)
+bool CWaterShader::InitialiseShader(ID3D11Device* device, HWND hwnd, std::string surfaceVSFilename, std::string surfacePsFilename, std::string heightPsFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -108,19 +103,19 @@ bool CWaterShader::InitialiseShader(ID3D11Device* device, HWND hwnd, std::string
 	////////////////////////////////
 
 	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "WaterSurfaceVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS || (1 << 0), 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	result = D3DX11CompileFromFile(surfaceVSFilename.c_str(), NULL, NULL, "WaterSurfaceVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS || (1 << 0), 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
 	if (FAILED(result))
 	{
 		if (errorMessage)
 		{
-			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename.c_str());
+			OutputShaderErrorMessage(errorMessage, hwnd, surfaceVSFilename.c_str());
 		}
 		else
 		{
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
-			MessageBox(hwnd, vsFilename.c_str(), "Missing shader file. ", MB_OK);
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + surfaceVSFilename + "'");
+			MessageBox(hwnd, surfaceVSFilename.c_str(), "Missing shader file. ", MB_OK);
 		}
-		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilename + "'");
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + surfaceVSFilename + "'");
 		return false;
 	}
 
@@ -142,7 +137,7 @@ bool CWaterShader::InitialiseShader(ID3D11Device* device, HWND hwnd, std::string
 	}
 
 	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpSurfaceVertexShader);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
@@ -450,10 +445,10 @@ void CWaterShader::ShutdownShader()
 		mpSurfacePixelShader = nullptr;
 	}
 
-	if (mpVertexShader)
+	if (mpSurfaceVertexShader)
 	{
-		mpVertexShader->Release();
-		mpVertexShader = nullptr;
+		mpSurfaceVertexShader->Release();
+		mpSurfaceVertexShader = nullptr;
 	}
 }
 
@@ -489,19 +484,11 @@ void CWaterShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd,
 	MessageBox(hwnd, "Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename.c_str(), MB_OK);
 }
 
-bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-	D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion, float maxDistortion,
-	float refractionStrength, float reflectionStrength, D3DXMATRIX cameraMatrix, D3DXVECTOR3 cameraPosition, D3DXVECTOR2 viewportSize, D3DXVECTOR4 ambientColour,
-	D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection, ID3D11ShaderResourceView* normalHeightMap, ID3D11ShaderResourceView* refractionMap, ID3D11ShaderResourceView* reflectionMap)
+bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
-
-	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projMatrix, &projMatrix);
 
 	///////////////////////////
 	// Matrix buffer
@@ -518,9 +505,9 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	MatrixBufferType * matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	matrixBufferPtr->world = worldMatrix;
-	matrixBufferPtr->view = viewMatrix;
-	matrixBufferPtr->projection = projMatrix;
+	matrixBufferPtr->world = mWorldMatrix;
+	matrixBufferPtr->view = mViewMatrix;
+	matrixBufferPtr->projection = mProjMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpMatrixBuffer, 0);
@@ -547,16 +534,15 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	WaterBufferType * waterBufferPtr = (WaterBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	waterBufferPtr->WaterSize = waterSize;
-	waterBufferPtr->WaterSpeed = waterSpeed;
-	waterBufferPtr->WaterTranslation = waterTranslation;
-	waterBufferPtr->WaveHeight = waveHeight;
-	waterBufferPtr->WaveScale = waveScale;
-	waterBufferPtr->RefractionDistortion = refractionDistortion;
-	waterBufferPtr->ReflectionDistortion = reflectionDistortion;
-	waterBufferPtr->MaxDistortionDistance = maxDistortion;
-	waterBufferPtr->RefractionStrength = refractionStrength;
-	waterBufferPtr->ReflectionStrength = reflectionStrength;
+	waterBufferPtr->WaterMovement = mWaterMovement;
+	waterBufferPtr->WaveHeight = mWaveHeight;
+	waterBufferPtr->WaveScale = mWaveScale;
+	waterBufferPtr->RefractionDistortion = mRefractionDistortion;
+	waterBufferPtr->ReflectionDistortion = mReflectionDistortion;
+	waterBufferPtr->MaxDistortionDistance = mMaxDistortion;
+	waterBufferPtr->RefractionStrength = mRefractionStrength;
+	waterBufferPtr->ReflectionStrength = mReflectionStrength;
+	waterBufferPtr->waterBufferPadding = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpWaterBuffer, 0);
@@ -583,8 +569,8 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	CameraBufferType * cameraBufferPtr = (CameraBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	cameraBufferPtr->CameraMatrix = cameraMatrix;
-	cameraBufferPtr->CameraPosition = cameraPosition;
+	cameraBufferPtr->CameraMatrix = mCameraMatrix;
+	cameraBufferPtr->CameraPosition = mCameraPosition;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpCameraBuffer, 0);
@@ -610,7 +596,7 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	ViewportBufferType * viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	viewportBufferPtr->ViewportSize = viewportSize;
+	viewportBufferPtr->ViewportSize = mViewportSize;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpViewportBuffer, 0);
@@ -636,9 +622,16 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	LightBufferType * lightBufferPtr = (LightBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	lightBufferPtr->AmbientColour = ambientColour;
-	lightBufferPtr->DiffuseColour = diffuseColour;
-	lightBufferPtr->LightDirection = lightDirection;
+	//lightBufferPtr->AmbientColour = mAmbientColour;
+	//lightBufferPtr->DiffuseColour = mDiffuseColour;
+	//lightBufferPtr->LightDirection = mLightDirection;
+	//lightBufferPtr->mSpecularColour = mSpecularColour;
+	//lightBufferPtr->mSpecularPower = mSpecularPower;
+	//lightBufferPtr->mLightPosition = mLightPosition;
+	//lightBufferPtr->lightBufferPadding = 0.0f;
+	lightBufferPtr->LightPosition = mLightPosition;
+	lightBufferPtr->LightColour = mSpecularColour;
+	lightBufferPtr->Brightness = mSpecularPower;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpLightBuffer, 0);
@@ -652,26 +645,19 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	///////////////////////////
 	// Shader resources
 	///////////////////////////
-	deviceContext->VSSetShaderResources(0, 1, &normalHeightMap);
-	deviceContext->PSSetShaderResources(0, 1, &normalHeightMap);
-	deviceContext->PSSetShaderResources(1, 1, &refractionMap);
-	deviceContext->PSSetShaderResources(2, 1, &reflectionMap);
+	deviceContext->VSSetShaderResources(0, 1, &mpNormalMap);
+	deviceContext->PSSetShaderResources(0, 1, &mpNormalMap);
+	deviceContext->PSSetShaderResources(1, 1, &mpRefractionMap);
+	deviceContext->PSSetShaderResources(2, 1, &mpReflectionMap);
 
 	return true;
 }
 
-bool CWaterShader::SetHeightShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-	D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion,
-	float maxDistortion, float refractionStrength, float reflectionStrength, ID3D11ShaderResourceView* normalHeightMap)
+bool CWaterShader::SetHeightShaderParameters(ID3D11DeviceContext* deviceContext)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
-
-	// Transpose the matrices to prepare them for the shader.
-	D3DXMatrixTranspose(&worldMatrix, &worldMatrix);
-	D3DXMatrixTranspose(&viewMatrix, &viewMatrix);
-	D3DXMatrixTranspose(&projMatrix, &projMatrix);
 
 	///////////////////////////
 	// Matrix buffer
@@ -688,9 +674,9 @@ bool CWaterShader::SetHeightShaderParameters(ID3D11DeviceContext* deviceContext,
 	MatrixBufferType * matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	matrixBufferPtr->world = worldMatrix;
-	matrixBufferPtr->view = viewMatrix;
-	matrixBufferPtr->projection = projMatrix;
+	matrixBufferPtr->world = mWorldMatrix;
+	matrixBufferPtr->view = mViewMatrix;
+	matrixBufferPtr->projection = mProjMatrix;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpMatrixBuffer, 0);
@@ -717,16 +703,15 @@ bool CWaterShader::SetHeightShaderParameters(ID3D11DeviceContext* deviceContext,
 	WaterBufferType * waterBufferPtr = (WaterBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	waterBufferPtr->WaterSize = waterSize;
-	waterBufferPtr->WaterSpeed = waterSpeed;
-	waterBufferPtr->WaterTranslation = waterTranslation;
-	waterBufferPtr->WaveHeight = waveHeight;
-	waterBufferPtr->WaveScale = waveScale;
-	waterBufferPtr->RefractionDistortion = refractionDistortion;
-	waterBufferPtr->ReflectionDistortion = reflectionDistortion;
-	waterBufferPtr->MaxDistortionDistance = maxDistortion;
-	waterBufferPtr->RefractionStrength = refractionStrength;
-	waterBufferPtr->ReflectionStrength = reflectionStrength;
+	waterBufferPtr->WaterMovement = mWaterMovement;
+	waterBufferPtr->WaveHeight = mWaveHeight;
+	waterBufferPtr->WaveScale = mWaveScale;
+	waterBufferPtr->RefractionDistortion = mRefractionDistortion;
+	waterBufferPtr->ReflectionDistortion = mReflectionDistortion;
+	waterBufferPtr->MaxDistortionDistance = mMaxDistortion;
+	waterBufferPtr->RefractionStrength = mRefractionStrength;
+	waterBufferPtr->ReflectionStrength = mReflectionStrength;
+	waterBufferPtr->waterBufferPadding = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpWaterBuffer, 0);
@@ -740,7 +725,7 @@ bool CWaterShader::SetHeightShaderParameters(ID3D11DeviceContext* deviceContext,
 	///////////////////////////
 	// Shader resources
 	///////////////////////////
-	deviceContext->VSSetShaderResources(0, 1, &normalHeightMap);
+	deviceContext->VSSetShaderResources(0, 1, &mpNormalMap);
 
 	return true;
 }
@@ -751,7 +736,7 @@ void CWaterShader::RenderSurfaceShader(ID3D11DeviceContext * deviceContext, int 
 	deviceContext->IASetInputLayout(mpLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->VSSetShader(mpSurfaceVertexShader, NULL, 0);
 	deviceContext->PSSetShader(mpSurfacePixelShader, NULL, 0);
 
 	// Set the sampler states
@@ -762,6 +747,14 @@ void CWaterShader::RenderSurfaceShader(ID3D11DeviceContext * deviceContext, int 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
+
+	// Unbind the shader resources we used.
+	ID3D11ShaderResourceView* nullResource = nullptr;
+	deviceContext->VSSetShaderResources(0, 1, &nullResource);
+	deviceContext->PSSetShaderResources(0, 1, &nullResource);
+	deviceContext->PSSetShaderResources(1, 1, &nullResource);
+	deviceContext->PSSetShaderResources(2, 1, &nullResource);
+
 	return;
 }
 
@@ -771,7 +764,7 @@ void CWaterShader::RenderHeightShader(ID3D11DeviceContext * deviceContext, int i
 	deviceContext->IASetInputLayout(mpLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->VSSetShader(mpSurfaceVertexShader, NULL, 0);
 	deviceContext->PSSetShader(mpHeightPixelShader, NULL, 0);
 
 	// Set the sampler state in the vertex shader.
@@ -780,5 +773,97 @@ void CWaterShader::RenderHeightShader(ID3D11DeviceContext * deviceContext, int i
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
+	// Unbind the shader resources we used.
+	ID3D11ShaderResourceView* nullResource = nullptr;
+	deviceContext->VSSetShaderResources(0, 1, &nullResource);
+
 	return;
+}
+
+void CWaterShader::SetMatrices(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
+	mWorldMatrix = world;
+	mViewMatrix = view;
+	mProjMatrix = proj;
+
+	// Transpose the matrices to prepare them for the shader.
+	D3DXMatrixTranspose(&mWorldMatrix, &mWorldMatrix);
+	D3DXMatrixTranspose(&mViewMatrix, &mViewMatrix);
+	D3DXMatrixTranspose(&mProjMatrix, &mProjMatrix);
+}
+
+void CWaterShader::SetWaterMovement(D3DXVECTOR2 translation)
+{
+	mWaterMovement = translation;
+}
+
+void CWaterShader::SetWaveHeight(float height)
+{
+	mWaveHeight = height;
+}
+
+void CWaterShader::SetWaveScale(float scale)
+{
+	mWaveScale = scale;
+}
+
+void CWaterShader::SetDistortion(float refractionDistortion, float reflectionDistortion)
+{
+	mRefractionDistortion = refractionDistortion;
+	mReflectionDistortion = reflectionDistortion;
+}
+
+void CWaterShader::SetMaxDistortion(float maxDistortion)
+{
+	mMaxDistortion = maxDistortion;
+}
+
+void CWaterShader::SetRefractionStrength(float strength)
+{
+	mRefractionStrength = strength;
+}
+
+void CWaterShader::SetReflectionStrength(float strength)
+{
+	mReflectionStrength = strength;
+}
+
+void CWaterShader::SetCameraMatrix(D3DXMATRIX cameraWorld)
+{
+	mCameraMatrix = cameraWorld;
+}
+
+void CWaterShader::SetCameraPosition(D3DXVECTOR3 position)
+{
+	mCameraPosition = mCameraPosition;
+}
+
+void CWaterShader::SetViewportSize(int screenWidth, int screenHeight)
+{
+	mViewportSize = D3DXVECTOR2(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
+}
+
+void CWaterShader::SetLightProperties(CLight * light)
+{
+	mAmbientColour = light->GetAmbientColour();
+	mDiffuseColour = light->GetDiffuseColour();
+	mLightDirection = light->GetDirection();
+	mSpecularPower = light->GetSpecularPower();
+	mSpecularColour = light->GetSpecularColour();
+	mLightPosition = light->GetPos();
+}
+
+void CWaterShader::SetNormalMap(CTexture * normalMap)
+{
+	mpNormalMap = normalMap->GetTexture();
+}
+
+void CWaterShader::SetRefractionMap(ID3D11ShaderResourceView * refractionMap)
+{
+	mpRefractionMap = refractionMap;
+}
+
+void CWaterShader::SetReflectionMap(ID3D11ShaderResourceView * reflectionMap)
+{
+	mpReflectionMap = reflectionMap;
 }

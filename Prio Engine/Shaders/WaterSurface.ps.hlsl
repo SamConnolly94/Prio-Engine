@@ -26,9 +26,7 @@ cbuffer MatrixBuffer : register(b0)
 
 cbuffer WaterBuffer : register(b1)
 {
-	float4 WaterSize;
-	float4 WaterSpeed;
-	float2 WaterTranslation;
+	float2 WaterMovement;
 	float WaveHeight;
 	float WaveScale;
 	float RefractionDistortion;
@@ -36,6 +34,7 @@ cbuffer WaterBuffer : register(b1)
 	float MaxDistortionDistance;
 	float RefractionStrength;
 	float ReflectionStrength;
+	float3 waterBufferPadding;
 }
 
 cbuffer CameraBuffer : register(b2)
@@ -50,12 +49,16 @@ cbuffer ViewportBuffer : register(b3)
 	float2 ViewportSize;
 }
 
+//float4 AmbientColour;
+//float4 DiffuseColour;
+//float3 LightDirection;
+//float lightBufferPadding;
+
 cbuffer LightBuffer : register(b4)
 {
-	float4	AmbientColour;
-	float4	DiffuseColour;
-	float3	LightDirection;
-	float	lightBufferPadding;
+	float3 LightPosition;
+	float4 LightColour;
+	float  SpecularPower;
 }
 
 //////////////////////////
@@ -69,23 +72,33 @@ struct PixelInputType
 	float4 WorldPosition : POSITION;
 };
 
-
 //////////////////////////
 // Pixel shader
 //////////////////////////
 
+static const float WaterSize1  = 0.5f;
+static const float WaterSize2 = 1.0f;
+static const float WaterSize3 = 2.0f;
+static const float WaterSize4 = 4.0f;
+
+// Each wave layer moves at different speeds so it animates in a varying manner
+static const float WaterSpeed1 = 0.5f;
+static const float WaterSpeed2 = 1.0f;
+static const float WaterSpeed3 = 1.7f;
+static const float WaterSpeed4 = 2.6f;
+
 float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 {
 	float2 waterUV = input.UV;
-	float3 normal1 = NormalHeightMap.Sample(TrilinearWrap, WaterSize.w * (waterUV + WaterTranslation * WaterSpeed.w)).rgb * 2.0f - 1.0f;
-	float3 normal2 = NormalHeightMap.Sample(TrilinearWrap, WaterSize.x * (waterUV + WaterTranslation * WaterSpeed.x)).rgb * 2.0f - 1.0f;
-	float3 normal3 = NormalHeightMap.Sample(TrilinearWrap, WaterSize.y * (waterUV + WaterTranslation * WaterSpeed.y)).rgb * 2.0f - 1.0f;
-	float3 normal4 = NormalHeightMap.Sample(TrilinearWrap, WaterSize.z * (waterUV + WaterTranslation * WaterSpeed.z)).rgb * 2.0f - 1.0f;
+	float3 normal1 = NormalHeightMap.Sample(TrilinearWrap, WaterSize1 * (waterUV + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
+	float3 normal2 = NormalHeightMap.Sample(TrilinearWrap, WaterSize2 * (waterUV + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
+	float3 normal3 = NormalHeightMap.Sample(TrilinearWrap, WaterSize3 * (waterUV + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
+	float3 normal4 = NormalHeightMap.Sample(TrilinearWrap, WaterSize4 * (waterUV + WaterMovement * WaterSpeed4)).rgb * 2.0f - 1.0f;
 
-	normal1.y *= WaterSize.w;
-	normal2.y *= WaterSize.x;
-	normal3.y *= WaterSize.y;
-	normal4.y *= WaterSize.z;
+	normal1.y *= WaterSize1;
+	normal2.y *= WaterSize2;
+	normal3.y *= WaterSize3;
+	normal4.y *= WaterSize4;
 
 	normal1 = normalize(normal1);
 	normal2 = normalize(normal2);
@@ -94,13 +107,9 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 
 	float3 waterNormal = (normal1 + normal2 + normal3 + normal4) / 4.0f;
 
-	float temp = waterNormal.z;
-	waterNormal.z = waterNormal.y;
-	waterNormal.y = temp;
+	waterNormal.yz = waterNormal.zy;
 
 	waterNormal.y /= (WaveScale + 0.001f);
-
-	//normalise final normal value
 	waterNormal = normalize(waterNormal);
 
 	float2 waterNormal2D = waterNormal.xz;
@@ -117,21 +126,21 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 
 	reflectColour = lerp(refractColour, reflectColour, saturate(refractionDepth * MaxDistortionDistance / (0.5f * WaveHeight * WaveScale)));
 
-	float3 normalToCamera = normalize(CameraPosition - input.WorldPosition.xyz);
+	// Water Lighting
+	float3 normalToCamera = normalize(CameraPosition - input.WorldPosition);
 
-	// Light 1
-	float3 vectorToLight = -LightDirection;
-	float3 normalToLight = normalize(vectorToLight);
-	float3 halfwayVector = normalize(normalToLight + normalToCamera);
-	float3 specularLight = 0.0f;
+	//// LIGHT 1
+	float3 light1Dir = normalize(LightPosition - input.WorldPosition.xyz);
+	float3 light1Dist = length(LightPosition - input.WorldPosition.xyz);
+	float3 diffuseLight1 = LightColour * max(dot(waterNormal.xyz, light1Dir), 0) / light1Dist;
+	float3 halfway = normalize(light1Dir + normalToCamera);
+	float3 specularLight1 = diffuseLight1 * pow(max(dot(waterNormal.xyz, halfway), 0), SpecularPower);
 
-	reflectColour.rgb += 2.0f * specularLight;
+	reflectColour.rgb += specularLight1;
 
-
-	float n1 = 1.0;
+	float n1 = 1.0; // Refractive index of air
 	float n2 = 1.5f;
 	float  f0 = pow(((n1 - n2) / (n1 + n2)),2);
 	float fresnel = 0.25;
-
 	return lerp(refractColour, reflectColour, fresnel);
 }

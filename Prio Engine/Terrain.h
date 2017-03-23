@@ -45,6 +45,7 @@ private:
 	const unsigned int kNumberOfRockTextures = 2;
 	float mLowestPoint;
 	float mHighestPoint;
+	CTexture* mpPatchMap;
 public:
 	bool CreateTerrain(ID3D11Device* device);
 	void Render(ID3D11DeviceContext* context);
@@ -54,6 +55,7 @@ public:
 	unsigned int GetNumberOfTextures() { return kmNumberOfTextures; };
 	unsigned int GetNumberOfGrassTextures();
 	unsigned int GetNumberOfRockTextures();
+	CTexture* GetPatchMap() { return mpPatchMap; };
 private:
 	bool InitialiseBuffers(ID3D11Device* device);
 	void ShutdownBuffers();

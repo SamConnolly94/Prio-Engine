@@ -25,6 +25,12 @@ class CMesh
 {
 private:
 	CLogger* logger;
+public:
+	enum RenderType
+	{
+		Opaque,
+		Transparent
+	};
 private:
 	// File strings
 	std::string mFilename;
@@ -60,6 +66,7 @@ private:
 	SubMesh* mpSubMeshes;
 	unsigned int mNumberOfSubMeshes;
 	bool CreateSubmesh(const aiMesh& mesh, SubMesh* subMesh);
+	RenderType mRenderType;
 public:
 	CMesh(ID3D11Device* device);
 	~CMesh();
@@ -68,7 +75,7 @@ public:
 	CModel* CreateModel();
 	bool LoadMesh(std::string filename);
 
-	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, std::list<CLight*>lights);
+	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light);
 	void Shutdown();
 private:
 	bool LoadAssimpModel(std::string filename);

@@ -2,20 +2,19 @@
 
 CWater::CWater()
 {
-	mpNormalHeightMap = nullptr;
+	mpNormalMap = nullptr;
 	mpVertexBuffer = nullptr;
 	mpIndexBuffer = nullptr;
 
-	mSize = { 0.5f, 1.0f, 2.0f, 4.0f };
-	mSpeed = { 0.5, 1.0f, 1.7f, 2.6f };
-	mTranslation = { 0.0f, 0.0f };
-	mWaveHeight = 400.0f * (1.0f / 32.0f);
+	mMovement = { 0.0f, 0.0f };
+	mWaveHeight = 7.5f;
 	mWaveScale = 0.6f;
-	mRefractionDistortion = 16.0f;
-	mReflectionDistortion = 20.0f;
+	mRefractionDistortion = 20.0f;
+	mReflectionDistortion = 16.0f;
 	mMaxDistortionDistance = 40.0f;
-	mRefractionStrength = 0.9f;
-	mReflectionStrength = 0.95f;
+	mRefractionStrength = 0.95f;
+	mReflectionStrength = 0.9f;
+	mWaterDepth = 6.0f;
 }
 
 
@@ -34,8 +33,8 @@ bool CWater::Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 
 		return false;
 	}
 
-	mpNormalHeightMap = new CTexture();
-	if (!mpNormalHeightMap->Initialise(device, normalMap))
+	mpNormalMap = new CTexture();
+	if (!mpNormalMap->Initialise(device, "Resources/Textures/WaterNormalHeight.png"))
 	{
 		logger->GetInstance().WriteLine("Failed to load the normal map for water. Filename was: " + normalMap);
 		return false;
@@ -102,11 +101,11 @@ void CWater::Shutdown()
 		mpReflectionRenderTexture = nullptr;
 	}
 
-	if (mpNormalHeightMap)
+	if (mpNormalMap)
 	{
-		mpNormalHeightMap->Shutdown();
-		delete mpNormalHeightMap;
-		mpNormalHeightMap = nullptr;
+		mpNormalMap->Shutdown();
+		delete mpNormalMap;
+		mpNormalMap = nullptr;
 	}
 
 	if (mpIndexBuffer)
@@ -127,21 +126,11 @@ void CWater::Render(ID3D11DeviceContext * deviceContext)
 	RenderBuffers(deviceContext);
 }
 
-void CWater::Update()
+void CWater::Update(float frameTime)
 {
-	mTranslation.x += 0.00001f;
-
-	if (mTranslation.x > 1.0f)
-	{
-		mTranslation.x -= 1.0f;
-	}
-
-	//mTranslation.y += 0.00001f;
-
-	//if (mTranslation.y > 1.0f)
-	//{
-	//	mTranslation.y -= 1.0f;
-	//}
+	// Mess around with these numbers until you find something you like.
+	mMovement.x += frameTime * 0.005f;
+	mMovement.y += frameTime  * 0.007f;
 }
 
 bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, bool uvs /* = true */, bool normals/* = true*/)
@@ -208,7 +197,7 @@ bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DX
 	D3D11_BUFFER_DESC bufferDesc;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = mNumVertices * sizeof(VertexType);
+	bufferDesc.ByteWidth = mNumVertices * vertexSize;
 	bufferDesc.CPUAccessFlags = 0;
 	bufferDesc.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA initData;
@@ -237,9 +226,9 @@ unsigned int CWater::GetNumberOfIndices()
 	return mNumIndices;
 }
 
-CTexture * CWater::GetNormalHeightMap()
+CTexture * CWater::GetNormalMap()
 {
-	return mpNormalHeightMap;
+	return mpNormalMap;
 }
 
 CRenderTexture * CWater::GetRefractionTexture()
@@ -291,19 +280,9 @@ void CWater::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-D3DXVECTOR4 CWater::GetSize()
+D3DXVECTOR2 CWater::GetMovement()
 {
-	return mSize;
-}
-
-D3DXVECTOR4 CWater::GetSpeed()
-{
-	return mSpeed;
-}
-
-D3DXVECTOR2 CWater::GetTranslation()
-{
-	return mTranslation;
+	return mMovement;
 }
 
 float CWater::GetWaveHeight()
@@ -339,4 +318,9 @@ float CWater::GetRefractionStrength()
 float CWater::GetReflectionStrength()
 {
 	return mReflectionStrength;
+}
+
+float CWater::GetDepth()
+{
+	return mWaterDepth;
 }

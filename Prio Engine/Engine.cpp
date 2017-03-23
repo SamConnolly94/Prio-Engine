@@ -14,6 +14,7 @@ CEngine::CEngine()
 	}
 	mTimeSinceLastKeyPress = 0.0f;
 	mWireframeEnabled = false;
+	mFrameTime = 0.0f;
 }
 
 /* Default destructor. */
@@ -202,7 +203,7 @@ bool CEngine::Frame()
 	bool result;
 
 	// Process graphics for this frame;
-	result = mpGraphics->Frame();
+	result = mpGraphics->Frame(mFrameTime);
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to process the graphics for this frame. ");
@@ -389,12 +390,6 @@ void CEngine::StartTimer()
 	mTimer->Start();
 }
 
-/* Creates a camera which we will use to view the world from. */
-CCamera* CEngine::CreateCamera()
-{
-	return mpGraphics->CreateCamera();
-}
-
 void CEngine::ToggleWireframe()
 {
 	mpGraphics->ToggleWireframe();
@@ -461,6 +456,11 @@ bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)
 {
 	mpInput->KeyUp(fullscreenKey);
 	return mpGraphics->SetFullscreen(!mpGraphics->IsFullscreen());
+}
+
+CWater * CEngine::GetWater()
+{
+	return mpGraphics->GetWater();
 }
 
 /* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/

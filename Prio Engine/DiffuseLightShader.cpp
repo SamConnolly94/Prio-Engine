@@ -20,7 +20,7 @@ bool CDiffuseLightShader::Initialise(ID3D11Device * device, HWND hwnd)
 	bool result;
 
 	// Initialise the vertex pixel shaders.
-	result = InitialiseShader(device, hwnd, "Shaders/DiffuseLight.vs.hlsl", "Shaders/DiffuseLight.ps.hlsl");
+	result = InitialiseShader(device, hwnd, "Shaders/DiffuseLight.vs.hlsl", "Shaders/DiffuseLight.ps.hlsl", "Shaders/Transparent.ps.hlsl");
 
 	if (!result)
 	{
@@ -54,7 +54,7 @@ bool CDiffuseLightShader::Render(ID3D11DeviceContext* deviceContext, int indexCo
 	return true;
 }
 
-bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string transparentPSFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -118,6 +118,35 @@ bool CDiffuseLightShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std
 
 	// Create the pixel shader from the buffer.
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
+		return false;
+	}
+
+	/////////////////////////////////////////
+	// Transparent
+	/////////////////////////////////////////
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(transparentPSFilename.c_str(), NULL, NULL, "TransparentPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, transparentPSFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + transparentPSFilename + "'");
+			MessageBox(hwnd, transparentPSFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + transparentPSFilename + "'");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpTransparentPixelShader);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
@@ -435,7 +464,15 @@ void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int 
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
-	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
+
+	if (mUseTransparent)
+	{
+		deviceContext->PSSetShader(mpTransparentPixelShader, NULL, 0);
+	}
+	else
+	{
+		deviceContext->PSSetShader(mpPixelShader, NULL, 0);
+	}
 
 	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
@@ -444,4 +481,9 @@ void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int 
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
+}
+
+void CDiffuseLightShader::SetUseTransparent(bool enabled)
+{
+	mUseTransparent = enabled;
 }

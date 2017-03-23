@@ -2,6 +2,7 @@
 #define WATERSHADER_H
 
 #include "Shader.h"
+#include "Light.h"
 
 class CWaterShader :
 	public CShader
@@ -11,9 +12,7 @@ private:
 	// Vertex shader and surface pixel shader buffer reg 1.
 	struct WaterBufferType
 	{
-		D3DXVECTOR4 WaterSize;
-		D3DXVECTOR4 WaterSpeed;
-		D3DXVECTOR2 WaterTranslation;
+		D3DXVECTOR2 WaterMovement;
 		float WaveHeight;
 		float WaveScale;
 		float RefractionDistortion;
@@ -21,7 +20,7 @@ private:
 		float MaxDistortionDistance;
 		float RefractionStrength;
 		float ReflectionStrength;
-		D3DXVECTOR3 waterPadding;
+		D3DXVECTOR3 waterBufferPadding;
 	};
 
 	// surface pixel shader reg 2.
@@ -43,10 +42,13 @@ private:
 	// Surface pixel shader reg 4
 	struct LightBufferType
 	{
-		D3DXVECTOR4	AmbientColour;
-		D3DXVECTOR4	DiffuseColour;
-		D3DXVECTOR3	LightDirection;
-		float lightBufferPadding;
+		//D3DXVECTOR4	AmbientColour;
+		//D3DXVECTOR4	DiffuseColour;
+		//D3DXVECTOR3	LightDirection;
+		//float lightBufferPadding;
+		D3DXVECTOR3 LightPosition;
+		D3DXVECTOR4 LightColour;
+		float  Brightness;
 	};
 public:
 	CWaterShader();
@@ -54,31 +56,64 @@ public:
 
 	bool Initialise(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	bool RenderSurface(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, 
-		D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion, float maxDistortion,
-		float refractionStrength, float reflectionStrength,	D3DXMATRIX cameraMatrix, D3DXVECTOR3 cameraPosition, D3DXVECTOR2 viewportSize, D3DXVECTOR4 ambientColour, 
-		D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection, ID3D11ShaderResourceView* normalHeightMap, ID3D11ShaderResourceView* refractionMap, ID3D11ShaderResourceView* reflectionMap);
+	bool RenderSurface(ID3D11DeviceContext* deviceContext, int indexCount);
 
-	bool RenderHeight(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-		D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion, 
-		float maxDistortion, float refractionStrength, float reflectionStrength, ID3D11ShaderResourceView* normalHeightMap);
+	bool RenderHeight(ID3D11DeviceContext* deviceContext, int indexCount);
+private:
+	D3DXMATRIX mWorldMatrix; 
+	D3DXMATRIX mViewMatrix; 
+	D3DXMATRIX mProjMatrix;
+	D3DXVECTOR2 mWaterMovement; 
+	float mWaveHeight; 
+	float mWaveScale; 
+	float mRefractionDistortion; 
+	float mReflectionDistortion; 
+	float mMaxDistortion;
+	float mRefractionStrength; 
+	float mReflectionStrength; 
+	D3DXMATRIX mCameraMatrix; 
+	D3DXVECTOR3 mCameraPosition; 
+	D3DXVECTOR2 mViewportSize; 
+
+	D3DXVECTOR4 mAmbientColour;
+	D3DXVECTOR4 mDiffuseColour; 
+	D3DXVECTOR3 mLightDirection; 
+	float mSpecularPower;
+	D3DXVECTOR4 mSpecularColour;
+	D3DXVECTOR3 mLightPosition;
+
+	ID3D11ShaderResourceView* mpNormalMap; 
+	ID3D11ShaderResourceView* mpRefractionMap; 
+	ID3D11ShaderResourceView* mpReflectionMap;
+public:
+	void SetMatrices(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	void SetWaterMovement(D3DXVECTOR2 movement);
+	void SetWaveHeight(float height);
+	void SetWaveScale(float scale);
+	void SetDistortion(float refractionDistortion, float reflectionDistortion);
+	void SetMaxDistortion(float maxDistortion);
+	void SetRefractionStrength(float strength);
+	void SetReflectionStrength(float strength);
+	void SetCameraMatrix(D3DXMATRIX cameraWorld);
+	void SetCameraPosition(D3DXVECTOR3 position);
+	void SetViewportSize(int screenWidth, int screenHeight);
+	void SetLightProperties(CLight* light);
+	void SetNormalMap(CTexture* normalMap);
+	void SetRefractionMap(ID3D11ShaderResourceView* refractionMap);
+	void SetReflectionMap(ID3D11ShaderResourceView* reflectionMap);
+
 private:
 	bool InitialiseShader(ID3D11Device* device, HWND hwnd, std::string vsFilename, std::string surfacePsFilename, std::string heightPsFilename);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, std::string shaderFilename);
 
-	bool SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-		D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion, float maxDistortion,
-		float refractionStrength, float reflectionStrength, D3DXMATRIX cameraMatrix, D3DXVECTOR3 cameraPosition, D3DXVECTOR2 viewportSize, D3DXVECTOR4 ambientColour,
-		D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection, ID3D11ShaderResourceView* normalHeightMap, ID3D11ShaderResourceView* refractionMap, ID3D11ShaderResourceView* reflectionMap);
-	bool SetHeightShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix,
-		D3DXVECTOR4 waterSize, D3DXVECTOR4 waterSpeed, D3DXVECTOR2 waterTranslation, float waveHeight, float waveScale, float refractionDistortion, float reflectionDistortion,
-		float maxDistortion, float refractionStrength, float reflectionStrength, ID3D11ShaderResourceView* normalHeightMap);
+	bool SetHeightShaderParameters(ID3D11DeviceContext* deviceContext);
+	bool SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext);
 	void RenderSurfaceShader(ID3D11DeviceContext* deviceContext, int indexCount);
 	void RenderHeightShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
 private:
-	ID3D11VertexShader* mpVertexShader;
+	ID3D11VertexShader* mpSurfaceVertexShader;
 	ID3D11PixelShader* mpSurfacePixelShader;
 	ID3D11PixelShader* mpHeightPixelShader;
 	ID3D11InputLayout* mpLayout;

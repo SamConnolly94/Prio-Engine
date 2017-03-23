@@ -73,10 +73,8 @@ public:
 	bool RemoveMesh(CMesh* mesh);
 
 	CMesh* LoadMesh(std::string filename);
-	
 
 	float GetFrameTime();
-	CCamera* CreateCamera();
 
 	void ToggleWireframe();
 
@@ -94,6 +92,7 @@ public:
 	bool RemoveUIImage(C2DImage *& element);
 	bool UpdateTerrainBuffers(CTerrain *& terrain, double** heightmap, int width, int height);
 	bool ToggleFullscreen(unsigned int fullscreenKey);
+	CWater* GetWater();
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

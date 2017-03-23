@@ -24,17 +24,17 @@ public:
 	bool Initialise(ID3D11Device* device, D3DXVECTOR3 minPoint, D3DXVECTOR3 maxPoint, unsigned int subDivisionX, unsigned int subDivisionZ, std::string normalMap, int screenWidth, int screenHeight);
 	void Shutdown();
 	void Render(ID3D11DeviceContext* deviceContext);
-	void Update();
+	void Update(float frameTime);
 private:
 	unsigned int mNumVertices;
 	unsigned int mNumIndices;
 	ID3D11Buffer* mpVertexBuffer;
 	ID3D11Buffer* mpIndexBuffer;
-	CTexture* mpNormalHeightMap;
+	CTexture* mpNormalMap;
 	void RenderBuffers(ID3D11DeviceContext* deviceContext);
 public:
 	unsigned int GetNumberOfIndices();
-	CTexture* GetNormalHeightMap();
+	CTexture* GetNormalMap();
 	CRenderTexture* GetRefractionTexture();
 	CRenderTexture* GetReflectionTexture();
 	CRenderTexture* GetHeightTexture();
@@ -48,10 +48,8 @@ private:
 	CRenderTexture* mpRefractionRenderTexture;
 	CRenderTexture* mpReflectionRenderTexture;
 	CRenderTexture* mpHeightRenderTexture;
-	
-	D3DXVECTOR4 mSize;
-	D3DXVECTOR4 mSpeed;
-	D3DXVECTOR2 mTranslation;
+
+	D3DXVECTOR2 mMovement;
 	float mWaveHeight;
 	float mWaveScale;
 	float mRefractionDistortion;
@@ -59,10 +57,9 @@ private:
 	float mMaxDistortionDistance;
 	float mRefractionStrength;
 	float mReflectionStrength;
+	float mWaterDepth;
 public:
-	D3DXVECTOR4 GetSize();
-	D3DXVECTOR4 GetSpeed();
-	D3DXVECTOR2 GetTranslation();
+	D3DXVECTOR2 GetMovement();
 	float GetWaveHeight();
 	float GetWaveScale();
 	float GetRefractionDistortion();
@@ -70,6 +67,7 @@ public:
 	float GetMaxDistortionDistance();
 	float GetRefractionStrength();
 	float GetReflectionStrength();
+	float GetDepth();
 };
 
 #endif

@@ -313,5 +313,16 @@
     <None Include="Shaders\WaterSurface.vs.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
+    <None Include="Shaders\SkyboxRefraction.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\SkyboxRefraction.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Transparent.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

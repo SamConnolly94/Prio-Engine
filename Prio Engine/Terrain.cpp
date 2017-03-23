@@ -28,6 +28,8 @@ CTerrain::CTerrain(ID3D11Device* device)
 	mpTextures[1] = new CTexture();
 	mpTextures[1]->Initialise(device, "Resources/Textures/Sand.dds");
 
+	mpPatchMap = new CTexture();
+	mpPatchMap->Initialise(device, "Resources/Patch Maps/PatchMap.png");
 
 	///////////////////////
 	// Grass textures
@@ -68,6 +70,8 @@ CTerrain::CTerrain(ID3D11Device* device)
 
 CTerrain::~CTerrain()
 {
+	delete mpPatchMap;
+
 	// Output dealloc message to memory log.
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(this).name());
 
@@ -235,10 +239,10 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	// Define the position in world space which we should decide on the terrain type.
 	const float changeInHeight = mHighestPoint - mLowestPoint;
 	float onePerc = changeInHeight / 100.0f;
-	mSnowHeight = mLowestPoint + (onePerc * 60);	// 60% and upwards will be snow.
-	mGrassHeight = mLowestPoint + (onePerc * 30);	// 30% and upwards will be grass.
-	mSandHeight = mLowestPoint + (onePerc * 10);	// 10% and upwards will be sand.
-	mDirtHeight = mLowestPoint + (onePerc * 15);	// 15% and upwards will be dirt.
+	mSnowHeight = mLowestPoint + (onePerc * 60) - mLowestPoint;	// 60% and upwards will be snow.
+	mGrassHeight = mLowestPoint + (onePerc * 30) - mLowestPoint;	// 30% and upwards will be grass.
+	mSandHeight = mLowestPoint + (onePerc * 10) - mLowestPoint;	// 10% and upwards will be sand.
+	mDirtHeight = mLowestPoint + (onePerc * 15) - mLowestPoint;	// 15% and upwards will be dirt.
 
 	/// Plot the vertices of the grid.
 	float U = 0.0f;
@@ -591,8 +595,20 @@ void CTerrain::LoadHeightMap(double ** heightMap)
 		}
 	}
 
+	// Iterate through the height.
+	for (int y = 0; y < mHeight; y++)
+	{
+		// Iterate through the width.
+		for (int x = 0; x < mWidth; x++)
+		{
+			mpHeightMap[y][x] -= mLowestPoint;
+		}
+	}
+
+	// TODO: Put this back in.
 	// Adjust the Y position of the map model to be equal to the lowest point.
-	SetYPos(0.0f - mLowestPoint);
+	//SetYPos(0.0f - mLowestPoint);
+
 	// Set the X position to be half of the width.
 	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
 
@@ -706,7 +722,16 @@ bool CTerrain::LoadHeightMapFromFile(std::string filename)
 	}
 
 	// Adjust the Y position of the map model to be equal to the lowest point.
-	SetYPos(0.0f - mLowestPoint);
+	//SetYPos(0.0f - mLowestPoint);
+	for (int y = 0; y < mHeight; y++)
+	{
+		// Iterate through the width.
+		for (int x = 0; x < mWidth; x++)
+		{
+			mpHeightMap[y][x] -= mLowestPoint;
+		}
+	}
+
 	// Set the X position to be half of the width.
 	SetXPos(0 - (static_cast<float>(mWidth) / 2.0f));
 
@@ -772,7 +797,12 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position)
 		tree.rotation = rotation;
 
 		float scale = static_cast<float>(rand() % 5 + 1);
+		if (scale < 0.5f)
+		{
+			scale = 0.5f;
+		}
 		tree.scale = scale;
+
 
 		mTreesInfo.push_back(tree);
 
@@ -808,6 +838,12 @@ bool CTerrain::CreatePlant(D3DXVECTOR3 position)
 		plant.rotation = rotation;
 
 		float scale = static_cast<float>(rand() % 10 + 1);
+
+		if (scale < 5.0f)
+		{
+			scale = 5.0f;
+		}
+
 		plant.scale = scale;
 
 		mPlantsInfo.push_back(plant);
