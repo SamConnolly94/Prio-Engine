@@ -155,14 +155,14 @@ bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DX
 			*reinterpret_cast<D3DXVECTOR3*>(vert) = pt;
 			vert += sizeof(D3DXVECTOR3);
 
-			*reinterpret_cast<D3DXVECTOR3*>(vert) = normal;
-			vert += sizeof(D3DXVECTOR3);
-
 			*reinterpret_cast<D3DXVECTOR2*>(vert) = uv;
 			vert += sizeof(D3DXVECTOR2);
 
 			pt.x += xStep;
 			uv.x += uStep;
+
+			*reinterpret_cast<D3DXVECTOR3*>(vert) = normal;
+			vert += sizeof(D3DXVECTOR3);
 		}
 		pt.x = minPoint.x;
 		pt.z += zStep;

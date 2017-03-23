@@ -118,22 +118,22 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	// Copy the colour of the horizon for the ambient colour.
 	D3DXVECTOR4 ambientColour = horizonColour;
 
-	const float ambientMultiplier = 0.4f;
+	const float ambientMultiplier = 0.7f;
 	ambientColour.x *= ambientMultiplier;
 	ambientColour.y *= ambientMultiplier;
 	ambientColour.z *= ambientMultiplier;
 	ambientColour.w = 1.0f;
 
 	// Set the direction of our light.
-	D3DXVECTOR3 direction(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 direction(0.0f, 0.0f, 1.0f);
 
 	// Set up specular vairables for our light.
-	float specularPower = 0.01f;
+	float specularPower = 0.1f;
 	D3DXVECTOR4 specularColour = ambientColour;
 
 	mpSceneLight = CreateLight(diffuseColour, specularColour, specularPower, ambientColour, direction);
-	mpWaterLight = CreateLight(D3DXVECTOR4(1.0f, 0.7f, 0.1f, 1.0f) * 150.0f, D3DXVECTOR4(1.0f, 0.7f, 0.1f, 1.0f) * 150.0f, 100.0f, D3DXVECTOR4(1.0f, 0.7f, 0.1f, 1.0f) * 150.0f, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
-	mpWaterLight->SetPos(0.0f, 20.0f, 50.0f);
+
+	mpWaterLight = CreateLight(D3DXVECTOR4(0.0f, 0.2f, 0.2f, 1.0f), D3DXVECTOR4(0.0f, 0.5f, 0.6f, 1.0f) * 150.0f, 1.0f, D3DXVECTOR4(0.0f, 0.5f, 0.6f, 1.0f) * 150.0f, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 	CreateSkybox(horizonColour);
 
@@ -820,8 +820,8 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		// Reset the terrain world matrix
 		mpTerrain->GetWorldMatrix(world);
 
+		
 		mpWater->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-		mpWater->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// Place our refract / reflect properties into the refract reflect shader.
@@ -838,7 +838,8 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpRefractionShader->SetPatchMap(mpTerrain->GetPatchMap());
 		mpRefractionShader->SetRockTexture(mpTerrain->GetRockTextureArray());
 
-		mpTerrain->Render(mpD3D->GetDeviceContext());
+		mpTerrain->Render(mpD3D->GetDeviceContext()); 
+		mpWater->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterLight->GetDiffuseColour().x, mpWaterLight->GetDiffuseColour().y, mpWaterLight->GetDiffuseColour().z, 1.0f);
 		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 
 		if (!result)
@@ -856,13 +857,13 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpTerrain->GetWorldMatrix(world);
 		
 		mpWater->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-		mpWater->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		
 		// Place vertices onto render pipeline.
 		mpTerrain->Render(mpD3D->GetDeviceContext());
 		
 		// Render vertices using reflection shader.
+		mpWater->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterLight->GetDiffuseColour().x, mpWaterLight->GetDiffuseColour().y, mpWaterLight->GetDiffuseColour().z, 1.0f);
 		result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 		if (!result)
 		{

@@ -622,16 +622,13 @@ bool CWaterShader::SetSurfaceShaderParameters(ID3D11DeviceContext* deviceContext
 	LightBufferType * lightBufferPtr = (LightBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
-	//lightBufferPtr->AmbientColour = mAmbientColour;
-	//lightBufferPtr->DiffuseColour = mDiffuseColour;
-	//lightBufferPtr->LightDirection = mLightDirection;
-	//lightBufferPtr->mSpecularColour = mSpecularColour;
-	//lightBufferPtr->mSpecularPower = mSpecularPower;
-	//lightBufferPtr->mLightPosition = mLightPosition;
-	//lightBufferPtr->lightBufferPadding = 0.0f;
-	lightBufferPtr->LightPosition = mLightPosition;
-	lightBufferPtr->LightColour = mSpecularColour;
-	lightBufferPtr->Brightness = mSpecularPower;
+	lightBufferPtr->AmbientColour = mAmbientColour;
+	lightBufferPtr->DiffuseColour = mDiffuseColour;
+	lightBufferPtr->LightDirection = mLightDirection;
+	lightBufferPtr->mSpecularColour = mSpecularColour;
+	lightBufferPtr->mSpecularPower = mSpecularPower;
+	lightBufferPtr->mLightPosition = mLightPosition;
+	lightBufferPtr->lightBufferPadding = 0.0f;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpLightBuffer, 0);

@@ -49,16 +49,15 @@ cbuffer ViewportBuffer : register(b3)
 	float2 ViewportSize;
 }
 
-//float4 AmbientColour;
-//float4 DiffuseColour;
-//float3 LightDirection;
-//float lightBufferPadding;
-
 cbuffer LightBuffer : register(b4)
 {
-	float3 LightPosition;
-	float4 LightColour;
-	float  SpecularPower;
+	float4	AmbientColour;
+	float4	DiffuseColour;
+	float3	LightDirection;
+	float4	SpecularColour;
+	float3	LightPosition;
+	float	SpecularPower;
+	float	lightBufferPadding;
 }
 
 //////////////////////////
@@ -90,6 +89,7 @@ static const float WaterSpeed4 = 2.6f;
 float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 {
 	float2 waterUV = input.UV;
+	waterUV /= 8;
 	float3 normal1 = NormalHeightMap.Sample(TrilinearWrap, WaterSize1 * (waterUV + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
 	float3 normal2 = NormalHeightMap.Sample(TrilinearWrap, WaterSize2 * (waterUV + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
 	float3 normal3 = NormalHeightMap.Sample(TrilinearWrap, WaterSize3 * (waterUV + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
@@ -130,17 +130,20 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 	float3 normalToCamera = normalize(CameraPosition - input.WorldPosition);
 
 	//// LIGHT 1
-	float3 light1Dir = normalize(LightPosition - input.WorldPosition.xyz);
-	float3 light1Dist = length(LightPosition - input.WorldPosition.xyz);
-	float3 diffuseLight1 = LightColour * max(dot(waterNormal.xyz, light1Dir), 0) / light1Dist;
-	float3 halfway = normalize(light1Dir + normalToCamera);
-	float3 specularLight1 = diffuseLight1 * pow(max(dot(waterNormal.xyz, halfway), 0), SpecularPower);
+	//float3 light1Dir = normalize(LightPosition - input.WorldPosition.xyz);
+	//float3 light1Dist = length(LightPosition - input.WorldPosition.xyz);
+	//float3 diffuseLight1 = LightColour * max(dot(waterNormal.xyz, light1Dir), 0) / light1Dist;
+	//float3 halfway = normalize(light1Dir + normalToCamera);
+	//float3 specularLight1 = diffuseLight1 * pow(max(dot(waterNormal.xyz, halfway), 0), SpecularPower);
 
-	reflectColour.rgb += specularLight1;
+	float3 halfWayVector = normalize(normalize(-LightDirection) + normalToCamera);
+	float3 specLight = DiffuseColour * pow(max(dot(waterNormal, halfWayVector), 0), SpecularPower);
+
+	reflectColour.rgb += specLight;
 
 	float n1 = 1.0; // Refractive index of air
 	float n2 = 1.5f;
 	float  f0 = pow(((n1 - n2) / (n1 + n2)),2);
-	float fresnel = 0.25;
+	float fresnel = 0.25f;
 	return lerp(refractColour, reflectColour, fresnel);
 }

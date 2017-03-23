@@ -42,13 +42,13 @@ private:
 	// Surface pixel shader reg 4
 	struct LightBufferType
 	{
-		//D3DXVECTOR4	AmbientColour;
-		//D3DXVECTOR4	DiffuseColour;
-		//D3DXVECTOR3	LightDirection;
-		//float lightBufferPadding;
-		D3DXVECTOR3 LightPosition;
-		D3DXVECTOR4 LightColour;
-		float  Brightness;
+		D3DXVECTOR4	AmbientColour;
+		D3DXVECTOR4	DiffuseColour;
+		D3DXVECTOR3	LightDirection;
+		D3DXVECTOR4 mSpecularColour;
+		D3DXVECTOR3 mLightPosition;
+		float mSpecularPower;
+		float lightBufferPadding;
 	};
 public:
 	CWaterShader();
