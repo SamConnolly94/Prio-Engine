@@ -89,7 +89,7 @@ static const float WaterSpeed4 = 2.6f;
 float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 {
 	float2 waterUV = input.UV;
-	waterUV /= 8;
+	//waterUV /= 8;
 	float3 normal1 = NormalHeightMap.Sample(TrilinearWrap, WaterSize1 * (waterUV + WaterMovement * WaterSpeed1)).rgb * 2.0f - 1.0f;
 	float3 normal2 = NormalHeightMap.Sample(TrilinearWrap, WaterSize2 * (waterUV + WaterMovement * WaterSpeed2)).rgb * 2.0f - 1.0f;
 	float3 normal3 = NormalHeightMap.Sample(TrilinearWrap, WaterSize3 * (waterUV + WaterMovement * WaterSpeed3)).rgb * 2.0f - 1.0f;
@@ -113,7 +113,7 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 	waterNormal = normalize(waterNormal);
 
 	float2 waterNormal2D = waterNormal.xz;
-	float2 offsetDir = waterNormal2D;
+	float2 offsetDir = waterNormal2D * 0.3f;
 
 	float2 screenUV = input.ProjectedPosition.xy / ViewportSize;
 	float4 refractionDepth = RefractionMap.Sample(BilinearMirror, screenUV).a;
@@ -143,7 +143,15 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 
 	float n1 = 1.0; // Refractive index of air
 	float n2 = 1.5f;
-	float  f0 = pow(((n1 - n2) / (n1 + n2)),2);
-	float fresnel = 0.25f;
-	return lerp(refractColour, reflectColour, fresnel);
+
+	float f0 = (n1 - n2) / (n1 + n2);
+	f0 *= f0;
+
+	float fresnel = f0 + (1 - f0) * pow((1 - saturate(dot(waterNormal, normalToCamera))), 5);
+	// fresnel = saturate(lerp(f0, 1, fresnel));
+
+	fresnel = 0.25f;
+	//float fresnel = 0.25f;
+	return lerp(refractColour, float4(0,1,1,1), fresnel);
+
 }

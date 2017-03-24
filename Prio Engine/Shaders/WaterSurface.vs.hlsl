@@ -74,7 +74,7 @@ PixelInputType WaterSurfaceVS(VertexInputType input)
 	PixelInputType output;
 
 	float2 waterUV = input.UV;
-	waterUV /= 8;
+	//waterUV /= 8;
 	float normal1 = NormalHeightMap.SampleLevel(TrilinearWrap, WaterSize1 * (waterUV + WaterMovement * WaterSpeed1), 0.0f).a;
 	float normal2 = NormalHeightMap.SampleLevel(TrilinearWrap, WaterSize2 * (waterUV + WaterMovement * WaterSpeed2), 0.0f).a;
 	float normal3 = NormalHeightMap.SampleLevel(TrilinearWrap, WaterSize3 * (waterUV + WaterMovement * WaterSpeed3), 0.0f).a;

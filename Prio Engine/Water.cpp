@@ -7,7 +7,8 @@ CWater::CWater()
 	mpIndexBuffer = nullptr;
 
 	mMovement = { 0.0f, 0.0f };
-	mWaveHeight = 7.5f;
+	//mWaveHeight = 7.5f;
+	mWaveHeight = 0.0f;
 	mWaveScale = 0.6f;
 	mRefractionDistortion = 20.0f;
 	mReflectionDistortion = 16.0f;

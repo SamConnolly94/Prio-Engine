@@ -79,7 +79,7 @@ private:
 	CTerrainShader* mpTerrainShader;
 	CSkyboxShader* mpSkyboxShader;
 	CWaterShader* mpWaterShader;
-	CRefractionShader* mpRefractionShader;
+	CReflectRefractShader* mpRefractionShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);

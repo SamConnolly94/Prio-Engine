@@ -3,7 +3,7 @@
 
 #include "Shader.h"
 #include "Light.h"
-class CRefractionShader :
+class CReflectRefractShader :
 	public CShader
 {
 private:
@@ -48,8 +48,8 @@ private:
 	};
 
 public:
-	CRefractionShader();
-	~CRefractionShader();
+	CReflectRefractShader();
+	~CReflectRefractShader();
 public:
 	bool Initialise(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
@@ -96,7 +96,7 @@ public:
 	void SetPatchMap(CTexture* patchMap);
 	void SetRockTexture(CTexture** rockTexArray);
 private:
-	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename/*, std::string skyboxRefractionVSName, std::string skyboxRefractionPSName*/);
+	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName/*, std::string skyboxRefractionVSName, std::string skyboxRefractionPSName*/);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename);
 
@@ -105,8 +105,8 @@ private:
 	//bool SetSkyboxShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	//	D3DXMATRIX projMatrix, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour, ID3D11ShaderResourceView* waterHeightMap);
 
-	void CRefractionShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
-	void CRefractionShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
+	void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
+	void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderSkyboxRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 
 private:
@@ -114,6 +114,7 @@ private:
 	//ID3D11VertexShader* mpSkyboxVertexShader;
 	ID3D11PixelShader* mpRefractionPixelShader;
 	ID3D11PixelShader* mpReflectionPixelShader;
+	ID3D11PixelShader* mpModelReflectionPixelShader;
 	//ID3D11PixelShader* mpSkyboxRefractionPixelShader;
 	ID3D11InputLayout* mpLayout;
 	ID3D11SamplerState* mpTrilinearWrap;

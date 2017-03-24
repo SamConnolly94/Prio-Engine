@@ -678,7 +678,7 @@ bool CD3D11::CreateSwapChain(D3D_FEATURE_LEVEL & featureLevel, DXGI_SWAP_CHAIN_D
 	featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	// Create swap chain from the descriptor we have set.
-	HRESULT result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, /*NULL*/ D3D11_CREATE_DEVICE_DEBUG, &featureLevel, 1,
+	HRESULT result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, NULL /*D3D11_CREATE_DEVICE_DEBUG*/, &featureLevel, 1,
 		D3D11_SDK_VERSION, &swapChainDesc, &mpSwapChain, &mpDevice, NULL, &mpDeviceContext);
 
 	// If we did not successfully create the device and swap chain.

@@ -151,7 +151,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	mpRefractionShader = new CRefractionShader();
+	mpRefractionShader = new CReflectRefractShader();
 
 	if (!mpRefractionShader->Initialise(mpD3D->GetDevice(), hwnd))
 	{
@@ -189,7 +189,7 @@ void CGraphics::Shutdown()
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
 	}
 
-	if (mpWater != nullptr)
+	if (mpWater)
 	{
 		mpWater->Shutdown();
 		delete mpWater;
@@ -382,7 +382,8 @@ void CGraphics::UpdateScene(float updateTime)
 			mpWater->Update(updateTime);
 			mpWater->UpdateMatrices();
 
-			mpReflectionCamera->SetPosition(mpWater->GetPos() - mpCamera->GetPosition());
+			mpReflectionCamera->SetPosition(mpCamera->GetPosition());
+			mpReflectionCamera->SetPosizionY(mpWater->GetPosY() - mpReflectionCamera->GetPosition().y);
 			mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
 			mpReflectionCamera->Render();
 		}
@@ -458,6 +459,9 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 		// Render texture with light.
 		else if ((*primitivesIt)->HasTexture() && (*primitivesIt)->UseDiffuseLight())
 		{
+			// Pretty sure I broke this ages ago. Do I even care or ever want to render primitives?
+			// Probably not, but not certain yet.
+			// TODO: Investigate if I need this code.
 			//if (!RenderPrimitiveWithTextureAndDiffuseLight((*primitivesIt), world, view, proj))
 			//{
 			//	return false;
@@ -874,10 +878,11 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 		mpRefractionShader->SetView(view);
 
-
 		mpWater->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		
+		/* Render the reflection of the terrain. */
+
 		// Place vertices onto render pipeline.
 		mpTerrain->Render(mpD3D->GetDeviceContext());
 		
@@ -888,6 +893,14 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		{
 			logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
 			return false;
+		}
+
+		/* Render the reflection of models within the scene. */
+
+		// Render any models which belong to each mesh. Do this in batches to make it faster.
+		for (auto mesh : mpMeshes)
+		{
+			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, view, proj, mpSceneLight);
 		}
 
 		mpD3D->TurnOnBackFaceCulling();

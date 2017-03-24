@@ -2,7 +2,7 @@
 
 
 
-CRefractionShader::CRefractionShader()
+CReflectRefractShader::CReflectRefractShader()
 {
 	mpVertexShader					= nullptr;
 	mpRefractionPixelShader			= nullptr;
@@ -18,11 +18,11 @@ CRefractionShader::CRefractionShader()
 }
 
 
-CRefractionShader::~CRefractionShader()
+CReflectRefractShader::~CReflectRefractShader()
 {
 }
 
-bool CRefractionShader::Initialise(ID3D11Device * device, HWND hwnd)
+bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 {
 	bool result;
 
@@ -32,7 +32,9 @@ bool CRefractionShader::Initialise(ID3D11Device * device, HWND hwnd)
 	std::string TerrainPSReflectName = "Shaders/TerrainReflection.ps.hlsl";
 	std::string SkyboxVSName = "Shaders/SkyboxRefraction.vs.hlsl";
 	std::string SkyboxPSName = "Shaders/SkyboxRefraction.ps.hlsl";
-	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName);
+	std::string ModelReflectionPSName = "Shaders/ModelReflection.ps.hlsl";
+
+	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName);
 
 	if (!result)
 	{
@@ -43,13 +45,13 @@ bool CRefractionShader::Initialise(ID3D11Device * device, HWND hwnd)
 	return true;
 }
 
-void CRefractionShader::Shutdown()
+void CReflectRefractShader::Shutdown()
 {
 	// Shutodwn the vertex and pixel shaders as well as all related objects.
 	ShutdownShader();
 }
 
-bool CRefractionShader::RefractionRender(ID3D11DeviceContext* deviceContext, int indexCount)
+bool CReflectRefractShader::RefractionRender(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	bool result;
 
@@ -67,7 +69,7 @@ bool CRefractionShader::RefractionRender(ID3D11DeviceContext* deviceContext, int
 	return true;
 }
 
-bool CRefractionShader::ReflectionRender(ID3D11DeviceContext* deviceContext, int indexCount)
+bool CReflectRefractShader::ReflectionRender(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	bool result;
 
@@ -103,7 +105,7 @@ bool CRefractionShader::ReflectionRender(ID3D11DeviceContext* deviceContext, int
 //	return true;
 //}
 
-bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename)
+bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -179,7 +181,7 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	}
 
 	//////////////////////////////////
-	// Reflection
+	// Terrain Reflection
 	//////////////////////////////////
 
 	// Compile the pixel shader code.
@@ -201,6 +203,35 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	}
 	// Create the pixel shader from the buffer.
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpReflectionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the reflection pixel shader from the buffer.");
+		return false;
+	}
+
+	//////////////////////////////////
+	// Model Reflection
+	//////////////////////////////////
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(modelReflectionPSName.c_str(), NULL, NULL, "ModelReflectionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, modelReflectionPSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + modelReflectionPSName + "'");
+			MessageBox(hwnd, modelReflectionPSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + modelReflectionPSName + "'");
+		return false;
+	}
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpModelReflectionPixelShader);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the reflection pixel shader from the buffer.");
@@ -475,7 +506,7 @@ bool CRefractionShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::
 	return true;
 }
 
-void CRefractionShader::ShutdownShader()
+void CReflectRefractShader::ShutdownShader()
 {
 	if (mpTrilinearWrap)
 	{
@@ -544,7 +575,7 @@ void CRefractionShader::ShutdownShader()
 	}
 }
 
-void CRefractionShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename)
+void CReflectRefractShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename)
 {
 	std::string errMsg;
 	char* compileErrors;
@@ -576,7 +607,7 @@ void CRefractionShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND 
 	MessageBox(hwnd, "Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename.c_str(), MB_OK);
 }
 
-bool CRefractionShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
+bool CReflectRefractShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -845,7 +876,7 @@ bool CRefractionShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 //	return true;
 //}
 
-void CRefractionShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
@@ -890,7 +921,7 @@ void CRefractionShader::RenderReflectionShader(ID3D11DeviceContext * deviceConte
 //	return;
 //}
 
-void CRefractionShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
@@ -916,25 +947,25 @@ void CRefractionShader::RenderRefractionShader(ID3D11DeviceContext * deviceConte
 	return;
 }
 
-void CRefractionShader::SetWorld(D3DXMATRIX worldMatrix)
+void CReflectRefractShader::SetWorld(D3DXMATRIX worldMatrix)
 {
 	mWorldMatrix = worldMatrix;
 	D3DXMatrixTranspose(&mWorldMatrix, &mWorldMatrix);
 }
 
-void CRefractionShader::SetView(D3DXMATRIX viewMatrix)
+void CReflectRefractShader::SetView(D3DXMATRIX viewMatrix)
 {
 	mViewMatrix = viewMatrix;
 	D3DXMatrixTranspose(&mViewMatrix, &mViewMatrix);
 }
 
-void CRefractionShader::SetProj(D3DXMATRIX projMatrix)
+void CReflectRefractShader::SetProj(D3DXMATRIX projMatrix)
 {
 	mProjMatrix = projMatrix;
 	D3DXMatrixTranspose(&mProjMatrix, &mProjMatrix);
 }
 
-void CRefractionShader::SetLightProperties(CLight * light)
+void CReflectRefractShader::SetLightProperties(CLight * light)
 {
 	mAmbientColour = light->GetAmbientColour();
 	mDiffuseColour = light->GetDiffuseColour();
@@ -944,12 +975,12 @@ void CRefractionShader::SetLightProperties(CLight * light)
 	mLightPosition = light->GetPos();
 }
 
-void CRefractionShader::SetViewportProperties(int screenWidth, int screenHeight)
+void CReflectRefractShader::SetViewportProperties(int screenWidth, int screenHeight)
 {
 	mViewportSize = D3DXVECTOR2(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
 }
 
-void CRefractionShader::SetTerrainAreaProperties(float snowHeight, float grassHeight, float dirtHeight, float sandHeight)
+void CReflectRefractShader::SetTerrainAreaProperties(float snowHeight, float grassHeight, float dirtHeight, float sandHeight)
 {
 	mSnowHeight = snowHeight;
 	mGrassHeight = grassHeight;
@@ -957,35 +988,35 @@ void CRefractionShader::SetTerrainAreaProperties(float snowHeight, float grassHe
 	mSandHeight = sandHeight;
 }
 
-void CRefractionShader::SetPositioningProperties(float terrainPositionY, float waterPlanePositionY)
+void CReflectRefractShader::SetPositioningProperties(float terrainPositionY, float waterPlanePositionY)
 {
 	mTerrainYOffset = terrainPositionY;
 	mWaterPlaneYOffset = waterPlanePositionY;
 }
 
-void CRefractionShader::SetWaterHeightmap(ID3D11ShaderResourceView * waterHeightMap)
+void CReflectRefractShader::SetWaterHeightmap(ID3D11ShaderResourceView * waterHeightMap)
 {
 	mpWaterHeightMap = waterHeightMap;
 }
 
-void CRefractionShader::SetDirtTextureArray(CTexture ** dirtTexArray)
+void CReflectRefractShader::SetDirtTextureArray(CTexture ** dirtTexArray)
 {
 	mpDirtTexArray[0] = dirtTexArray[0]->GetTexture();
 	mpDirtTexArray[1] = dirtTexArray[1]->GetTexture();
 }
 
-void CRefractionShader::SetGrassTextureArray(CTexture ** grassTexArray)
+void CReflectRefractShader::SetGrassTextureArray(CTexture ** grassTexArray)
 {
 	mpGrassTextures[0] = grassTexArray[0]->GetTexture();
 	mpGrassTextures[1] = grassTexArray[1]->GetTexture();
 }
 
-void CRefractionShader::SetPatchMap(CTexture * patchMap)
+void CReflectRefractShader::SetPatchMap(CTexture * patchMap)
 {
 	mpPatchMap = patchMap->GetTexture();
 }
 
-void CRefractionShader::SetRockTexture(CTexture ** rockTexArray)
+void CReflectRefractShader::SetRockTexture(CTexture ** rockTexArray)
 {
 	mpRockTextures[0] = rockTexArray[0]->GetTexture();
 	mpRockTextures[1] = rockTexArray[1]->GetTexture();

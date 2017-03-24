@@ -18,6 +18,7 @@
 #include <postprocess.h>
 #include "PrioEngineVars.h"
 #include "Frustum.h"
+#include "RefractReflectShader.h"
 
 const int mNumberOfTextures = 3;
 
@@ -69,6 +70,7 @@ public:
 	bool LoadMesh(std::string filename);
 
 	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light);
+	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CReflectRefractShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light);
 	void Shutdown();
 private:
 	bool LoadAssimpModel(std::string filename);
