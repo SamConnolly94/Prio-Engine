@@ -8,6 +8,7 @@ class CModelControl
 {
 private:
 	CLogger* logger;
+	float ToRadians(float degrees);
 protected:
 	D3DXVECTOR3 mPosition;
 	D3DXVECTOR3 mRotation;

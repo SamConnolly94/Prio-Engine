@@ -50,11 +50,6 @@ private:
 	ID3D11SamplerState* mpSampleState;
 	ID3D11Buffer* mpLightBuffer;
 	ID3D11Buffer* mpMapBuffer;
-
-	bool mUseTransparent = false;
-
-public:
-	void SetUseTransparent(bool enabled);
 };
 
 #endif

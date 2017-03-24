@@ -249,7 +249,7 @@ float4 TerrainReflectionPS(PixelInputType input) : SV_TARGET
 	float2 screenUV = input.ProjectedPosition.xy / ViewportSize;
 	float waterHeight = WaterHeightMap.Sample(BilinearMirror, screenUV);
 	float objectHeight = input.WorldPosition.y - (WaterPlaneY - waterHeight);
-	clip(objectHeight);
 
+	clip(objectHeight);
 	return float4(TerrainPixel(input).rgb, saturate(objectHeight / 40.0f));
 }

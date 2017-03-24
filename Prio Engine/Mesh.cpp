@@ -58,11 +58,6 @@ bool CMesh::LoadMesh(std::string filename)
 
 void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light)
 {
-	if (mRenderType == Transparent)
-	{
-		shader->SetUseTransparent(true);
-	}
-
 	for (auto model : mpModels)
 	{
 		model->UpdateMatrices();
@@ -93,8 +88,6 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 			}
 		}
 	}
-
-	shader->SetUseTransparent(false);
 }
 
 /* Create an instance of this mesh.
@@ -123,16 +116,6 @@ CModel* CMesh::CreateModel()
 @Returns bool Success*/
 bool CMesh::LoadAssimpModel(std::string filename)
 {
-	// Grab the mesh object for the last mesh we loaded.
-	if (filename == "Resources/Models/Light.x")
-	{
-		mRenderType = RenderType::Transparent;
-	}
-	else
-	{
-		mRenderType = RenderType::Opaque;
-	}
-
 	Assimp::Importer importer;
 	const std::string name = filename;
 	logger->GetInstance().WriteLine("Attempting to open " + name + " using Assimp.");

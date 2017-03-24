@@ -465,14 +465,7 @@ void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
 
-	if (mUseTransparent)
-	{
-		deviceContext->PSSetShader(mpTransparentPixelShader, NULL, 0);
-	}
-	else
-	{
-		deviceContext->PSSetShader(mpPixelShader, NULL, 0);
-	}
+	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
@@ -481,9 +474,4 @@ void CDiffuseLightShader::RenderShader(ID3D11DeviceContext * deviceContext, int 
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
 	return;
-}
-
-void CDiffuseLightShader::SetUseTransparent(bool enabled)
-{
-	mUseTransparent = enabled;
 }

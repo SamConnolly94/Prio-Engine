@@ -29,6 +29,13 @@ void CCamera::SetPosition(float x, float y, float z)
 	mPosition.z = z;
 }
 
+void CCamera::SetPosition(D3DXVECTOR3 pos)
+{
+	mPosition.x = pos.x;
+	mPosition.y = pos.y;
+	mPosition.z = pos.z;
+}
+
 void CCamera::SetPositionX(float x)
 {
 	mPosition.x = x;
@@ -157,6 +164,15 @@ void CCamera::GetViewMatrix(D3DXMATRIX & viewMatrix)
 	viewMatrix = mViewMatrix;
 }
 
+void CCamera::GetReflectionView(D3DXMATRIX& view)
+{
+	D3DXMATRIX invertYMatrix = D3DXMATRIX(	1.0F, 0.0F, 0.0F, 0.0F, 
+											0.0F, -1.0F, 0.0F, 0.0F, 
+											0.0F, 0.0F, 1.0F, 0.0F, 
+											0.0F, 0.0F, 0.0F, 1.0F);
+	view = mViewMatrix * invertYMatrix;
+}
+
 void CCamera::GetViewProjMatrix(D3DXMATRIX & ViewProjMatrix)
 {
 	ViewProjMatrix = mViewProjMatrix;
@@ -175,9 +191,9 @@ void CCamera::UpdateMatrices()
 	D3DXMATRIX matrixTranslation;
 
 	// Calculate the rotation of the camera.
-	D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
-	D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
-	D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
+	D3DXMatrixRotationX(&matrixRotationX, ToRadians(mRotation.x));
+	D3DXMatrixRotationY(&matrixRotationY, ToRadians(mRotation.y));
+	D3DXMatrixRotationZ(&matrixRotationZ, ToRadians(mRotation.z));
 	
 	// Calculate the translation of the camera.
 	D3DXMatrixTranslation(&matrixTranslation, mPosition.x, mPosition.y, mPosition.z);
@@ -194,4 +210,12 @@ void CCamera::UpdateMatrices()
 
 	// Combine the view and proj matrix into one matrix. This comes in useful for efficiency, as it gets done in the vertex shader every time it has to draw a vertex shader.
 	mViewProjMatrix = mViewMatrix * mProjMatrix;
+}
+
+float CCamera::ToRadians(float degrees)
+{
+	const float kPi = 3.14159265359f;
+
+	return degrees * (kPi / 180.0f);
+
 }

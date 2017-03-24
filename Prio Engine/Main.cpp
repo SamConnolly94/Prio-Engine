@@ -107,8 +107,7 @@ void GameLoop(CEngine* &engine)
 void Control(CEngine* &engine, CCamera* cam, CTerrain* grid, float frameTime)
 {
 	const float kMoveSpeed = 25.0f;
-	const float kRotationSpeed = 10.0f;
-	const float kCamRotationSpeed = 2.5f;
+	const float kCamRotationSpeed = 100.0f;
 	
 	/// Camera control.
 	// Move backwards

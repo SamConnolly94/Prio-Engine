@@ -24,6 +24,12 @@ CModelControl::~CModelControl()
 {
 }
 
+float CModelControl::ToRadians(float degrees)
+{
+	const float kPi = 3.14159265359f;
+	return degrees * (kPi / 180.0f);
+}
+
 void CModelControl::RotateX(float x)
 {
 	mRotation.x += x;
@@ -245,9 +251,9 @@ void CModelControl::UpdateMatrices()
 		D3DXMATRIX matrixTranslation;
 
 		// Calculate the rotation of the camera.
-		D3DXMatrixRotationX(&matrixRotationX, mRotation.x);
-		D3DXMatrixRotationY(&matrixRotationY, mRotation.y);
-		D3DXMatrixRotationZ(&matrixRotationZ, mRotation.z);
+		D3DXMatrixRotationX(&matrixRotationX, ToRadians(mRotation.x));
+		D3DXMatrixRotationY(&matrixRotationY, ToRadians(mRotation.y));
+		D3DXMatrixRotationZ(&matrixRotationZ, ToRadians(mRotation.z));
 
 		// Calculate the translation of the camera.
 		D3DXMatrixTranslation(&matrixTranslation, mPosition.x, mPosition.y, mPosition.z);

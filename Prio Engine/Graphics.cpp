@@ -165,11 +165,15 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	//if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-100.0f, 10.0f, 0.0f), D3DXVECTOR3(99.0f, 10.0f, 200.0f), 100, 100, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
 
-	if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-50.0f, 7.0f, 0.0f), D3DXVECTOR3(99.0f, 7.0f, 200.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
+	if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-100.0f, 0.0f, 0.0f), D3DXVECTOR3(99.0f, 0.0f, 200.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
 		return false;
 	}
+
+	mpWater->SetPos(0.0f, 7.0f, 0.0f);
+
+	mpReflectionCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
@@ -178,6 +182,13 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpReflectionCamera)
+	{
+		delete mpReflectionCamera;
+		mpReflectionCamera = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
+	}
+
 	if (mpWater != nullptr)
 	{
 		mpWater->Shutdown();
@@ -370,6 +381,10 @@ void CGraphics::UpdateScene(float updateTime)
 			//mpWater->SetYPos(mpTerrain->GetPosY() +  mpWater->GetDepth());
 			mpWater->Update(updateTime);
 			mpWater->UpdateMatrices();
+
+			mpReflectionCamera->SetPosition(mpWater->GetPos() - mpCamera->GetPosition());
+			mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
+			mpReflectionCamera->Render();
 		}
 	}
 }
@@ -796,7 +811,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	mpWater->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 	
 	mpWater->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
-	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render the water height map.
 	mpWater->Render(mpD3D->GetDeviceContext());
@@ -822,7 +837,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 		
 		mpWater->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// Place our refract / reflect properties into the refract reflect shader.
 		mpRefractionShader->SetWorld(world);
@@ -855,7 +870,11 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 		// Reset the terrain world matrix
 		mpTerrain->GetWorldMatrix(world);
-		
+		mpReflectionCamera->GetReflectionView(view);
+
+		mpRefractionShader->SetView(view);
+
+
 		mpWater->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		

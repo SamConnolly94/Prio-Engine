@@ -67,6 +67,7 @@ private:
 	CD3D11* mpD3D;
 
 	CCamera* mpCamera;
+	CCamera* mpReflectionCamera;
 	CPrimitive* mpTriangle;
 	CGameText* mpText;
 	D3DXMATRIX mBaseView;

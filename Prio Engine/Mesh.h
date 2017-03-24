@@ -25,12 +25,6 @@ class CMesh
 {
 private:
 	CLogger* logger;
-public:
-	enum RenderType
-	{
-		Opaque,
-		Transparent
-	};
 private:
 	// File strings
 	std::string mFilename;
@@ -66,7 +60,6 @@ private:
 	SubMesh* mpSubMeshes;
 	unsigned int mNumberOfSubMeshes;
 	bool CreateSubmesh(const aiMesh& mesh, SubMesh* subMesh);
-	RenderType mRenderType;
 public:
 	CMesh(ID3D11Device* device);
 	~CMesh();
