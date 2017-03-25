@@ -487,7 +487,7 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 {
 	if (terrainPtr != nullptr)
 	{
-		CMesh* treeMesh = LoadMesh("Resources/Models/firtree3.3ds");
+		CMesh* treeMesh = LoadMesh("Resources/Models/firtree3.3ds", 2.0f);
 
 		for (auto treeInfo : terrainPtr->GetTreeInformation())
 		{
@@ -544,9 +544,9 @@ bool CEngine::RemoveMesh(CMesh * mesh)
 	return mpGraphics->RemoveMesh(mesh);
 }
 
-CMesh* CEngine::LoadMesh(std::string filename)
+CMesh* CEngine::LoadMesh(std::string filename, float radius)
 {
-	return mpGraphics->LoadMesh(filename);
+	return mpGraphics->LoadMesh(filename, radius);
 }
 
 /* Create a primitive shape and place it in our world, may pass in diffuse lighting boolean to indicate wether it should be used. */

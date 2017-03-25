@@ -112,7 +112,7 @@ public:
 	bool RemovePrimitive(CPrimitive* &model);
 
 	// Model creation / deletion.
-	CMesh* LoadMesh(std::string filename);
+	CMesh* LoadMesh(std::string filename, float radius = 1.0f);
 	bool RemoveMesh(CMesh* &mesh);
 
 	CTerrain* CreateTerrain(std::string mapFile);

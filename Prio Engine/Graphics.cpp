@@ -1242,7 +1242,7 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 	return false;
 }
 
-CMesh* CGraphics::LoadMesh(std::string filename)
+CMesh* CGraphics::LoadMesh(std::string filename, float radius)
 {
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice());
@@ -1250,7 +1250,7 @@ CMesh* CGraphics::LoadMesh(std::string filename)
 	logger->GetInstance().MemoryAllocWriteLine(typeid(mesh).name());
 
 	// If we failed to load the mesh, then delete the object and return a nullptr.
-	if (!mesh->LoadMesh(filename))
+	if (!mesh->LoadMesh(filename, radius))
 	{
 		// Deallocate memory.
 		delete mesh;

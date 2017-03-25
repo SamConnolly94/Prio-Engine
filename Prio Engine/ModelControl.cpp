@@ -202,6 +202,17 @@ D3DXVECTOR3 CModelControl::GetScale()
 	return mScale;
 }
 
+float CModelControl::GetScaleRadius(float initialRadius)
+{
+	float radius = 0.0f;
+
+	radius += mScale.x * initialRadius;
+	radius += mScale.y * initialRadius;
+	radius += mScale.z * initialRadius;
+
+	return radius;
+}
+
 void CModelControl::SetScaleX(float x)
 {
 	mScale.x = x;

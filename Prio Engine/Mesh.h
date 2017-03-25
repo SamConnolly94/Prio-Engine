@@ -18,7 +18,6 @@
 #include <postprocess.h>
 #include "PrioEngineVars.h"
 #include "Frustum.h"
-#include "RefractReflectShader.h"
 
 const int mNumberOfTextures = 3;
 
@@ -29,6 +28,7 @@ private:
 private:
 	// File strings
 	std::string mFilename;
+	float mRadius;
 
 	// A list of the instance of models belonging to this mesh.
 	std::list<CModel*> mpModels;
@@ -67,10 +67,9 @@ public:
 
 	// Loads data from file into our mesh object.
 	CModel* CreateModel();
-	bool LoadMesh(std::string filename);
+	bool LoadMesh(std::string filename, float modelRadius = 1.0f);
 
 	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light);
-	void Render(ID3D11DeviceContext* context, CFrustum* frustum, CReflectRefractShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light);
 	void Shutdown();
 private:
 	bool LoadAssimpModel(std::string filename);

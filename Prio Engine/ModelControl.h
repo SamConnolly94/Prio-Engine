@@ -56,6 +56,7 @@ public:
 	float GetScaleY();
 	float GetScaleZ();
 	D3DXVECTOR3 GetScale();
+	float GetScaleRadius(float initialRadius);
 
 	void SetScaleX(float x);
 	void SetScaleY(float y);

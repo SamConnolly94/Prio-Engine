@@ -39,8 +39,9 @@ void CMesh::Shutdown()
 }
 
 /* Load data from file into our mesh object. */
-bool CMesh::LoadMesh(std::string filename)
+bool CMesh::LoadMesh(std::string filename, float modelRadius)
 {
+	mRadius = modelRadius;
 	// If no file name was passed in, then output an error into the log and return false.
 	if (filename.empty() || filename == "")
 	{
@@ -61,7 +62,10 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 	for (auto model : mpModels)
 	{
 		model->UpdateMatrices();
-		if (frustum->CheckPoint(model->GetPosX(), model->GetPosY(), model->GetPosZ()))
+		bool inFrustum = true;
+		inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
+
+		if (inFrustum)
 		{
 
 			for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
@@ -88,41 +92,6 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 			}
 		}
 	}
-}
-
-
-void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CReflectRefractShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light)
-{
-	//for (auto model : mpModels)
-	//{
-	//	model->UpdateMatrices();
-	//	if (frustum->CheckPoint(model->GetPosX(), model->GetPosY(), model->GetPosZ()))
-	//	{
-
-	//		for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
-	//		{
-	//			// Prepare the buffers for rendering.
-	//			model->RenderBuffers(context, subMeshCount, mpSubMeshes[subMeshCount].vertexBuffer, mpSubMeshes[subMeshCount].indexBuffer, sizeof(VertexType));
-
-	//			// Get the textures.
-
-	//			bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
-	//			bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
-	//			shader->UpdateMapBuffer(context, useAlpha, useSpecular);
-
-
-	//			// Pass over the textures for rendering.
-	//			if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
-	//				model->GetWorldMatrix(), view, proj,
-	//				mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
-	//				light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
-	//			{
-	//				logger->GetInstance().WriteLine("Failed to render the mesh model.");
-	//			}
-
-	//		}
-	//	}
-	//}
 }
 
 /* Create an instance of this mesh.
