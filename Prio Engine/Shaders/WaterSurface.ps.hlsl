@@ -152,6 +152,6 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 
 	fresnel = 0.25f;
 	//float fresnel = 0.25f;
-	return lerp(refractColour, float4(0,1,1,1), fresnel);
+	return lerp(refractColour, /*float4(0,1,1,1)*/ reflectColour, fresnel);
 
 }

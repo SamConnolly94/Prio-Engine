@@ -65,7 +65,6 @@ private:
 	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 private:
 	CD3D11* mpD3D;
-
 	CCamera* mpCamera;
 	CCamera* mpReflectionCamera;
 	CPrimitive* mpTriangle;
@@ -89,7 +88,6 @@ private:
 	std::list<C2DImage*> mpUIImages;
 
 	CLight* mpSceneLight;
-	CLight* mpWaterLight;
 	CSkyBox* mpSkybox;
 	CTerrain* mpTerrain;
 
@@ -132,13 +130,31 @@ public:
 	bool UpdateTerrainBuffers(CTerrain* &terrain, double** heightmap, int width, int height);
 	bool IsFullscreen();
 	bool SetFullscreen(bool enabled);
-	CSkyBox* CreateSkybox(D3DXVECTOR4 ambientColour);
-	CWater* GetWater();
+	CSkyBox* CreateSkybox();
 	void UpdateScene(float updateTime);
 private:
 	CLight* CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 specularColour, float specularPower, D3DXVECTOR4 ambientColour, D3DXVECTOR3 direction);
 private:
-	CWater* mpWater;
+	const float mAmbientMultiplier = 0.7f;
+	float mTimeSinceLastSkyboxUpdate = 0.0f;
+	float mSkyboxUpdateInterval = 10.0f;
+	bool mUseTimeBasedSkybox = true;
+	bool mUpdateToDayTime = false;
+	bool mUpdateToNightTime = false;
+	bool mUpdateToEveningTime = false;
+public:
+	void EnableTimeBasedSkybox(bool enabled);
+	bool GetTimeBasedSkyboxEnabled();
+	void SetSkyboxUpdateInterval(float interval);
+	float GetSkyboxUpdateInterval();
+
+	void SetDayTime();
+	void SetNightTime();
+	void SetEveningTime();
+
+	bool IsDayTime();
+	bool IsNightTime();
+	bool IsEveningTime();
 };
 
 #endif

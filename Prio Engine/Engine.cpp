@@ -8,12 +8,6 @@ CEngine::CEngine()
 	mTimer = new CGameTimer();
 	logger->GetInstance().MemoryAllocWriteLine(typeid(mTimer).name());
 	mStopped = false;
-	for (int i = 0; i < 256; i++)
-	{
-		mKeyRecentlyHit[i] = false;
-	}
-	mTimeSinceLastKeyPress = 0.0f;
-	mWireframeEnabled = false;
 	mFrameTime = 0.0f;
 }
 
@@ -23,7 +17,7 @@ CEngine::~CEngine()
 }
 
 /* Initialise our engine. */
-bool CEngine::Initialise()
+bool CEngine::Initialise(std::string windowName)
 {
 	// The width we have to work with on our monitor.
 	int screenWidth = 0;
@@ -37,7 +31,7 @@ bool CEngine::Initialise()
 	mpGraphics = new CGraphics();
 
 	// Initialise the windows API.
-	InitialiseWindows(screenWidth, screenHeight);
+	InitialiseWindows(windowName, screenWidth, screenHeight);
 
 	// Initialise the input object. Used to read any input through keyboard or mouse from a user.
 	mpInput = new CInput();
@@ -147,7 +141,7 @@ bool CEngine::IsRunning()
 	if (mIsRunning)
 	{
 		// Attempt to process the current frame.
-		result = Frame();
+		bool result = Frame();
 
 		// If we failed to process the current frame then quit, something has gone wrong!
 		if (!result)
@@ -214,7 +208,7 @@ bool CEngine::Frame()
 }
 
 /* Initialise the window and engine ready for us to use DirectX. */
-void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
+void CEngine::InitialiseWindows(std::string windowName, int& screenWidth, int& screenHeight)
 {
 	WNDCLASSEX wc;
 	DEVMODE dmScreenSettings;
@@ -227,7 +221,7 @@ void CEngine::InitialiseWindows(int& screenWidth, int& screenHeight)
 	mHinstance = GetModuleHandle(NULL);
 
 	// Give the application a name.
-	mApplicationName = "Prio-Engine";
+	mApplicationName = windowName.c_str();
 
 	// Setup the window class with the default settings.
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -410,6 +404,56 @@ bool CEngine::RemoveText(SentenceType *& sentence)
 	return mpGraphics->RemoveSentence(sentence);
 }
 
+void CEngine::DisableAutomaticSkyboxChange()
+{
+	mpGraphics->EnableTimeBasedSkybox(false);
+}
+
+void CEngine::EnableAutomaticSkyboxChange()
+{
+	mpGraphics->EnableTimeBasedSkybox(true);
+}
+
+void CEngine::SetSkyboxChangeInterval(float interval)
+{
+	mpGraphics->SetSkyboxUpdateInterval(interval);
+}
+
+float CEngine::GetSkyboxChangeInterval()
+{
+	return mpGraphics->GetSkyboxUpdateInterval();
+}
+
+void CEngine::SetDayTime()
+{
+	mpGraphics->SetDayTime();
+}
+
+void CEngine::SetNightTime()
+{
+	mpGraphics->SetNightTime();
+}
+
+void CEngine::SetEveningTime()
+{
+	mpGraphics->SetEveningTime();
+}
+
+bool CEngine::IsDayTime()
+{
+	return mpGraphics->IsDayTime();
+}
+
+bool CEngine::IsNightTime()
+{
+	return mpGraphics->IsNightTime();
+}
+
+bool CEngine::IsEveningTime()
+{
+	return mpGraphics->IsEveningTime();
+}
+
 /* Detects if a key has been pressed once. 
 You can find a list of keys in PrioEngine::Key:: namespace.*/
 bool CEngine::KeyHit(const unsigned int key)
@@ -454,13 +498,10 @@ bool CEngine::UpdateTerrainBuffers(CTerrain *& terrain, double ** heightmap, int
 
 bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)
 {
+	// There's an issue when we change to/from fullscreen where we don't register if a key is released, so force release it now to stop it crashing.
 	mpInput->KeyUp(fullscreenKey);
+	// Toggle full screen.
 	return mpGraphics->SetFullscreen(!mpGraphics->IsFullscreen());
-}
-
-CWater * CEngine::GetWater()
-{
-	return mpGraphics->GetWater();
 }
 
 /* Create a primitive shape and place it in our world. For use with a texture and no diffuse lighting specified.*/

@@ -1,9 +1,12 @@
 #include "Terrain.h"
 
-CTerrain::CTerrain(ID3D11Device* device)
+CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 {
 	// Output alloc message to memory log.
 	logger->GetInstance().MemoryAllocWriteLine(typeid(this).name());
+
+	mScreenWidth = screenWidth;
+	mScreenHeight = screenHeight;
 
 	// Initialise pointers to nullptr.
 	mpVertexBuffer = nullptr;
@@ -96,6 +99,13 @@ CTerrain::~CTerrain()
 		mpRockTextures[i]->Shutdown();
 		delete mpRockTextures[i];
 	}
+	
+	if (mpWater)
+	{
+		mpWater->Shutdown();
+		delete mpWater;
+	}
+
 
 	delete[] mpRockTextures;
 	
@@ -134,6 +144,12 @@ bool CTerrain::CreateTerrain(ID3D11Device* device)
 		mHeight = 100;
 	}
 
+	////////////////////////////
+	// Water initialisation
+	////////////////////////////
+
+	mpWater = new CWater();
+
 	// Initialise the vertex buffers.
 	result = InitialiseBuffers(device);
 
@@ -145,6 +161,8 @@ bool CTerrain::CreateTerrain(ID3D11Device* device)
 		return false;
 	}
 
+
+
 	return true;
 }
 
@@ -153,6 +171,16 @@ void CTerrain::Render(ID3D11DeviceContext * context)
 {
 	// Render the data contained in the buffers..
 	RenderBuffers(context);
+}
+
+void CTerrain::Update(float updateTime)
+{
+	if (mpWater)
+	{
+		mpWater->SetYPos(GetPosY() +  mpWater->GetDepth());
+		mpWater->Update(updateTime);
+		mpWater->UpdateMatrices();
+	}
 }
 
 CTexture** CTerrain::GetTexturesArray()
@@ -483,6 +511,15 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
 
+	if (!mpWater->Initialise(device, D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(mWidth - 1.0f, 0.0f, mHeight - 1.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
+		return false;
+	}
+
+	mpWater->SetXPos(GetPosX());
+	mpWater->SetZPos(GetPosY());
+
 	return true;
 }
 
@@ -747,6 +784,8 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 		ReleaseHeightMap();
 	}
 
+	mpWater->Shutdown();
+
 	mHeight = newHeight;
 	mWidth = newWidth;
 
@@ -767,6 +806,7 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 	}
 
 	InitialiseBuffers(device);
+
 	return true;
 }
 

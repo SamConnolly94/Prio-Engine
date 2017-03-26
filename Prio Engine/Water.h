@@ -60,6 +60,8 @@ private:
 	float mWaterDepth;
 public:
 	D3DXVECTOR2 GetMovement();
+	float GetWaterMovementX();
+	float GetWaterMovementY();
 	float GetWaveHeight();
 	float GetWaveScale();
 	float GetRefractionDistortion();
@@ -68,6 +70,16 @@ public:
 	float GetRefractionStrength();
 	float GetReflectionStrength();
 	float GetDepth();
+public:
+	void SetMovementX(float movementX);
+	void SetMovementY(float movementY);
+	void SetWaveHeight(float height);
+	void SetWaveScale(float scale);
+	void SetRefractionDistortion(float refractionDistortion);
+	void SetReflectionDistortion(float reflectionDistortion);
+	void SetRefractionStrength(float refractionStrength);
+	void SetReflectionStrength(float reflectionStrength);
+	void SetDepth(float depth);
 };
 
 #endif

@@ -7,10 +7,11 @@
 #include "ModelControl.h"
 #include "Texture.h"
 #include "Mesh.h"
-
+#include "Water.h"
 #include <vector>
 #include <sstream>
 #include "PrioEngineVars.h"
+#include "D3D11.h"
 
 class CTerrain : public CModelControl
 {
@@ -33,7 +34,7 @@ private:
 	};
 
 public:
-	CTerrain(ID3D11Device* device);
+	CTerrain(ID3D11Device* device, int screenWidth, int screenHeight);
 	~CTerrain();
 private:
 	void ReleaseHeightMap();
@@ -49,6 +50,7 @@ private:
 public:
 	bool CreateTerrain(ID3D11Device* device);
 	void Render(ID3D11DeviceContext* context);
+	void Update(float updateTime);
 	CTexture** GetTexturesArray();
 	CTexture** GetGrassTextureArray();
 	CTexture** GetRockTextureArray();
@@ -121,6 +123,11 @@ public:
 	float GetGrassHeight() { return mGrassHeight; };
 	float GetSandHeight() { return mSandHeight; };
 	float GetDirtHeight() { return mDirtHeight; };
+	CWater* GetWater() { return mpWater; };
+private:
+	CWater* mpWater;
+	int mScreenWidth;
+	int mScreenHeight;
 };
 
 #endif

@@ -16,7 +16,6 @@ CGraphics::CGraphics()
 	mFullScreen = false;
 	mpFrustum = nullptr;
 	mpSkyboxShader = nullptr;
-	mpWaterShader = nullptr;
 	mpTerrain = nullptr;
 	mpSkybox = nullptr;
 	mFrameTime = 0.0f;
@@ -71,6 +70,8 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpCamera = CreateCamera();
 	mpCamera->Render();
 
+	mpReflectionCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
+
 	/// SET UP TEXT FROM CAMERA POS.
 	mpText = new CGameText();
 
@@ -110,7 +111,10 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		logger->GetInstance().WriteLine("Failed to initialise the skybox shader.");
 		return false;
 	}
-	D3DXVECTOR4 horizonColour = { 1.0f, 0.44f, 0.11f, 1.0f };
+
+	CreateSkybox();
+
+	D3DXVECTOR4 horizonColour = mpSkybox->GetCenterColour();
 
 	// Set up the diffuse colour for the light.
 	D3DXVECTOR4 diffuseColour = horizonColour;
@@ -118,10 +122,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	// Copy the colour of the horizon for the ambient colour.
 	D3DXVECTOR4 ambientColour = horizonColour;
 
-	const float ambientMultiplier = 0.7f;
-	ambientColour.x *= ambientMultiplier;
-	ambientColour.y *= ambientMultiplier;
-	ambientColour.z *= ambientMultiplier;
+	ambientColour.x *= mAmbientMultiplier;
+	ambientColour.y *= mAmbientMultiplier;
+	ambientColour.z *= mAmbientMultiplier;
 	ambientColour.w = 1.0f;
 
 	// Set the direction of our light.
@@ -133,16 +136,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	mpSceneLight = CreateLight(diffuseColour, specularColour, specularPower, ambientColour, direction);
 
-	mpWaterLight = CreateLight(D3DXVECTOR4(0.0f, 0.2f, 0.2f, 1.0f), D3DXVECTOR4(0.0f, 0.5f, 0.6f, 1.0f) * 150.0f, 1.0f, D3DXVECTOR4(0.0f, 0.5f, 0.6f, 1.0f) * 150.0f, D3DXVECTOR3(0.0f, 0.0f, 0.0f));
-
-	CreateSkybox(horizonColour);
-
-	////////////////////////////
-	// Water initialisation
-	////////////////////////////
 
 	mpWaterShader = new CWaterShader();
-	if (!mpWaterShader->Initialise(mpD3D->GetDevice(), mHwnd))
+	if (!mpWaterShader->Initialise(mpD3D->GetDevice(), hwnd))
 	{
 		logger->GetInstance().WriteSubtitle("Critical Error!");
 		logger->GetInstance().WriteLine("Failed to initialise the water shader, shutting down.");
@@ -161,20 +157,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	mpWater = new CWater();
-
-	//if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-100.0f, 10.0f, 0.0f), D3DXVECTOR3(99.0f, 10.0f, 200.0f), 100, 100, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
-
-	if (!mpWater->Initialise(mpD3D->GetDevice(), D3DXVECTOR3(-100.0f, 0.0f, 0.0f), D3DXVECTOR3(99.0f, 0.0f, 200.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
-	{
-		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
-		return false;
-	}
-
-	mpWater->SetPos(0.0f, 7.0f, 0.0f);
-
-	mpReflectionCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
-
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -182,27 +164,6 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
-	if (mpReflectionCamera)
-	{
-		delete mpReflectionCamera;
-		mpReflectionCamera = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
-	}
-
-	if (mpWater)
-	{
-		mpWater->Shutdown();
-		delete mpWater;
-	}
-
-	if (mpRefractionShader)
-	{
-		mpRefractionShader->Shutdown();
-		delete mpRefractionShader;
-		mpRefractionShader = nullptr;
-	}
-
-
 	if (mpSkybox)
 	{
 		mpSkybox->Shutdown();
@@ -217,14 +178,6 @@ void CGraphics::Shutdown()
 		delete mpSkyboxShader;
 		mpSkyboxShader = nullptr;
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpSkyboxShader).name());
-	}
-
-	if (mpWaterShader)
-	{
-		mpWaterShader->Shutdown();
-		delete mpWaterShader;
-		mpWaterShader = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpWaterShader).name());
 	}
 
 	if (mpText)
@@ -320,6 +273,13 @@ void CGraphics::Shutdown()
 		mpTerrain = nullptr;
 	}
 
+	if (mpReflectionCamera)
+	{
+		delete mpReflectionCamera;
+		mpReflectionCamera = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
+	}
+
 	// Remove camera.
 
 	if (mpCamera)
@@ -327,6 +287,21 @@ void CGraphics::Shutdown()
 		delete mpCamera;
 		mpCamera = nullptr;
 		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpCamera).name());
+	}
+
+	if (mpWaterShader)
+	{
+		mpWaterShader->Shutdown();
+		delete mpWaterShader;
+		mpWaterShader = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpWaterShader).name());
+	}
+
+	if (mpRefractionShader)
+	{
+		mpRefractionShader->Shutdown();
+		delete mpRefractionShader;
+		mpRefractionShader = nullptr;
 	}
 
 	// If the Direct 3D object exists.
@@ -375,19 +350,79 @@ void CGraphics::UpdateScene(float updateTime)
 
 	if (mpTerrain)
 	{
+		mpTerrain->Update(updateTime);
 		mpTerrain->UpdateMatrices();
-		if (mpWater)
-		{
-			//mpWater->SetYPos(mpTerrain->GetPosY() +  mpWater->GetDepth());
-			mpWater->Update(updateTime);
-			mpWater->UpdateMatrices();
-
-			mpReflectionCamera->SetPosition(mpCamera->GetPosition());
-			mpReflectionCamera->SetPosizionY(mpWater->GetPosY() - mpReflectionCamera->GetPosition().y);
-			mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
-			mpReflectionCamera->Render();
-		}
+		mpReflectionCamera->SetPosition(mpCamera->GetPosition());
+		mpReflectionCamera->SetPosizionY(mpTerrain->GetWater()->GetPosY() - mpReflectionCamera->GetPosition().y);
+		mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
+		mpReflectionCamera->Render();
 	}
+
+	if (mUpdateToDayTime)
+	{
+		// If we completed the skybox update.
+		if (mpSkybox->UpdateToDay(updateTime))
+		{
+			mTimeSinceLastSkyboxUpdate = 0.0f;
+			mUpdateToDayTime = false;
+		}
+
+		// Update the scene directional light.
+		mpSceneLight->SetDiffuseColour(mpSkybox->GetCenterColour());
+		D3DXVECTOR4 ambient = mpSceneLight->GetDiffuseColour();
+		ambient *= mAmbientMultiplier;
+		ambient.w = 1.0f;
+		mpSceneLight->SetAmbientColour(ambient);
+	}
+	else if (mUpdateToEveningTime)
+	{
+		// If we completed the skybox update.
+		if (mpSkybox->UpdateToEvening(updateTime))
+		{
+			mTimeSinceLastSkyboxUpdate = 0.0f;
+			mUpdateToEveningTime = false;
+		}
+
+		// Update the scene directional light.
+		mpSceneLight->SetDiffuseColour(mpSkybox->GetCenterColour());
+		D3DXVECTOR4 ambient = mpSceneLight->GetDiffuseColour();
+		ambient *= mAmbientMultiplier;
+		ambient.w = 1.0f;
+		mpSceneLight->SetAmbientColour(ambient);
+	}
+	else if (mUpdateToNightTime)
+	{
+		// If we completed the skybox update.
+		if (mpSkybox->UpdateToNight(updateTime))
+		{
+			mTimeSinceLastSkyboxUpdate = 0.0f;
+			mUpdateToNightTime = false;
+		}
+
+		// Update the scene directional light.
+		mpSceneLight->SetDiffuseColour(mpSkybox->GetCenterColour());
+		D3DXVECTOR4 ambient = mpSceneLight->GetDiffuseColour();
+		ambient *= mAmbientMultiplier;
+		ambient.w = 1.0f;
+		mpSceneLight->SetAmbientColour(ambient);
+	}
+	else if (mTimeSinceLastSkyboxUpdate > mSkyboxUpdateInterval && mUseTimeBasedSkybox)
+	{
+		// If we completed the skybox update.
+		if (mpSkybox->UpdateTimeOfDay(updateTime))
+		{
+			mTimeSinceLastSkyboxUpdate = 0.0f;
+		}
+
+		// Update the scene directional light.
+		mpSceneLight->SetDiffuseColour(mpSkybox->GetCenterColour());
+		D3DXVECTOR4 ambient = mpSceneLight->GetDiffuseColour();
+		ambient *= mAmbientMultiplier;
+		ambient.w = 1.0f;
+		mpSceneLight->SetAmbientColour(ambient);
+	}
+
+	mTimeSinceLastSkyboxUpdate += updateTime;
 }
 
 bool CGraphics::Render()
@@ -574,7 +609,7 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	// Render the sky dome using the sky dome shader.
 	mpSkybox->Render(mpD3D->GetDeviceContext());
 	mpSkyboxShader->Render(mpD3D->GetDeviceContext(), mpSkybox->GetIndexCount(), world, view, proj,
-		mpSkybox->GetApexColor(), mpSkybox->GetCenterColor());
+		mpSkybox->GetApexColor(), mpSkybox->GetCenterColour());
 
 	// Turn back face culling back on.
 	mpD3D->TurnOnBackFaceCulling();
@@ -743,7 +778,7 @@ bool CGraphics::SetFullscreen(bool isEnabled)
 	return true;
 }
 
-CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
+CSkyBox * CGraphics::CreateSkybox()
 {
 	CSkyBox* skybox;
 	logger->GetInstance().WriteLine("Setting up skybox.");
@@ -754,7 +789,7 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 		return false;
 	}
 
-	bool result = skybox->Initialise(mpD3D->GetDevice(), ambientColour);
+	bool result = skybox->Initialise(mpD3D->GetDevice());
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to create the skybox.");
@@ -775,14 +810,15 @@ CSkyBox * CGraphics::CreateSkybox(D3DXVECTOR4 ambientColour)
 	return skybox;
 }
 
-CWater * CGraphics::GetWater()
-{
-	return mpWater;
-}
-
 
 bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
+	if (!mpTerrain)
+	{
+		logger->GetInstance().WriteLine("Skipping water as there's nothing to render.");
+		return true;
+	}
+
 	bool result = true;
 
 	// Reset the world matrix.
@@ -797,31 +833,31 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 	D3DXMATRIX camWorld;
 	mpWaterShader->SetMatrices(world, view, proj);
-	mpWaterShader->SetWaterMovement(mpWater->GetMovement());
-	mpWaterShader->SetWaveHeight(mpWater->GetWaveHeight());
-	mpWaterShader->SetWaveScale(mpWater->GetWaveScale());
-	mpWaterShader->SetDistortion(mpWater->GetRefractionDistortion(), mpWater->GetReflectionDistortion());
-	mpWaterShader->SetMaxDistortion(mpWater->GetMaxDistortionDistance());
-	mpWaterShader->SetRefractionStrength(mpWater->GetRefractionStrength());
-	mpWaterShader->SetReflectionStrength(mpWater->GetReflectionStrength());
+	mpWaterShader->SetWaterMovement(mpTerrain->GetWater()->GetMovement());
+	mpWaterShader->SetWaveHeight(mpTerrain->GetWater()->GetWaveHeight());
+	mpWaterShader->SetWaveScale(mpTerrain->GetWater()->GetWaveScale());
+	mpWaterShader->SetDistortion(mpTerrain->GetWater()->GetRefractionDistortion(), mpTerrain->GetWater()->GetReflectionDistortion());
+	mpWaterShader->SetMaxDistortion(mpTerrain->GetWater()->GetMaxDistortionDistance());
+	mpWaterShader->SetRefractionStrength(mpTerrain->GetWater()->GetRefractionStrength());
+	mpWaterShader->SetReflectionStrength(mpTerrain->GetWater()->GetReflectionStrength());
 	mpCamera->GetWorldMatrix(camWorld);
 	mpWaterShader->SetCameraMatrix(camWorld);
 	mpWaterShader->SetCameraPosition(mpCamera->GetPosition());
 	mpWaterShader->SetViewportSize(mScreenWidth, mScreenHeight);
-	mpWaterShader->SetLightProperties(mpWaterLight);
-	mpWaterShader->SetNormalMap(mpWater->GetNormalMap());
+	mpWaterShader->SetLightProperties(mpSceneLight);
+	mpWaterShader->SetNormalMap(mpTerrain->GetWater()->GetNormalMap());
 
 	// Set render target to the height texture map.
-	mpWater->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+	mpTerrain->GetWater()->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 	
-	mpWater->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+	mpTerrain->GetWater()->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 	//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render the water height map.
-	mpWater->Render(mpD3D->GetDeviceContext());
-	mpWater->GetWorldMatrix(world);
+	mpTerrain->GetWater()->Render(mpD3D->GetDeviceContext());
+	mpTerrain->GetWater()->GetWorldMatrix(world);
 	mpWaterShader->SetMatrices(world, view, proj);
-	result = mpWaterShader->RenderHeight(mpD3D->GetDeviceContext(), mpWater->GetNumberOfIndices());
+	result = mpWaterShader->RenderHeight(mpD3D->GetDeviceContext(), mpTerrain->GetWater()->GetNumberOfIndices());
 
 	if (!result)
 	{
@@ -840,7 +876,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpTerrain->GetWorldMatrix(world);
 
 		
-		mpWater->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+		mpTerrain->GetWater()->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// Place our refract / reflect properties into the refract reflect shader.
@@ -850,15 +886,15 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpRefractionShader->SetLightProperties(mpSceneLight);
 		mpRefractionShader->SetViewportProperties(mScreenWidth, mScreenHeight);
 		mpRefractionShader->SetTerrainAreaProperties(mpTerrain->GetSnowHeight(), mpTerrain->GetGrassHeight(), mpTerrain->GetDirtHeight(), mpTerrain->GetSandHeight());
-		mpRefractionShader->SetPositioningProperties(mpTerrain->GetPosY(), mpWater->GetPosY());
-		mpRefractionShader->SetWaterHeightmap(mpWater->GetHeightTexture()->GetShaderResourceView());
+		mpRefractionShader->SetPositioningProperties(mpTerrain->GetPosY(), mpTerrain->GetWater()->GetPosY());
+		mpRefractionShader->SetWaterHeightmap(mpTerrain->GetWater()->GetHeightTexture()->GetShaderResourceView());
 		mpRefractionShader->SetDirtTextureArray(mpTerrain->GetTexturesArray());
 		mpRefractionShader->SetGrassTextureArray(mpTerrain->GetGrassTextureArray());
 		mpRefractionShader->SetPatchMap(mpTerrain->GetPatchMap());
 		mpRefractionShader->SetRockTexture(mpTerrain->GetRockTextureArray());
 
 		mpTerrain->Render(mpD3D->GetDeviceContext()); 
-		mpWater->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterLight->GetDiffuseColour().x, mpWaterLight->GetDiffuseColour().y, mpWaterLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 
 		if (!result)
@@ -878,7 +914,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 		mpRefractionShader->SetView(view);
 
-		mpWater->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		
 		/* Render the reflection of the terrain. */
@@ -887,7 +923,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		mpTerrain->Render(mpD3D->GetDeviceContext());
 		
 		// Render vertices using reflection shader.
-		mpWater->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpWaterLight->GetDiffuseColour().x, mpWaterLight->GetDiffuseColour().y, mpWaterLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 		result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 		if (!result)
 		{
@@ -913,13 +949,13 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	mpD3D->SetBackBufferRenderTarget();
 	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	mpWater->Render(mpD3D->GetDeviceContext());
+	mpTerrain->GetWater()->Render(mpD3D->GetDeviceContext());
 
 	//mpWaterShader->SetNormalMap(mpWater->GetNormalMap());
-	mpWaterShader->SetRefractionMap(mpWater->GetRefractionTexture()->GetShaderResourceView());
-	mpWaterShader->SetReflectionMap(mpWater->GetReflectionTexture()->GetShaderResourceView());
+	mpWaterShader->SetRefractionMap(mpTerrain->GetWater()->GetRefractionTexture()->GetShaderResourceView());
+	mpWaterShader->SetReflectionMap(mpTerrain->GetWater()->GetReflectionTexture()->GetShaderResourceView());
 
-	result = mpWaterShader->RenderSurface(mpD3D->GetDeviceContext(), mpWater->GetNumberOfIndices());
+	result = mpWaterShader->RenderSurface(mpD3D->GetDeviceContext(), mpTerrain->GetWater()->GetNumberOfIndices());
 
 
 	if (!result)
@@ -1312,7 +1348,7 @@ CTerrain * CGraphics::CreateTerrain(std::string mapFile)
 		mpTerrain = nullptr;
 	}
 
-	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
+	CTerrain* terrain = new CTerrain(mpD3D->GetDevice(), mScreenWidth, mScreenHeight);
 	logger->GetInstance().WriteLine("Created terrain from the graphics object.");
 	mpTerrain = terrain;
 
@@ -1345,7 +1381,7 @@ CTerrain * CGraphics::CreateTerrain(double ** heightMap, int mapWidth, int mapHe
 		mpTerrain = nullptr;
 	}
 
-	CTerrain* terrain = new CTerrain(mpD3D->GetDevice());
+	CTerrain* terrain = new CTerrain(mpD3D->GetDevice(), mScreenWidth, mScreenHeight);
 	logger->GetInstance().WriteLine("Created terrain from the graphics object.");
 	mpTerrain = terrain;
 
@@ -1384,6 +1420,62 @@ CLight * CGraphics::CreateLight(D3DXVECTOR4 diffuseColour, D3DXVECTOR4 specularC
 
 	// Returns a pointer to the light.
 	return light;
+}
+
+void CGraphics::EnableTimeBasedSkybox(bool enabled)
+{
+	mUseTimeBasedSkybox = enabled;
+}
+
+bool CGraphics::GetTimeBasedSkyboxEnabled()
+{
+	return mUseTimeBasedSkybox;
+}
+
+void CGraphics::SetSkyboxUpdateInterval(float interval)
+{
+	mSkyboxUpdateInterval = interval;
+}
+
+float CGraphics::GetSkyboxUpdateInterval()
+{
+	return mSkyboxUpdateInterval;
+}
+
+void CGraphics::SetDayTime()
+{
+	mUpdateToDayTime = true;
+	mUpdateToEveningTime = false;
+	mUpdateToNightTime = false;
+}
+
+void CGraphics::SetNightTime()
+{
+	mUpdateToDayTime = false;
+	mUpdateToEveningTime = false;
+	mUpdateToNightTime = true;
+}
+
+void CGraphics::SetEveningTime()
+{
+	mUpdateToDayTime = false;
+	mUpdateToEveningTime = true;
+	mUpdateToNightTime = false;
+}
+
+bool CGraphics::IsDayTime()
+{
+	return mpSkybox->IsDayTime();
+}
+
+bool CGraphics::IsNightTime()
+{
+	return mpSkybox->IsNightTime();
+}
+
+bool CGraphics::IsEveningTime()
+{
+	return mpSkybox->IsEveningTime();
 }
 
 CCamera* CGraphics::CreateCamera()

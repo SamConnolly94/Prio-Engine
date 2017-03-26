@@ -31,7 +31,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	logger->GetInstance().MemoryAllocWriteLine(typeid(PrioEngine).name());
 
 	// Set up the engine.
-	result = PrioEngine->Initialise();
+	result = PrioEngine->Initialise("Prio Engine");
 	// If we successfully initialised the game engine
 	if (result)
 	{
@@ -73,9 +73,6 @@ void GameLoop(CEngine* &engine)
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);
-	CMesh* mpFlare = engine->LoadMesh("Resources/Models/Light.x");
-	CModel* mpFlareModel = mpFlare->CreateModel();
-	mpFlareModel->SetPos(0.0f, 20.0f, 0.0f);
 
 	// Start the game timer running.
 	engine->StartTimer();

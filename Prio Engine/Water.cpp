@@ -286,6 +286,16 @@ D3DXVECTOR2 CWater::GetMovement()
 	return mMovement;
 }
 
+float CWater::GetWaterMovementX()
+{
+	return mMovement.x;
+}
+
+float CWater::GetWaterMovementY()
+{
+	return mMovement.y;
+}
+
 float CWater::GetWaveHeight()
 {
 	return mWaveHeight;
@@ -324,4 +334,49 @@ float CWater::GetReflectionStrength()
 float CWater::GetDepth()
 {
 	return mWaterDepth;
+}
+
+void CWater::SetMovementX(float movementX)
+{
+	mMovement.x = movementX;
+}
+
+void CWater::SetMovementY(float movementY)
+{
+	mMovement.y = movementY;
+}
+
+void CWater::SetWaveHeight(float height)
+{
+	mWaveHeight = height;
+}
+
+void CWater::SetWaveScale(float scale)
+{
+	mWaveScale = scale;
+}
+
+void CWater::SetRefractionDistortion(float refractionDistortion)
+{
+	mRefractionDistortion = refractionDistortion;
+}
+
+void CWater::SetReflectionDistortion(float reflectionDistortion)
+{
+	mReflectionDistortion = reflectionDistortion;
+}
+
+void CWater::SetRefractionStrength(float refractionStrength)
+{
+	mRefractionStrength = refractionStrength;
+}
+
+void CWater::SetReflectionStrength(float reflectionStrength)
+{
+	mReflectionStrength = reflectionStrength;
+}
+
+void CWater::SetDepth(float depth)
+{
+	mWaterDepth = depth;
 }
