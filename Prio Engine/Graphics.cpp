@@ -353,7 +353,10 @@ void CGraphics::UpdateScene(float updateTime)
 		mpTerrain->Update(updateTime);
 		mpTerrain->UpdateMatrices();
 		mpReflectionCamera->SetPosition(mpCamera->GetPosition());
-		mpReflectionCamera->SetPosizionY(mpTerrain->GetWater()->GetPosY() - mpReflectionCamera->GetPosition().y);
+		if (!mpTerrain->GetUpdateFlag())
+		{
+			mpReflectionCamera->SetPosizionY(mpTerrain->GetWater()->GetPosY() - mpReflectionCamera->GetPosition().y);
+		}
 		mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
 		mpReflectionCamera->Render();
 	}
@@ -626,6 +629,8 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 /* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
+	mMutex.lock();
+
 	if (!RenderWater(world, view, proj))
 		return false;
 
@@ -637,6 +642,8 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 	if (!RenderTerrains(world, view, proj))
 		return false;
+
+	mMutex.unlock();
 
 	return true;
 }
@@ -813,9 +820,19 @@ CSkyBox * CGraphics::CreateSkybox()
 
 bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 {
-	if (!mpTerrain)
+	if (mpTerrain == nullptr)
 	{
 		logger->GetInstance().WriteLine("Skipping water as there's nothing to render.");
+		return true;
+	}
+	if (mpTerrain->GetWater() == nullptr)
+	{
+		logger->GetInstance().WriteLine("No body of water exists for this terrain yet, skipping render pass.");
+		return true;
+	}
+	if (mpTerrain->GetUpdateFlag())
+	{
+		logger->GetInstance().WriteLine("Skipping render pass for water as the terrain is currently being updated.");
 		return true;
 	}
 
@@ -1280,6 +1297,8 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 
 CMesh* CGraphics::LoadMesh(std::string filename, float radius)
 {
+	mMutex.lock();
+
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice());
 
@@ -1298,12 +1317,16 @@ CMesh* CGraphics::LoadMesh(std::string filename, float radius)
 	// Push the pointer onto a member variable list so that we don't lose it.
 	mpMeshes.push_back(mesh);
 
+	mMutex.unlock();
+
 	return mesh;
 }
 
 /* Deletes any allocated memory to a mesh and removes it from the list. */
 bool CGraphics::RemoveMesh(CMesh *& mesh)
 {
+	mMutex.lock();
+
 	// Define an iterator.
 	std::list<CMesh*>::iterator it;
 	// Initialise it to the start of the meshes list.
@@ -1315,6 +1338,8 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 		// If the current position of our list is the same as the mesh parameter passed in.
 		if ((*it) == mesh)
 		{
+			mesh->Shutdown();
+
 			// Deallocate memory.
 			delete mesh;
 			// Reset the pointer to be null.
@@ -1334,6 +1359,8 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
 	logger->GetInstance().WriteLine("Failed to find mesh to delete.");
+
+	mMutex.unlock();
 
 	// Return failure.
 	return false;

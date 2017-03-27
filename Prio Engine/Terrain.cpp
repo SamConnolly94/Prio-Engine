@@ -68,6 +68,8 @@ CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 	{
 		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/LightRock.dds'.");
 	}
+
+	mpWater = nullptr;
 }
 
 
@@ -143,12 +145,6 @@ bool CTerrain::CreateTerrain(ID3D11Device* device)
 	{
 		mHeight = 100;
 	}
-
-	////////////////////////////
-	// Water initialisation
-	////////////////////////////
-
-	mpWater = new CWater();
 
 	// Initialise the vertex buffers.
 	result = InitialiseBuffers(device);
@@ -511,6 +507,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
 
+	mpWater = new CWater();
 	if (!mpWater->Initialise(device, D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(mWidth - 1.0f, 0.0f, mHeight - 1.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
@@ -779,12 +776,12 @@ bool CTerrain::LoadHeightMapFromFile(std::string filename)
 
 bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceContext, double ** heightMap, int newWidth, int newHeight)
 {
+	mUpdating = true;
+
 	if (mpHeightMap)
 	{
 		ReleaseHeightMap();
 	}
-
-	mpWater->Shutdown();
 
 	mHeight = newHeight;
 	mWidth = newWidth;
@@ -805,7 +802,18 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 		mpIndexBuffer = nullptr;
 	}
 
+	if (mpWater)
+	{
+		mpWater->Shutdown();
+		delete mpWater;
+		mpWater = nullptr;
+	}
+
+	mTreesInfo.clear();
+	mPlantsInfo.clear();
+
 	InitialiseBuffers(device);
+	mUpdating = false;
 
 	return true;
 }

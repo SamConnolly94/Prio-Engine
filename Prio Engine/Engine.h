@@ -86,6 +86,10 @@ public:
 	CTerrain* CreateTerrain(double** heightMap, int mapWidth, int mapHeight);
 	// Update the existing terrain to a new terrain. Only possible through a 2D array, must destroy and recreate for map files.
 	bool UpdateTerrainBuffers(CTerrain *& terrain, double** heightmap, int width, int height);
+	// Remove all scenery added by the terrain.
+	void RemoveScenery();
+	// Adds entities around the terrain to make it more realistic. This should be called after terrain has been initialised.
+	bool AddSceneryToTerrain(CTerrain* terrainPtr);
 
 	/////////////////////////
 	// Mesh control
@@ -115,7 +119,7 @@ public:
 	bool UpdateText(SentenceType *& sentence, std::string text, int posX, int posY, PrioEngine::RGB colour);
 	// Remove the text from the scene.
 	bool RemoveText(SentenceType *& sentence);
-	
+
 	/////////////////////////
 	// Skybox control
 	////////////////////////
@@ -158,8 +162,7 @@ public:
 	// Has keen been held down?
 	bool KeyHeld(const unsigned int key);
 private:
-	// Adds entities around the terrain to make it more realistic. This should be called after terrain has been initialised.
-	bool AddSceneryToTerrain(CTerrain* terrainPtr);
+	std::vector<CMesh*> mpListOfTreeMeshes;
 };
 
 // Define WndProc and the application handle pointer here so that we can re-direct the windows system messaging into our message handler 

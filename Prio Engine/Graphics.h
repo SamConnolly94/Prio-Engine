@@ -25,6 +25,7 @@
 #include "RefractReflectShader.h"
 #include "Water.h"
 #include "WaterShader.h"
+#include <mutex>
 
 // Global variables.
 // Will the window run in full screen?
@@ -155,6 +156,8 @@ public:
 	bool IsDayTime();
 	bool IsNightTime();
 	bool IsEveningTime();
+private:
+	std::mutex mMutex;
 };
 
 #endif

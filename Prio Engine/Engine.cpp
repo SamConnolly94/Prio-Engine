@@ -496,6 +496,19 @@ bool CEngine::UpdateTerrainBuffers(CTerrain *& terrain, double ** heightmap, int
 	return mpGraphics->UpdateTerrainBuffers(terrain, heightmap, width, height);
 }
 
+void CEngine::RemoveScenery()
+{
+	std::vector<CMesh*>::iterator it = mpListOfTreeMeshes.begin();
+
+	while (it != mpListOfTreeMeshes.end())
+	{
+		mpGraphics->RemoveMesh(*it);
+		it++;
+	}
+
+	mpListOfTreeMeshes.clear();
+}
+
 bool CEngine::ToggleFullscreen( unsigned int fullscreenKey)
 {
 	// There's an issue when we change to/from fullscreen where we don't register if a key is released, so force release it now to stop it crashing.
@@ -526,9 +539,12 @@ CTerrain * CEngine::CreateTerrain(double ** heightMap, int mapWidth, int mapHeig
 
 bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 {
+	mpListOfTreeMeshes.clear();
+
 	if (terrainPtr != nullptr)
 	{
 		CMesh* treeMesh = LoadMesh("Resources/Models/firtree3.3ds", 2.0f);
+		mpListOfTreeMeshes.push_back(treeMesh);
 
 		for (auto treeInfo : terrainPtr->GetTreeInformation())
 		{
@@ -548,7 +564,7 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 
 
 		CMesh* plantMeshes = LoadMesh("Resources/Models/Bushes/LS13_01.3ds");
-
+		mpListOfTreeMeshes.push_back(plantMeshes);
 
 		for (auto plantInfo : terrainPtr->GetPlantInformation())
 		{

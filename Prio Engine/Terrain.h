@@ -128,6 +128,9 @@ private:
 	CWater* mpWater;
 	int mScreenWidth;
 	int mScreenHeight;
+	bool mUpdating = false;
+public:
+	bool GetUpdateFlag() { return mUpdating; };
 };
 
 #endif
