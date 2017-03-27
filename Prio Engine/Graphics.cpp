@@ -18,6 +18,8 @@ CGraphics::CGraphics()
 	mpSkyboxShader = nullptr;
 	mpTerrain = nullptr;
 	mpSkybox = nullptr;
+	mpCloudPlane = nullptr;
+	mpCloudShader = nullptr;
 	mFrameTime = 0.0f;
 }
 
@@ -157,6 +159,20 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	mpCloudPlane = new CCloudPlane();
+	if (!mpCloudPlane->Initialise(mpD3D->GetDevice(), "Resources/Textures/cloud1.dds", "Resources/Textures/cloud2.dds"))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the cloud plane in graphics class.");
+		return false;
+	}
+
+	mpCloudShader = new CCloudShader();
+	if (!mpCloudShader->Initialise(mpD3D->GetDevice(), hwnd))
+	{
+		logger->GetInstance().WriteLine("Failed tto initialise the cloud shader in graphics class.");
+		return false;
+	}
+
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -164,6 +180,19 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpCloudPlane)
+	{
+		mpCloudPlane->Shutdown();
+		delete mpCloudPlane;
+		mpCloudPlane = nullptr;
+	}
+
+	if (mpCloudShader)
+	{
+		mpCloudShader->Shutdown();
+		delete mpCloudShader;
+		mpCloudShader = nullptr;
+	}
 	if (mpSkybox)
 	{
 		mpSkybox->Shutdown();
@@ -347,6 +376,8 @@ void CGraphics::UpdateScene(float updateTime)
 	{
 		primitive->UpdateMatrices();
 	}
+
+	mpCloudPlane->Update(updateTime);
 
 	if (mpTerrain)
 	{
@@ -616,6 +647,28 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 	// Turn back face culling back on.
 	mpD3D->TurnOnBackFaceCulling();
+
+	// Allow the clouds to additively blend with the skybox.
+	mpD3D->EnableAdditiveAlphaBlending();
+
+	// Place the cloud plane vertex / index data onto the rendering pipeline.
+	mpCloudPlane->Render(mpD3D->GetDeviceContext());
+
+	// Set shader variables before rendering clouds with the shader.
+	mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
+	mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
+	mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(2), mpCloudPlane->GetMovement(3));
+	mpCloudShader->SetWorldMatrix(world);
+	mpCloudShader->SetViewMatrix(view);
+	mpCloudShader->SetProjMatrix(proj);
+	mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
+	mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
+
+	// Render the clouds using vertex and pixel shaders.
+	mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
+
+	// Turn off alpha blending.
+	mpD3D->DisableAlphaBlending();
 
 	// Turn the Z buffer back on.
 	mpD3D->EnableZBuffer();

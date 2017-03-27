@@ -144,6 +144,12 @@
     <ClInclude Include="RefractReflectShader.h">
       <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
+    <ClInclude Include="CloudShader.h">
+      <Filter>Header Files\Engine\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="CloudPlane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -251,6 +257,12 @@
     <ClCompile Include="RefractReflectShader.cpp">
       <Filter>Source Files\Engine\Shader Classes</Filter>
     </ClCompile>
+    <ClCompile Include="CloudShader.cpp">
+      <Filter>Source Files\Engine\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="CloudPlane.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Font.ps.hlsl">
@@ -319,9 +331,19 @@
     <None Include="Shaders\SkyboxRefraction.vs.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-    <None Include="Shaders\Transparent.ps.hlsl" />
     <None Include="Shaders\ModelReflection.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
+    <None Include="Shaders\Transparent.ps.hlsl">
+      <Filter>Shaders\Textures and Lighting</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Clouds.ps.hlsl">
+      <Filter>Shaders\Skybox</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Clouds.vs.hlsl">
+      <Filter>Shaders\Skybox</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

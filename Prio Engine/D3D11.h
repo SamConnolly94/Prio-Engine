@@ -41,6 +41,7 @@ private:
 	std::string mGraphicsCardName;
 	ID3D11BlendState* mpAlphaBlendingStateEnabled;
 	ID3D11BlendState* mpAlphaBlendingStateDisabled;
+	ID3D11BlendState* mpAdditiveAlphaBlendingStateEnabled;
 	ID3D11RasterizerState* mpRasterStateNoCulling;
 public:
 	CD3D11();
@@ -63,6 +64,7 @@ public:
 
 	void EnableAlphaBlending();
 	void DisableAlphaBlending();
+	void EnableAdditiveAlphaBlending();
 
 	void DisableZBuffer();
 	void EnableZBuffer();

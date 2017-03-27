@@ -26,9 +26,10 @@
 #include "Water.h"
 #include "WaterShader.h"
 #include <mutex>
+#include "CloudPlane.h"
+#include "CloudShader.h"
 
 // Global variables.
-// Will the window run in full screen?
 
 // Will VSYNC be enabled? (Caps at your monitor refresh rate)
 const bool VSYNC_ENABLED = false;
@@ -158,6 +159,8 @@ public:
 	bool IsEveningTime();
 private:
 	std::mutex mMutex;
+	CCloudPlane* mpCloudPlane;
+	CCloudShader* mpCloudShader;
 };
 
 #endif

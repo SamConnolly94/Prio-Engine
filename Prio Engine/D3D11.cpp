@@ -6,6 +6,7 @@ CD3D11::CD3D11()
 	mpAlphaBlendingStateDisabled = nullptr;
 	mpAlphaBlendingStateEnabled = nullptr;	
 	mpRasterStateNoCulling = nullptr;
+	mpAdditiveAlphaBlendingStateEnabled = nullptr;
 }
 
 
@@ -321,6 +322,27 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 		 logger->GetInstance().WriteLine("Failed to create the alpha blending state disabled from descriptor.");
 		 return false;
 	 }
+	 //////////////////////////////
+	 // Additive alpha blending.
+	 //////////////////////////////
+
+	 // Set up the descriptor for blend state. Look over second year notes if you've forgotten what this does.
+	 blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
+	 blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	 blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;;
+	 blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	 blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	 blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	 blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	 blendStateDesc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+
+	 result = mpDevice->CreateBlendState(&blendStateDesc, &mpAdditiveAlphaBlendingStateEnabled);
+	 if (FAILED(result))
+	 {
+		 logger->GetInstance().WriteLine("Failed to create the additive alpha blending state enabled from descriptor.");
+		 return false;
+	 }
 
 	// Success! We have successfully setup DirectX.
 	return true;
@@ -345,6 +367,12 @@ void CD3D11::Shutdown()
 	{
 		mpAlphaBlendingStateEnabled->Release();
 		mpAlphaBlendingStateEnabled = nullptr;
+	}
+
+	if (mpAdditiveAlphaBlendingStateEnabled)
+	{
+		mpAdditiveAlphaBlendingStateEnabled->Release();
+		mpAdditiveAlphaBlendingStateEnabled = nullptr;
 	}
 
 	// If blending state initialised.
@@ -585,6 +613,13 @@ void CD3D11::DisableAlphaBlending()
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	mpDeviceContext->OMSetBlendState(mpAlphaBlendingStateDisabled, blendFactor, 0xffffffff);
+}
+
+void CD3D11::EnableAdditiveAlphaBlending()
+{
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	mpDeviceContext->OMSetBlendState(mpAdditiveAlphaBlendingStateEnabled, blendFactor, 0xffffffff);
 }
 
 void CD3D11::DisableZBuffer()

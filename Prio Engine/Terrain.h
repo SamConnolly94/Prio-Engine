@@ -11,7 +11,6 @@
 #include <vector>
 #include <sstream>
 #include "PrioEngineVars.h"
-#include "D3D11.h"
 
 class CTerrain : public CModelControl
 {

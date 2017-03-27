@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClInclude Include="2DImage.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CloudPlane.h" />
+    <ClInclude Include="CloudShader.h" />
     <ClInclude Include="ColourShader.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="D3D11.h" />
@@ -58,6 +60,8 @@
   <ItemGroup>
     <ClCompile Include="2DImage.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CloudPlane.cpp" />
+    <ClCompile Include="CloudShader.cpp" />
     <ClCompile Include="ColourShader.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="D3D11.cpp" />
@@ -177,6 +181,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ModelReflection.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Clouds.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Clouds.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
