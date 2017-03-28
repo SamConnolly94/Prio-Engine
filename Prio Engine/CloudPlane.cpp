@@ -21,7 +21,7 @@ CCloudPlane::~CCloudPlane()
 bool CCloudPlane::Initialise(ID3D11Device * device, std::string textureFilename1, std::string textureFilename2)
 {
 	int planeResolution = 10;
-	int textureRepeat = 8;
+	int textureRepeat = 2;
 	float planeWidth = 10.0f;
 	float planeTop = 0.5f;
 	float planeBottom = 0.0f;
@@ -30,17 +30,13 @@ bool CCloudPlane::Initialise(ID3D11Device * device, std::string textureFilename1
 	mBrightness = 0.7f;
 
 	// Cloud texture 1 movement
-	mMovementSpeed[0] = 0.015f;
-	mMovementSpeed[1] = 0.0f;
+	mMovementSpeed[0] = D3DXVECTOR2(0.015f, 0.0f);
 	// Cloud texture 2 movement speed
-	mMovementSpeed[2] = 0.0075f;
-	mMovementSpeed[3] = 0.0f;
+	mMovementSpeed[1] = D3DXVECTOR2(0.0075f, 0.0f);
 	
 	// Initialise the current translation speeds.
-	mTextureMovement[0] = 0.0f;
-	mTextureMovement[1] = 0.0f;
-	mTextureMovement[2] = 0.0f;
-	mTextureMovement[3] = 0.0f;
+	mTextureMovement[0] = D3DXVECTOR2(0.0f, 0.0f);
+	mTextureMovement[1] = D3DXVECTOR2(0.0f, 0.0f);
 
 	bool result = InitialisePlane(planeResolution, planeWidth, planeTop, planeBottom, textureRepeat);
 	if (!result)
@@ -81,26 +77,26 @@ void CCloudPlane::Shutdown()
 
 void CCloudPlane::Update(float updateTime)
 {
-	mTextureMovement[0] += mMovementSpeed[0] * updateTime;
-	mTextureMovement[1] += mMovementSpeed[1] * updateTime;
-	mTextureMovement[2] += mMovementSpeed[2] * updateTime;
-	mTextureMovement[3] += mMovementSpeed[3] * updateTime;
+	mTextureMovement[0].x += mMovementSpeed[0].x * updateTime;
+	mTextureMovement[0].y += mMovementSpeed[0].y * updateTime;
+	mTextureMovement[1].x += mMovementSpeed[1].x * updateTime;
+	mTextureMovement[1].y += mMovementSpeed[1].y * updateTime;
 
-	if (mTextureMovement[0] > 1.0f)
+	if (mTextureMovement[0].x > 1.0f)
 	{
-		mTextureMovement[0] = 0.0f;
+		mTextureMovement[0].x = 0.0f;
 	}
-	if (mTextureMovement[1] > 1.0f)
+	if (mTextureMovement[0].y > 1.0f)
 	{
-		mTextureMovement[1] = 0.0f;
+		mTextureMovement[0].y = 0.0f;
 	}
-	if (mTextureMovement[2] > 1.0f)
+	if (mTextureMovement[1].x > 1.0f)
 	{
-		mTextureMovement[2] = 0.0f;
+		mTextureMovement[1].x = 0.0f;
 	}
-	if (mTextureMovement[3] > 1.0f)
+	if (mTextureMovement[1].y > 1.0f)
 	{
-		mTextureMovement[3] = 0.0f;
+		mTextureMovement[1].y = 0.0f;
 	}
 }
 
@@ -124,7 +120,7 @@ float CCloudPlane::GetBrightness()
 	return mBrightness;
 }
 
-float CCloudPlane::GetMovement(int cloudIndex)
+D3DXVECTOR2 CCloudPlane::GetMovement(int cloudIndex)
 {
 	return mTextureMovement[cloudIndex];
 }

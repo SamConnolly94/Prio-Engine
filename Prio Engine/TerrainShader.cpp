@@ -13,7 +13,6 @@ CTerrainShader::CTerrainShader()
 
 CTerrainShader::~CTerrainShader()
 {
-	mpPatchMap->Shutdown();
 	delete mpPatchMap;
 }
 
@@ -288,6 +287,13 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 
 void CTerrainShader::ShutdownShader()
 {
+	if (mpPatchMap)
+	{
+		mpPatchMap->Shutdown();
+		delete mpPatchMap;
+		mpPatchMap = nullptr;
+	}
+
 	if (mpLightBuffer)
 	{
 		mpLightBuffer->Release();

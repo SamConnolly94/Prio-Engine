@@ -138,7 +138,7 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 
 	float3 halfWayVector = normalize(normalize(-LightDirection) + normalToCamera);
 	float3 specLight = DiffuseColour * pow(max(dot(waterNormal, halfWayVector), 0), SpecularPower);
-
+	
 	reflectColour.rgb += specLight;
 
 	float n1 = 1.0; // Refractive index of air
@@ -151,7 +151,6 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 	// fresnel = saturate(lerp(f0, 1, fresnel));
 
 	fresnel = 0.25f;
-	//float fresnel = 0.25f;
 	return lerp(refractColour, /*float4(0,1,1,1)*/ reflectColour, fresnel);
 
 }

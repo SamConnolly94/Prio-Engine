@@ -148,7 +148,7 @@
       <Filter>Header Files\Engine\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="CloudPlane.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -337,13 +337,11 @@
     <None Include="Shaders\Transparent.ps.hlsl">
       <Filter>Shaders\Textures and Lighting</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Clouds.ps.hlsl">
+    <None Include="Shaders\Clouds.ps.hlsl">
       <Filter>Shaders\Skybox</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Clouds.vs.hlsl">
+    </None>
+    <None Include="Shaders\Clouds.vs.hlsl">
       <Filter>Shaders\Skybox</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

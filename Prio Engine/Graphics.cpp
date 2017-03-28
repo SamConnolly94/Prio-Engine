@@ -72,7 +72,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	mpCamera = CreateCamera();
 	mpCamera->Render();
 
-	mpReflectionCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
+	//mpReflectionCamera = new CCamera(mScreenWidth, mScreenWidth, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 
 	/// SET UP TEXT FROM CAMERA POS.
 	mpText = new CGameText();
@@ -302,12 +302,12 @@ void CGraphics::Shutdown()
 		mpTerrain = nullptr;
 	}
 
-	if (mpReflectionCamera)
-	{
-		delete mpReflectionCamera;
-		mpReflectionCamera = nullptr;
-		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
-	}
+	//if (mpReflectionCamera)
+	//{
+	//	delete mpReflectionCamera;
+	//	mpReflectionCamera = nullptr;
+	//	logger->GetInstance().MemoryDeallocWriteLine(typeid(mpReflectionCamera).name());
+	//}
 
 	// Remove camera.
 
@@ -383,13 +383,19 @@ void CGraphics::UpdateScene(float updateTime)
 	{
 		mpTerrain->Update(updateTime);
 		mpTerrain->UpdateMatrices();
-		mpReflectionCamera->SetPosition(mpCamera->GetPosition());
+
 		if (!mpTerrain->GetUpdateFlag())
 		{
-			mpReflectionCamera->SetPosizionY(mpTerrain->GetWater()->GetPosY() - mpReflectionCamera->GetPosition().y);
+			mpCamera->RenderReflection(mpTerrain->GetWater()->GetPosY());
 		}
-		mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
-		mpReflectionCamera->Render();
+		//mpReflectionCamera->SetPosition(mpCamera->GetPosition());
+		//if (!mpTerrain->GetUpdateFlag())
+		//{
+		//	mpReflectionCamera->SetPosizionY(mpTerrain->GetWater()->GetPosY() - mpCamera->GetPosition().y);
+		//	//mpCamera->RenderReflection(mpTerrain->GetWater()->GetPosY());
+		//}
+		//mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
+		//mpReflectionCamera->Render();
 	}
 
 	if (mUpdateToDayTime)
@@ -656,8 +662,8 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 
 	// Set shader variables before rendering clouds with the shader.
 	mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
-	mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
-	mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(2), mpCloudPlane->GetMovement(3));
+	mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
+	mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
 	mpCloudShader->SetWorldMatrix(world);
 	mpCloudShader->SetViewMatrix(view);
 	mpCloudShader->SetProjMatrix(proj);
@@ -976,24 +982,60 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
-		mpD3D->TurnOffBackFaceCulling();
 
-		// Reset the terrain world matrix
-		mpTerrain->GetWorldMatrix(world);
-		mpReflectionCamera->GetReflectionView(view);
-
-		mpRefractionShader->SetView(view);
+		//mpCamera->GetReflectionViewMatrix(view);
+		// Render vertices using reflection shader.
+		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-		
+
+		mpCamera->GetReflectionView(view);
+		mpRefractionShader->SetView(view);
+
+		mpD3D->TurnOffBackFaceCulling();
+
+		/////////////////////////////
+		// SKYBOX
+		////////////////////////////
+
+		mpD3D->GetWorldMatrix(world);
+		// Translate the sky dome to be centered around the camera position.
+		D3DXMatrixTranslation(&world, mpCamera->GetPosition().x, mpCamera->GetPosition().y, mpCamera->GetPosition().z);
+		// Allow the clouds to additively blend with the skybox.
+		mpD3D->EnableAdditiveAlphaBlending();
+
+		// Place the cloud plane vertex / index data onto the rendering pipeline.
+		mpCloudPlane->Render(mpD3D->GetDeviceContext());
+
+		// Set shader variables before rendering clouds with the shader.
+		mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
+		mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
+		mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
+		mpCloudShader->SetWorldMatrix(world);
+		mpCloudShader->SetViewMatrix(view);
+		mpCloudShader->SetProjMatrix(proj);
+		mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
+		mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
+
+		// Render the clouds using vertex and pixel shaders.
+		mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
+
+		// Turn off alpha blending.
+		mpD3D->DisableAlphaBlending();
+
+		////////////////////////////
+		// Terrain
+		////////////////////////////
+
+		// Reset the terrain world matrix
+		mpTerrain->GetWorldMatrix(world);
+
 		/* Render the reflection of the terrain. */
 
 		// Place vertices onto render pipeline.
 		mpTerrain->Render(mpD3D->GetDeviceContext());
 		
-		// Render vertices using reflection shader.
-		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 		result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 		if (!result)
 		{
@@ -1008,7 +1050,6 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		{
 			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, view, proj, mpSceneLight);
 		}
-
 		mpD3D->TurnOnBackFaceCulling();
 	}
 

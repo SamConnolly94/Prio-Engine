@@ -30,7 +30,7 @@ public:
 	ID3D11ShaderResourceView* GetCloudTexture1();
 	ID3D11ShaderResourceView* GetCloudTexture2();
 	float GetBrightness();
-	float GetMovement(int cloudIndex);
+	D3DXVECTOR2 GetMovement(int cloudIndex);
 private:
 	bool InitialisePlane(int planeResolution, float planeWidth, float planeTop, float planeBottom, int textureRepeat);
 	void ShutdownPlane();
@@ -50,8 +50,10 @@ private:
 	CTexture* mpCloudTexture1;
 	CTexture* mpCloudTexture2;
 	float mBrightness;
-	float mMovementSpeed[4];
-	float mTextureMovement[4];
+	//float mMovementSpeed[4];
+	D3DXVECTOR2 mMovementSpeed[2];
+	//float mTextureMovement[4];
+	D3DXVECTOR2 mTextureMovement[2];
 };
 
 #endif

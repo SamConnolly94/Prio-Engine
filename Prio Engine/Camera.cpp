@@ -178,6 +178,46 @@ void CCamera::GetViewProjMatrix(D3DXMATRIX & ViewProjMatrix)
 	ViewProjMatrix = mViewProjMatrix;
 }
 
+void CCamera::RenderReflection(float waterHeight)
+{
+	D3DXVECTOR3 up;
+
+	up.x = 0.0f;
+	up.y = 1.0f;
+	up.z = 0.0f;
+
+	D3DXVECTOR3 position;
+
+	position.x = mPosition.x;
+	position.y = -mPosition.y + (waterHeight * 2.0f);
+	position.z = mPosition.z;
+
+	D3DXVECTOR3 lookAt;
+	lookAt.x = 0.0f;
+	lookAt.y = 0.0f;
+	lookAt.z = 1.0f;
+
+	float yaw = ToRadians(-mRotation.x);
+	float pitch = ToRadians(mRotation.y);
+	float roll = ToRadians(mRotation.z);
+
+	D3DXMATRIX rotationMatrix;
+	D3DXMatrixRotationYawPitchRoll(&rotationMatrix, yaw, pitch, roll);
+
+	// Rotate the view at the origin
+	D3DXVec3TransformCoord(&lookAt, &lookAt, &rotationMatrix);
+	D3DXVec3TransformCoord(&up, &up, &rotationMatrix);
+
+	lookAt = position + lookAt;
+
+	D3DXMatrixLookAtLH(&mReflectionMatrix, &position, &lookAt, &up);
+}
+
+void CCamera::GetReflectionViewMatrix(D3DXMATRIX & reflectionView)
+{
+	reflectionView = mReflectionMatrix;
+}
+
 /* Updates the elements of matrices used before rendering. 
 * Credit to Laurent Noel for this class.
 */

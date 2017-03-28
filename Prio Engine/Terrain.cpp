@@ -75,10 +75,14 @@ CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 
 CTerrain::~CTerrain()
 {
-	delete mpPatchMap;
-
 	// Output dealloc message to memory log.
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(this).name());
+
+	if (mpPatchMap != nullptr)
+	{
+		mpPatchMap->Shutdown();
+		delete mpPatchMap;
+	}
 
 	for (unsigned int i = 0; i < kmNumberOfTextures; i++)
 	{
