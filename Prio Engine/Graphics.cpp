@@ -1029,20 +1029,22 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 			// Terrain
 			////////////////////////////
 
-			// Reset the terrain world matrix
-			mpTerrain->GetWorldMatrix(world);
+			
+			RenderTerrains(world, view, proj);
+			//// Reset the terrain world matrix
+			//mpTerrain->GetWorldMatrix(world);
 
-			/* Render the reflection of the terrain. */
+			///* Render the reflection of the terrain. */
 
-			// Place vertices onto render pipeline.
-			mpTerrain->Render(mpD3D->GetDeviceContext());
+			//// Place vertices onto render pipeline.
+			//mpTerrain->Render(mpD3D->GetDeviceContext());
 
-			result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
-			if (!result)
-			{
-				logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
-				return false;
-			}
+			//result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
+			//if (!result)
+			//{
+			//	logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
+			//	return false;
+			//}
 
 			/* Render the reflection of models within the scene. */
 
