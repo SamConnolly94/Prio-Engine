@@ -112,7 +112,6 @@ CTerrain::~CTerrain()
 		delete mpWater;
 	}
 
-
 	delete[] mpRockTextures;
 	
 	ReleaseHeightMap();
@@ -297,13 +296,6 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 				// Set the position to a default of 0.0f.
 				vertices[vertex].position = D3DXVECTOR3{ posX, 0.0f, posZ };
 			}
-			CTerrain::VertexAreaType areaType = FindAreaType(vertices[vertex].position.y);
-
-			if (areaType == CTerrain::VertexAreaType::Grass)
-			{
-				CreateTree(vertices[vertex].position);
-				CreatePlant(vertices[vertex].position);
-			}
 
 			U = static_cast<float>(widthCount);
 			V = static_cast<float>(heightCount);
@@ -454,6 +446,24 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			vertices[vertex].normal.x = averageNormal.x / length;
 			vertices[vertex].normal.y = averageNormal.y / length;
 			vertices[vertex].normal.z = averageNormal.z / length;
+
+			vertex++;
+		}
+	}
+
+	vertex = 0;
+
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	{
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		{
+			CTerrain::VertexAreaType areaType = FindAreaType(vertices[vertex].position.y);
+
+			if (areaType == CTerrain::VertexAreaType::Grass)
+			{
+				CreateTree(vertices[vertex].position, vertices[vertex].normal);
+				CreatePlant(vertices[vertex].position, vertices[vertex].normal);
+			}
 
 			vertex++;
 		}
@@ -836,9 +846,11 @@ bool CTerrain::PositionTreeHere()
 	return false;
 }
 
-bool CTerrain::CreateTree(D3DXVECTOR3 position)
+bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 {
-	if (PositionTreeHere())
+	position.x += 0.5f;
+	position.z += 0.5f;
+	if (PositionTreeHere() && normal.y >= 0.8f)
 	{
 		position.y += GetPosY();
 		position.x += GetPosX();
@@ -846,8 +858,7 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position)
 		tree.position = position;
 
 		float rotation = static_cast<float>(rand() % 100 + 261);
-		tree.rotation = rotation;
-
+		tree.rotation.y = rotation;
 		float scale = static_cast<float>(rand() % 5 + 1);
 		if (scale < 0.5f)
 		{
@@ -877,9 +888,11 @@ bool CTerrain::PositionPlantHere()
 	return false;
 }
 
-bool CTerrain::CreatePlant(D3DXVECTOR3 position)
+bool CTerrain::CreatePlant(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 {
-	if (PositionTreeHere())
+	position.x += 0.5f;
+	position.z += 0.5f;
+	if (PositionTreeHere() && normal.y > 0.7f)
 	{
 		position.y += GetPosY();
 		position.x += GetPosX();
@@ -887,7 +900,7 @@ bool CTerrain::CreatePlant(D3DXVECTOR3 position)
 		plant.position = position;
 
 		float rotation = static_cast<float>(rand() % 100 + 261);
-		plant.rotation = rotation;
+		plant.rotation.y = rotation;
 
 		float scale = static_cast<float>(rand() % 10 + 1);
 

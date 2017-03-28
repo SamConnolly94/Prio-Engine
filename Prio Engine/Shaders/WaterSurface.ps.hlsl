@@ -144,13 +144,12 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 	float n1 = 1.0; // Refractive index of air
 	float n2 = 1.5f;
 
-	float f0 = (n1 - n2) / (n1 + n2);
-	f0 *= f0;
+	//float f0 = (n1 - n2) / (n1 + n2);
+	//f0 *= f0;
 
-	float fresnel = f0 + (1 - f0) * pow((1 - saturate(dot(waterNormal, normalToCamera))), 5);
-	// fresnel = saturate(lerp(f0, 1, fresnel));
+	//float fresnel = f0 + (1 - f0) * pow((1 - saturate(dot(waterNormal, normalToCamera))), 5);
 
-	fresnel = 0.25f;
+	float fresnel = 0.25f;
 	return lerp(refractColour, /*float4(0,1,1,1)*/ reflectColour, fresnel);
 
 }

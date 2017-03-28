@@ -983,74 +983,77 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		// Reflection
 		/////////////////////////////////
 
-		//mpCamera->GetReflectionViewMatrix(view);
-		// Render vertices using reflection shader.
-		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
+			//mpCamera->GetReflectionViewMatrix(view);
+			// Render vertices using reflection shader.
+			mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 
-		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+			mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+			mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-		mpCamera->GetReflectionView(view);
-		mpRefractionShader->SetView(view);
+			mpCamera->GetReflectionView(view);
+			mpRefractionShader->SetView(view);
 
-		mpD3D->TurnOffBackFaceCulling();
+			mpD3D->TurnOffBackFaceCulling();
 
-		/////////////////////////////
-		// SKYBOX
-		////////////////////////////
+			/////////////////////////////
+			// SKYBOX
+			////////////////////////////
+			mpD3D->DisableZBuffer();
+			mpD3D->GetWorldMatrix(world);
+			// Translate the sky dome to be centered around the camera position.
+			D3DXMatrixTranslation(&world, mpCamera->GetPosition().x, mpCamera->GetPosition().y, mpCamera->GetPosition().z);
+			// Allow the clouds to additively blend with the skybox.
+			mpD3D->EnableAdditiveAlphaBlending();
 
-		mpD3D->GetWorldMatrix(world);
-		// Translate the sky dome to be centered around the camera position.
-		D3DXMatrixTranslation(&world, mpCamera->GetPosition().x, mpCamera->GetPosition().y, mpCamera->GetPosition().z);
-		// Allow the clouds to additively blend with the skybox.
-		mpD3D->EnableAdditiveAlphaBlending();
+			// Place the cloud plane vertex / index data onto the rendering pipeline.
+			mpCloudPlane->Render(mpD3D->GetDeviceContext());
 
-		// Place the cloud plane vertex / index data onto the rendering pipeline.
-		mpCloudPlane->Render(mpD3D->GetDeviceContext());
+			// Set shader variables before rendering clouds with the shader.
+			mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
+			mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
+			mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
+			mpCloudShader->SetWorldMatrix(world);
+			mpCloudShader->SetViewMatrix(view);
+			mpCloudShader->SetProjMatrix(proj);
+			mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
+			mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
 
-		// Set shader variables before rendering clouds with the shader.
-		mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
-		mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
-		mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
-		mpCloudShader->SetWorldMatrix(world);
-		mpCloudShader->SetViewMatrix(view);
-		mpCloudShader->SetProjMatrix(proj);
-		mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
-		mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
+			// Render the clouds using vertex and pixel shaders.
+			mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
 
-		// Render the clouds using vertex and pixel shaders.
-		mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
+			// Turn off alpha blending.
+			mpD3D->DisableAlphaBlending();
+			mpD3D->EnableZBuffer();
 
-		// Turn off alpha blending.
-		mpD3D->DisableAlphaBlending();
+			////////////////////////////
+			// Terrain
+			////////////////////////////
 
-		////////////////////////////
-		// Terrain
-		////////////////////////////
+			// Reset the terrain world matrix
+			mpTerrain->GetWorldMatrix(world);
 
-		// Reset the terrain world matrix
-		mpTerrain->GetWorldMatrix(world);
+			/* Render the reflection of the terrain. */
 
-		/* Render the reflection of the terrain. */
+			// Place vertices onto render pipeline.
+			mpTerrain->Render(mpD3D->GetDeviceContext());
 
-		// Place vertices onto render pipeline.
-		mpTerrain->Render(mpD3D->GetDeviceContext());
+			result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
+			if (!result)
+			{
+				logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
+				return false;
+			}
+
+			/* Render the reflection of models within the scene. */
+
+			// Render any models which belong to each mesh. Do this in batches to make it faster.
+			for (auto mesh : mpMeshes)
+			{
+				mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, view, proj, mpSceneLight);
+			}
+			mpD3D->TurnOnBackFaceCulling();
+
 		
-		result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
-		if (!result)
-		{
-			logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
-			return false;
-		}
-
-		/* Render the reflection of models within the scene. */
-
-		// Render any models which belong to each mesh. Do this in batches to make it faster.
-		for (auto mesh : mpMeshes)
-		{
-			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, view, proj, mpSceneLight);
-		}
-		mpD3D->TurnOnBackFaceCulling();
 	}
 
 	/////////////////////////////////

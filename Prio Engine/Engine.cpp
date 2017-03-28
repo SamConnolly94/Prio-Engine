@@ -558,7 +558,7 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 
 			tree->SetPos(treeInfo.position.x, treeInfo.position.y, treeInfo.position.z);
 			tree->SetRotationX(90.0f);
-			tree->SetRotationY(treeInfo.rotation);
+			tree->SetRotationY(treeInfo.rotation.y);
 			tree->SetScale(treeInfo.scale);
 		}
 
@@ -577,8 +577,8 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 			}
 
 			plant->SetPos(plantInfo.position.x, plantInfo.position.y, plantInfo.position.z);
-			plant->SetRotationY(plantInfo.rotation);
 			plant->SetRotationX(90.0f);
+			plant->SetRotationY(plantInfo.rotation.y);
 			plant->SetScale(plantInfo.scale);
 		}
 	}
