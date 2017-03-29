@@ -21,6 +21,8 @@ CGraphics::CGraphics()
 	mpCloudPlane = nullptr;
 	mpCloudShader = nullptr;
 	mFrameTime = 0.0f;
+	mpRain = nullptr;
+	mpRainShader = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -173,6 +175,21 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	mpRain = new CRain();
+	if (!mpRain->Initialise(mpD3D->GetDevice(), "Resources/Textures/raindrop.dds", 5000))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the rain particle emitter.");
+		return false;
+	}
+
+		
+	mpRainShader = new CRainShader();
+	if (!mpRainShader->Initialise(mpD3D->GetDevice(), hwnd))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the rain shader.");
+		return false;
+	}
+
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -180,6 +197,20 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpRain)
+	{
+		mpRain->Shutdown();
+		delete mpRain;
+		mpRain = nullptr;
+	}
+
+	if (mpRainShader)
+	{
+		mpRainShader->Shutdown();
+		delete mpRainShader;
+		mpRainShader = nullptr;
+	}
+
 	if (mpCloudPlane)
 	{
 		mpCloudPlane->Shutdown();
@@ -370,6 +401,9 @@ bool CGraphics::Frame(float updateTime)
 
 void CGraphics::UpdateScene(float updateTime)
 {
+	mFrameTime = updateTime;
+	mRunTime += updateTime;
+
 	mpCamera->Render();
 
 	for (auto primitive : mpPrimitives)
@@ -463,6 +497,8 @@ void CGraphics::UpdateScene(float updateTime)
 	}
 
 	mTimeSinceLastSkyboxUpdate += updateTime;
+
+	mpRain->Update(updateTime);
 }
 
 bool CGraphics::Render()
@@ -700,6 +736,9 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 		return false;
 
 	if (!RenderTerrains(world, view, proj))
+		return false;
+
+	if (!RenderRain(world, view, proj))
 		return false;
 
 	mMutex.unlock();
@@ -1078,6 +1117,38 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
 	{
 		return false;
 	}
+
+	return true;
+}
+
+bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj)
+{
+	mpD3D->GetWorldMatrix(world);
+	mpD3D->GetProjectionMatrix(proj);
+	mpCamera->GetViewMatrix(view);
+
+	D3DXVECTOR3 pos = mpCamera->GetPosition();
+	//pos.y += 2.0f;
+	mpRain->SetEmitterPos(pos);
+	mpRain->SetEmitterDir(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+
+	mpD3D->TurnOffBackFaceCulling();
+	mpRainShader->SetCameraWorldPosition(mpCamera->GetPosition());
+	mpRainShader->SetEmitterWorldDirection(mpRain->GetEmitterDir());
+	mpRainShader->SetEmitterWorldPosition(mpRain->GetEmitterPos());
+	mpRainShader->SetFrameTime(mFrameTime);
+	mpRainShader->SetGameTime(mRunTime);
+	mpRainShader->SetGravityAcceleration(-9.81f);
+	mpRainShader->SetWorldMatrix(world);
+	mpRainShader->SetProjMatrix(proj);
+	mpRainShader->SetViewMatrix(view);
+	mpRainShader->SetRainTexture(mpRain->GetRainTexture());
+	mpRainShader->SetRandomTexture(mpRain->GetRandomTexture());
+	mpRainShader->SetFirstRun(mpRain->GetIsFirstRun());
+	mpRainShader->SetWindX(0.0f);
+	mpRainShader->SetWindZ(0.0f);
+
+	mpRain->Render(mpD3D, mpRainShader);
 
 	return true;
 }

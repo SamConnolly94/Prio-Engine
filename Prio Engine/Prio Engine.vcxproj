@@ -42,6 +42,8 @@
     <ClInclude Include="ModelControl.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="PrioEngineVars.h" />
+    <ClInclude Include="Rain.h" />
+    <ClInclude Include="RainShader.h" />
     <ClInclude Include="RefractReflectShader.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Shader.h" />
@@ -81,6 +83,8 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelControl.cpp" />
     <ClCompile Include="Primitive.cpp" />
+    <ClCompile Include="Rain.cpp" />
+    <ClCompile Include="RainShader.cpp" />
     <ClCompile Include="RefractReflectShader.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -189,6 +193,25 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Clouds.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Rain.gs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Rain.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Rain.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\RainParticleUpdate.gs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\RainParticleUpdate.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

@@ -7,6 +7,7 @@ CD3D11::CD3D11()
 	mpAlphaBlendingStateEnabled = nullptr;	
 	mpRasterStateNoCulling = nullptr;
 	mpAdditiveAlphaBlendingStateEnabled = nullptr;
+	mpDepthState = nullptr;
 }
 
 
@@ -352,6 +353,12 @@ bool CD3D11::Initialise(int screenWidth, int screenHeight, bool vsync, HWND hwnd
 void CD3D11::Shutdown()
 {
 	logger->GetInstance().WriteLine("DirectX Shutdown Function Initialised.");
+
+	if (mpDepthState != nullptr)
+	{
+		mpDepthState->Release();
+		mpDepthState = nullptr;
+	}
 
 	// If swap chain has been intialised.
 	if (mpSwapChain)
@@ -934,6 +941,26 @@ void CD3D11::CreateProjMatrix(float screenDepth, float screenNear)
 
 	// Create the projection matrix for 3D rendering.
 	D3DXMatrixPerspectiveFovLH(&mProjectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+}
+
+void CD3D11::SetDepthState(bool depth, bool stencil, bool depthWrite)
+{
+	if (mpDepthState != nullptr)
+	{
+		mpDepthState->Release();
+		mpDepthState = nullptr;
+	}
+
+	D3D11_DEPTH_STENCIL_DESC depthStateDesc;
+
+	ZeroMemory(&depthStateDesc, sizeof(depthStateDesc));
+	depthStateDesc.DepthEnable = depth;
+	depthStateDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStateDesc.DepthWriteMask = depthWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+	depthStateDesc.StencilEnable = stencil;
+	mpDevice->CreateDepthStencilState(&depthStateDesc, &mpDepthState);
+	mpDeviceContext->OMSetDepthStencilState(mpDepthState, 1);
+
 }
 
 bool CD3D11::ToggleFullscreen(bool fullscreenEnabled)

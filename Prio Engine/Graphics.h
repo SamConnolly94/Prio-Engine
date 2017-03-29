@@ -28,6 +28,8 @@
 #include <mutex>
 #include "CloudPlane.h"
 #include "CloudShader.h"
+#include "RainShader.h"
+#include "Rain.h"
 
 // Global variables.
 
@@ -65,6 +67,7 @@ private:
 	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
 private:
 	CD3D11* mpD3D;
 	CCamera* mpCamera;
@@ -81,6 +84,7 @@ private:
 	CSkyboxShader* mpSkyboxShader;
 	CWaterShader* mpWaterShader;
 	CReflectRefractShader* mpRefractionShader;
+	CRainShader* mpRainShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);
@@ -99,7 +103,6 @@ private:
 	bool CreateTerrainShader(HWND hwnd);
 	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
 	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
-
 	float mFrameTime;
 
 	HWND mHwnd;
@@ -161,6 +164,8 @@ private:
 	std::mutex mMutex;
 	CCloudPlane* mpCloudPlane;
 	CCloudShader* mpCloudShader;
+	CRain* mpRain;
+	float mRunTime = 0.0f;
 };
 
 #endif

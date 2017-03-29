@@ -16,12 +16,6 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{c5ea3ef4-c05d-45b8-9a04-fde113d73ba9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Engine\Shader Classes">
-      <UniqueIdentifier>{eb8202fc-20fa-4e14-8869-1470aaa73c4e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Engine\Shader Classes">
-      <UniqueIdentifier>{ca8e88a9-323d-4da0-b5ff-0b26eaad7b7e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Water">
       <UniqueIdentifier>{ede2c024-4b35-4069-9914-63282c847811}</UniqueIdentifier>
     </Filter>
@@ -37,15 +31,24 @@
     <Filter Include="Shaders\Terrain">
       <UniqueIdentifier>{d94e3de6-a570-4a5d-a95d-310b4d7a9dc5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Engine\Render">
+      <UniqueIdentifier>{02d110fb-e8b0-4a05-9af0-58991821b8df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Engine\Render\Shader Classes">
+      <UniqueIdentifier>{eb8202fc-20fa-4e14-8869-1470aaa73c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Render">
+      <UniqueIdentifier>{b9151639-f68e-404e-b5a3-80eade87739b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Render\Shader Classes">
+      <UniqueIdentifier>{ca8e88a9-323d-4da0-b5ff-0b26eaad7b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Rain">
+      <UniqueIdentifier>{41fac006-21fa-483a-bd40-90fb71ff880f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="2DImage.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Cube.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="D3D11.h">
@@ -54,114 +57,120 @@
     <ClInclude Include="Engine.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Frustum.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFont.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="GameText.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="GameTimer.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Input.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelControl.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Primitive.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="PrioEngineVars.h">
       <Filter>Header Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexTypeManager.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyBox.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
     <ClInclude Include="ColourShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="DiffuseLightShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="SpecularLightingShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="FontShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="TerrainShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="TextureShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="SkyboxShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="WaterShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Water.h">
-      <Filter>Header Files\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>Header Files\Engine</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="RefractReflectShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
     <ClInclude Include="CloudShader.h">
-      <Filter>Header Files\Engine\Shader Classes</Filter>
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="2DImage.h">
+      <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
     <ClInclude Include="CloudPlane.h">
-      <Filter>Header Files\Engine</Filter>
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFont.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelControl.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTexture.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexTypeManager.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Water.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RainShader.h">
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Rain.h">
+      <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="2DImage.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Cube.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="D3D11.cpp">
@@ -170,98 +179,110 @@
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Frustum.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFont.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="GameText.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="GameTimer.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="Input.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelControl.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Primitive.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexTypeManager.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyBox.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
     <ClCompile Include="ColourShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="DiffuseLightShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="FontShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="SpecularLightingShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="SkyboxShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="TerrainShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="TextureShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="WaterShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
-    </ClCompile>
-    <ClCompile Include="Water.cpp">
-      <Filter>Source Files\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
-      <Filter>Source Files\Engine</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="RefractReflectShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
     </ClCompile>
     <ClCompile Include="CloudShader.cpp">
-      <Filter>Source Files\Engine\Shader Classes</Filter>
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="RainShader.cpp">
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="2DImage.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
     <ClCompile Include="CloudPlane.cpp">
-      <Filter>Source Files\Engine</Filter>
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFont.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelControl.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Primitive.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTexture.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Triangle.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexTypeManager.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Water.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Rain.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -342,6 +363,21 @@
     </None>
     <None Include="Shaders\Clouds.vs.hlsl">
       <Filter>Shaders\Skybox</Filter>
+    </None>
+    <None Include="Shaders\Rain.gs.hlsl">
+      <Filter>Shaders\Rain</Filter>
+    </None>
+    <None Include="Shaders\Rain.ps.hlsl">
+      <Filter>Shaders\Rain</Filter>
+    </None>
+    <None Include="Shaders\Rain.vs.hlsl">
+      <Filter>Shaders\Rain</Filter>
+    </None>
+    <None Include="Shaders\RainParticleUpdate.gs.hlsl">
+      <Filter>Shaders\Rain</Filter>
+    </None>
+    <None Include="Shaders\RainParticleUpdate.vs.hlsl">
+      <Filter>Shaders\Rain</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -1,7 +1,3 @@
-//
-// VERTEX SHADER FILE.
-//
-
 // Globals
 
 cbuffer MatrixBuffer : register(b0)
