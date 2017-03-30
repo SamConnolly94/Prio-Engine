@@ -9,11 +9,22 @@ private:
 	struct FrameBufferType
 	{
 		D3DXVECTOR3 CameraPos;
-		D3DXVECTOR3 EmitPos;
-		D3DXVECTOR3 EmitDir;
 		float GameTime;
+		D3DXVECTOR3 EmitPos;
 		float FrameTime;
+		float Gravity;
+		float WindX;
+		float WindZ;
 		float frameBufferPadding;
+	};
+
+	struct VertexType
+	{
+		D3DXVECTOR3 InitialPos;
+		D3DXVECTOR3 InitialVelocity;
+		D3DXVECTOR2 Size;
+		float Age;
+		unsigned int Type;
 	};
 
 public:
@@ -44,9 +55,6 @@ private:
 	ID3D11Buffer* mpMatrixBuffer;
 	ID3D11Buffer* mpFrameBuffer;
 private:
-	D3DXMATRIX mWorld;
-	D3DXMATRIX mView;
-	D3DXMATRIX mProj;
 	ID3D11ShaderResourceView* mpRainTexture;
 	ID3D11ShaderResourceView* mpRandomTexture;
 	D3DXVECTOR3 mCameraWorldPosition;
@@ -59,9 +67,6 @@ private:
 	float mWindZ;
 	bool mFirstRun = false;
 public:
-	void SetWorldMatrix(D3DXMATRIX world);
-	void SetViewMatrix(D3DXMATRIX view);
-	void SetProjMatrix(D3DXMATRIX proj);
 	void SetRainTexture(ID3D11ShaderResourceView* resource);
 	void SetRandomTexture(ID3D11ShaderResourceView* resource);
 	void SetCameraWorldPosition(D3DXVECTOR3 pos);

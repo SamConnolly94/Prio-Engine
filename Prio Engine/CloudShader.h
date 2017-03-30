@@ -31,21 +31,14 @@ private:
 	ID3D11PixelShader* mpPixelShader;
 	ID3D11InputLayout* mpLayout;
 	ID3D11SamplerState* mpTrilinearWrap;
-	ID3D11Buffer* mpMatrixBuffer;
 	ID3D11Buffer* mpCloudBuffer;
 private:
-	D3DXMATRIX mWorldMatrix;
-	D3DXMATRIX mViewMatrix;
-	D3DXMATRIX mProjMatrix;
 	ID3D11ShaderResourceView* mpCloudTexture1;
 	ID3D11ShaderResourceView* mpCloudTexture2;
 	float mBrightness;
 	D3DXVECTOR2 mCloud1Movement;
 	D3DXVECTOR2 mCloud2Movement;
 public:
-	void SetWorldMatrix(D3DXMATRIX world);
-	void SetViewMatrix(D3DXMATRIX view);
-	void SetProjMatrix(D3DXMATRIX proj);
 	void SetCloudTexture1(ID3D11ShaderResourceView* resource);
 	void SetCloudTexture2(ID3D11ShaderResourceView* resource);
 	void SetBrightness(float brightness);

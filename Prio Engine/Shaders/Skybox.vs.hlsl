@@ -7,6 +7,7 @@ cbuffer MatrixBuffer
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projectionMatrix;
+	matrix ViewProjMatrix;
 };
 
 
@@ -41,8 +42,9 @@ PixelInputType SkyDomeVertexShader(VertexInputType input)
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
-	output.position = mul(output.position, viewMatrix);
-	output.position = mul(output.position, projectionMatrix);
+	output.position = mul(output.position, ViewProjMatrix);
+	//output.position = mul(output.position, viewMatrix);
+	//output.position = mul(output.position, projectionMatrix);
 
 	// Send the unmodified position through to the pixel shader.
 	output.domePosition = input.position;

@@ -1,12 +1,29 @@
+//////////////////////////
+// Sampler States
+/////////////////////////
+
 SamplerState TrilinearWrap : register(s0);
+
+//////////////////////////
+// Textures and Resources
+/////////////////////////
 
 Texture2D RainTexture : register(t0);
 
+
+//////////////////////////
+// Input Structures
+/////////////////////////
+
 struct PixelInputType
 {
-	float4 ProjectedPosition : SV_POSITION;
-	float2 UV				 : TEXCOORD0;
+	float4 ViewportPosition : SV_Position;
+	float2 UV				: TEXCOORD0;
 };
+
+//////////////////////////
+// Pixel shader
+/////////////////////////
 
 float4 RainPS(PixelInputType input) : SV_TARGET
 {

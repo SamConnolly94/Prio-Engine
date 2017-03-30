@@ -22,6 +22,7 @@ cbuffer MatrixBuffer : register(b0)
 	matrix WorldMatrix;
 	matrix ViewMatrix;
 	matrix ProjectionMatrix;
+	matrix ViewProjMatrix;
 }
 
 cbuffer WaterBuffer : register(b1)

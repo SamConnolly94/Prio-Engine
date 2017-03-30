@@ -8,7 +8,6 @@ CCloudShader::CCloudShader()
 	mpPixelShader = nullptr;
 	mpLayout = nullptr;
 	mpTrilinearWrap = nullptr;
-	mpMatrixBuffer = nullptr;
 	mpCloudBuffer = nullptr;
 	mpCloudTexture1 = nullptr;
 	mpCloudTexture2 = nullptr;
@@ -61,7 +60,6 @@ bool CCloudShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC cloudBufferDesc;
 
 	// Initialise pointers in this function to null.
@@ -183,20 +181,9 @@ bool CCloudShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::strin
 	}
 
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
-
-	if (FAILED(result))
+	if (!SetupMatrixBuffer(device))
 	{
-		logger->GetInstance().WriteLine("Failed to create the buffer pointer to access the vertex shader from within the sky dome shader class.");
+		logger->GetInstance().WriteLine("Failed to set up the matrix buffer.");
 		return false;
 	}
 
@@ -225,12 +212,6 @@ void CCloudShader::ShutdownShader()
 	{
 		mpCloudBuffer->Release();
 		mpCloudBuffer = nullptr;
-	}
-
-	if (mpMatrixBuffer != nullptr)
-	{
-		mpMatrixBuffer->Release();
-		mpMatrixBuffer = nullptr;
 	}
 
 	if (mpTrilinearWrap)
@@ -300,31 +281,12 @@ bool CCloudShader::SetShaderParameters(ID3D11DeviceContext * deviceContext)
 	// Matrix buffer
 	/////////////////////////////
 
-	// Lock the matrix buffer for writing to.
-	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-
-	// If we did not successfully lock the constant buffer.
-	if (FAILED(result))
+	bufferNumber = 0;
+	if (!SetMatrixBuffer(deviceContext, bufferNumber, ShaderType::Vertex))
 	{
-		// Output error message to the logs.
-		logger->GetInstance().WriteLine("Failed to lock the matrix buffer before writing to it in cloud shader class.");
+		logger->GetInstance().WriteLine("Failed to set the vertex shader.");
 		return false;
 	}
-	
-	// Grab pointer to the matrix const buff.
-	MatrixBufferType* matrixBufferPtr = static_cast<MatrixBufferType*>(mappedResource.pData);
-
-	// Set data in the structure.
-	matrixBufferPtr->world = mWorldMatrix;
-	matrixBufferPtr->view = mViewMatrix;
-	matrixBufferPtr->projection = mProjMatrix;
-
-	// Unlock the const buffer and write modifications to it.
-	deviceContext->Unmap(mpMatrixBuffer, 0);
-
-	// Pass buffer to shader
-	bufferNumber = 0;
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
 
 	/////////////////////////////
 	// Cloud buffer
@@ -374,24 +336,6 @@ void CCloudShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCo
 	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
 	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
 	deviceContext->DrawIndexed(indexCount, 0, 0);
-}
-
-void CCloudShader::SetWorldMatrix(D3DXMATRIX world)
-{
-	mWorldMatrix = world;
-	D3DXMatrixTranspose(&mWorldMatrix, &mWorldMatrix);
-}
-
-void CCloudShader::SetViewMatrix(D3DXMATRIX view)
-{
-	mViewMatrix = view;
-	D3DXMatrixTranspose(&mViewMatrix, &mViewMatrix);
-}
-
-void CCloudShader::SetProjMatrix(D3DXMATRIX proj)
-{
-	mProjMatrix = proj;
-	D3DXMatrixTranspose(&mProjMatrix, &mProjMatrix);
 }
 
 void CCloudShader::SetCloudTexture1(ID3D11ShaderResourceView * resource)

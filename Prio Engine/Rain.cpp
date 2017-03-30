@@ -121,25 +121,32 @@ void CRain::Update(float updateTime)
 
 void CRain::UpdateRender(ID3D11DeviceContext * deviceContext)
 {
-	unsigned int stride = sizeof(VertexType);
-	unsigned int offset = 0;
+	unsigned int stride;
+	unsigned int offset;
+
+	// Set the vertex buffer stride and offset.
+	stride = sizeof(VertexType);
+	offset = 0;
+	
+	// Tell directx we've passed it a point list.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	if (mFirstRun)
 	{
+		// Set the vertex buffer to active in the input assembler.
 		deviceContext->IASetVertexBuffers(0, 1, &mpInitialBuffer, &stride, &offset);
 	}
 	else
 	{
+		// Set the vertex buffer to active in the input assembler.
 		deviceContext->IASetVertexBuffers(0, 1, &mpDrawBuffer, &stride, &offset);
 	}
 
+	// Set the stream buffer render target.
 	deviceContext->SOSetTargets(1, &mpStreamBuffer, &offset);
-
-	// Ran for first time now.
-	mFirstRun = false;
 }
 
-void CRain::Render(CD3D11* d3d, CRainShader* rainShader)
+void CRain::Render(ID3D11DeviceContext * deviceContext)
 {
 	unsigned int stride;
 	unsigned int offset;
@@ -148,44 +155,15 @@ void CRain::Render(CD3D11* d3d, CRainShader* rainShader)
 	stride = sizeof(VertexType);
 	offset = 0;
 
-	d3d->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-
-	if (mFirstRun)
-	{
-		// Set the vertex buffer to active in the input assembler.
-		d3d->GetDeviceContext()->IASetVertexBuffers(0, 1, &mpInitialBuffer, &stride, &offset);
-	}
-	else
-	{
-		// Set the vertex buffer to active in the input assembler.
-		d3d->GetDeviceContext()->IASetVertexBuffers(0, 1, &mpDrawBuffer, &stride, &offset);
-	}
-
-	d3d->GetDeviceContext()->SOSetTargets(1, &mpStreamBuffer, &offset);
-
-	d3d->SetDepthState(false, false, false);
-
-	rainShader->UpdateRender(d3d->GetDeviceContext());
-
-	if (mFirstRun)
-	{
-		mFirstRun = false;
-	}
-
-
+	//Unbind the vertex buffer
 	ID3D11Buffer* buffer = 0;
-	d3d->GetDeviceContext()->SOSetTargets(1, &buffer, &offset);
+	deviceContext->SOSetTargets(1, &buffer, &offset);
 
 	std::swap(mpDrawBuffer, mpStreamBuffer);
 
-	d3d->GetDeviceContext()->IASetVertexBuffers(0, 1, &mpDrawBuffer, &stride, &offset);
-
-	d3d->SetDepthState(true, false, false);
-
-	rainShader->Render(d3d->GetDeviceContext());
-
-
-	d3d->EnableZBuffer();
+	// Tell directx we've passed it a point list.
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	deviceContext->IASetVertexBuffers(0, 1, &mpDrawBuffer, &stride, &offset);
 }
 
 void CRain::ShutdownBuffers()
@@ -257,7 +235,7 @@ void CRain::SetNumberOfParticles(unsigned int numParticles)
 	mNumberOfParticles = numParticles;
 }
 
-void CRain::FirstRun(bool firstRun)
+void CRain::SetFirstRun(bool firstRun)
 {
 	mFirstRun = firstRun;
 }

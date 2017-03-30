@@ -61,13 +61,13 @@ public:
 private:
 	bool Render();
 private:
-	bool RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
-	bool RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj);
+	bool RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderTerrains(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 private:
 	CD3D11* mpD3D;
 	CCamera* mpCamera;
@@ -101,8 +101,8 @@ private:
 	bool CreateColourShader(HWND hwnd);
 	bool CreateTextureAndDiffuseLightShaderFromModel(HWND hwnd);
 	bool CreateTerrainShader(HWND hwnd);
-	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
-	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho);
+	bool RenderText(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho, D3DXMATRIX viewProj);
+	bool RenderBitmaps(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX ortho, D3DXMATRIX viewProj);
 	float mFrameTime;
 
 	HWND mHwnd;

@@ -8,7 +8,6 @@ CReflectRefractShader::CReflectRefractShader()
 	mpRefractionPixelShader			= nullptr;
 	mpLayout						= nullptr;
 	mpTrilinearWrap					= nullptr;
-	mpMatrixBuffer					= nullptr;
 	mpLightBuffer					= nullptr;
 	mpViewportBuffer				= nullptr;
 	mpReflectionPixelShader			= nullptr;
@@ -388,20 +387,9 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 		return false;
 	}
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
-	if (FAILED(result))
+	if (!SetupMatrixBuffer(device))
 	{
-		logger->GetInstance().WriteLine("Failed to create the buffer pointer access the vertex shader from within the water shader class.");
+		logger->GetInstance().WriteLine("Failed to set up matrix buffer in reflect refract shader class.");
 		return false;
 	}
 
@@ -526,12 +514,6 @@ void CReflectRefractShader::ShutdownShader()
 		mpPositioningBuffer = nullptr;
 	}
 
-	if (mpMatrixBuffer)
-	{
-		mpMatrixBuffer->Release();
-		mpMatrixBuffer = nullptr;
-	}
-
 	if (mpLightBuffer)
 	{
 		mpLightBuffer->Release();
@@ -620,30 +602,14 @@ bool CReflectRefractShader::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	// Update the matrices constant buffer.
 	///////////////////////////
 
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to lock the constant buffer to write to the matrices values in refraction shader.");
-		return false;
-	}
-
-	// Get a pointer to the data in the constant buffer.
-	matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	matrixBufferPtr->world = mWorldMatrix;
-	matrixBufferPtr->view = mViewMatrix;
-	matrixBufferPtr->projection = mProjMatrix;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(mpMatrixBuffer, 0);
-
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
+	if (!SetMatrixBuffer(deviceContext, bufferNumber, ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer in reflect refract shader.");
+		return false;
+	}
 
 	//////////////////////////////
 	// Update the viewport constant buffer.
@@ -945,24 +911,6 @@ void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceC
 	}
 
 	return;
-}
-
-void CReflectRefractShader::SetWorld(D3DXMATRIX worldMatrix)
-{
-	mWorldMatrix = worldMatrix;
-	D3DXMatrixTranspose(&mWorldMatrix, &mWorldMatrix);
-}
-
-void CReflectRefractShader::SetView(D3DXMATRIX viewMatrix)
-{
-	mViewMatrix = viewMatrix;
-	D3DXMatrixTranspose(&mViewMatrix, &mViewMatrix);
-}
-
-void CReflectRefractShader::SetProj(D3DXMATRIX projMatrix)
-{
-	mProjMatrix = projMatrix;
-	D3DXMatrixTranspose(&mProjMatrix, &mProjMatrix);
 }
 
 void CReflectRefractShader::SetLightProperties(CLight * light)

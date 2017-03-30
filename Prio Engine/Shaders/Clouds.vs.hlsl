@@ -7,6 +7,7 @@ cbuffer MatrixBuffer : register(b0)
 	matrix WorldMatrix;
 	matrix ViewMatrix;
 	matrix ProjMatrix;
+	matrix ViewProjMatrix;
 };
 
 ///////////////////////////
@@ -36,8 +37,9 @@ PixelInputType CloudVS(VertexInputType input)
 	input.WorldPosition.w = 1.0f;
 
 	output.ProjPosition = mul(input.WorldPosition, WorldMatrix);
-	output.ProjPosition = mul(output.ProjPosition, ViewMatrix);
-	output.ProjPosition = mul(output.ProjPosition, ProjMatrix);
+	output.ProjPosition = mul(output.ProjPosition, ViewProjMatrix);
+	//output.ProjPosition = mul(output.ProjPosition, ViewMatrix);
+	//output.ProjPosition = mul(output.ProjPosition, ProjMatrix);
 
 	output.UV = input.UV;
 

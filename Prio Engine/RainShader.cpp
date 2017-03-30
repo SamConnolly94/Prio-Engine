@@ -46,11 +46,11 @@ bool CRainShader::Render(ID3D11DeviceContext* deviceContext)
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
-	//result = SetShaderParameters(deviceContext);
-	//if (!result)
-	//{
-	//	return false;
-	//}
+	result = SetShaderParameters(deviceContext);
+	if (!result)
+	{
+		return false;
+	}
 
 	/////////////////////////////
 	// Shader resources / textures
@@ -94,6 +94,7 @@ bool CRainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string
 	ID3D10Blob* geometryShaderUpdateBuffer;
 	const int kNumberOfPolygonElements = 5;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[kNumberOfPolygonElements];
+	D3D11_SO_DECLARATION_ENTRY gsPolyStream[kNumberOfPolygonElements];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -227,11 +228,55 @@ bool CRainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string
 		return false;
 	}
 
-	// Create the geometry shader from the buffer.
-	result = device->CreateGeometryShader(geometryShaderUpdateBuffer->GetBufferPointer(), geometryShaderUpdateBuffer->GetBufferSize(), NULL, &mpUpdateGeometryShader);
+
+	/* 
+	* Define poly layout for GS.
+	*/
+	gsPolyStream[0].SemanticName = "POSITION";
+	gsPolyStream[0].SemanticIndex = 0;
+	gsPolyStream[0].StartComponent = 0;
+	gsPolyStream[0].ComponentCount = 3;
+	gsPolyStream[0].OutputSlot = 0;
+	gsPolyStream[0].Stream = 0;
+
+	gsPolyStream[1].SemanticName = "VELOCITY";
+	gsPolyStream[1].SemanticIndex = 0;
+	gsPolyStream[1].StartComponent = 0;
+	gsPolyStream[1].ComponentCount = 3;
+	gsPolyStream[1].OutputSlot = 0;
+	gsPolyStream[1].Stream = 0;
+
+	gsPolyStream[2].SemanticName = "SIZE";
+	gsPolyStream[2].SemanticIndex = 0;
+	gsPolyStream[2].StartComponent = 0;
+	gsPolyStream[2].ComponentCount = 2;
+	gsPolyStream[2].OutputSlot = 0;
+	gsPolyStream[2].Stream = 0;
+
+	gsPolyStream[3].SemanticName = "AGE";
+	gsPolyStream[3].SemanticIndex = 0;
+	gsPolyStream[3].StartComponent = 0;
+	gsPolyStream[3].ComponentCount = 1;
+	gsPolyStream[3].OutputSlot = 0;
+	gsPolyStream[3].Stream = 0;
+
+	gsPolyStream[4].SemanticName = "TYPE";
+	gsPolyStream[4].SemanticIndex = 0;
+	gsPolyStream[4].StartComponent = 0;
+	gsPolyStream[4].ComponentCount = 1;
+	gsPolyStream[4].OutputSlot = 0;
+	gsPolyStream[4].Stream = 0;
+
+	UINT stride[] = { sizeof(VertexType) };
+	UINT numEntries = (sizeof(gsPolyStream) / sizeof(D3D11_SO_DECLARATION_ENTRY));
+	int numBuffers = 1;
+
+	result = device->CreateGeometryShaderWithStreamOutput(geometryShaderUpdateBuffer->GetBufferPointer(), geometryShaderUpdateBuffer->GetBufferSize(), gsPolyStream,
+		numEntries, stride, numBuffers, D3D11_SO_NO_RASTERIZED_STREAM, NULL, &mpUpdateGeometryShader);
+
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the update geometry shader from the buffer.");
+		logger->GetInstance().WriteLine("Failed to create the udpate geometry shader stream.");
 		return false;
 	}
 
@@ -331,20 +376,9 @@ bool CRainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string
 		return false;
 	}
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &mpMatrixBuffer);
-	if (FAILED(result))
+	if (!SetupMatrixBuffer(device))
 	{
-		logger->GetInstance().WriteLine("Failed to create matrix buffer from the description provided in Rain Shader class.");
+		logger->GetInstance().WriteLine("Failed to set up the matrix buffer in rain shader class.");
 		return false;
 	}
 
@@ -454,33 +488,20 @@ bool CRainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
-	MatrixBufferType* dataPtr;
 
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if (FAILED(result))
-	{
-		return false;
-	}
 
-	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
-
-	// Copy the matrices into the constant buffer.
-	dataPtr->world = mWorld;
-	dataPtr->view = mView;
-	dataPtr->projection = mProj;
-
-	// Unlock the constant buffer.
-	deviceContext->Unmap(mpMatrixBuffer, 0);
-
-	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;
 
-	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
-	// Also set it in the geometry shader.
-	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
+	if (!SetMatrixBuffer(deviceContext, bufferNumber, ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer in the vertex shader in rain shader class.");
+		return false;
+	}
+	if (!SetMatrixBuffer(deviceContext, bufferNumber, ShaderType::Geometry))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer in the geometry shader in rain shader class.");
+		return false;
+	}
 
 	/////////////////////////////
 	// Frame Buffer
@@ -498,11 +519,12 @@ bool CRainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 
 	// Copy the data into the constant buffer.
 	frameBufferPtr->CameraPos = mCameraWorldPosition;
-	frameBufferPtr->EmitDir = mEmitWorldDirection;
 	frameBufferPtr->EmitPos = mEmitWorldPosition;
-	frameBufferPtr->FrameTime = mFrameTime;
 	frameBufferPtr->GameTime = mGameTime;
-	frameBufferPtr->frameBufferPadding = 0.0f;
+	frameBufferPtr->FrameTime = mFrameTime;
+	frameBufferPtr->Gravity = mGravityAcceleration;
+	frameBufferPtr->WindX = mWindX;
+	frameBufferPtr->WindZ = mWindZ;
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(mpFrameBuffer, 0);
@@ -511,8 +533,8 @@ bool CRainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 	bufferNumber = 1;
 
 	// Now set the constant buffer in the vertex shader with the updated values.
-	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &mpFrameBuffer);
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpFrameBuffer);
+	deviceContext->GSSetConstantBuffers(bufferNumber, 1, &mpFrameBuffer);
 
 	return true;
 }
@@ -520,8 +542,8 @@ bool CRainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext)
 void CRainShader::RenderShader(ID3D11DeviceContext * deviceContext)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	deviceContext->IASetInputLayout(mpLayout);
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
 	deviceContext->GSSetShader(mpGeometryShader, NULL, 0);
@@ -532,7 +554,7 @@ void CRainShader::RenderShader(ID3D11DeviceContext * deviceContext)
 
 	deviceContext->DrawAuto();
 
-	deviceContext->GSSetShader(NULL, NULL, NULL);
+	deviceContext->GSSetShader(NULL, NULL, 0);
 
 	return;
 }
@@ -541,6 +563,7 @@ bool CRainShader::UpdateParticles(ID3D11DeviceContext * deviceContext)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(mpLayout);
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	deviceContext->VSSetShader(mpUpdateVertexShader, NULL, 0);
 	deviceContext->GSSetShader(mpUpdateGeometryShader, NULL, 0);
@@ -559,24 +582,6 @@ bool CRainShader::UpdateParticles(ID3D11DeviceContext * deviceContext)
 	deviceContext->GSSetShader(NULL, NULL, NULL);
 
 	return true;
-}
-
-void CRainShader::SetWorldMatrix(D3DXMATRIX world)
-{
-	mWorld = world;
-	D3DXMatrixTranspose(&mWorld, &mWorld);
-}
-
-void CRainShader::SetViewMatrix(D3DXMATRIX view)
-{
-	mView = view;
-	D3DXMatrixTranspose(&mView, &mView);
-}
-
-void CRainShader::SetProjMatrix(D3DXMATRIX proj)
-{
-	mProj = proj;
-	D3DXMatrixTranspose(&mProj, &mProj);
 }
 
 void CRainShader::SetRainTexture(ID3D11ShaderResourceView * resource)

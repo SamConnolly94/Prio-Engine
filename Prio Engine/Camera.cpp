@@ -173,9 +173,10 @@ void CCamera::GetReflectionView(D3DXMATRIX& view)
 	view = mViewMatrix * invertYMatrix;
 }
 
-void CCamera::GetViewProjMatrix(D3DXMATRIX & ViewProjMatrix)
+void CCamera::GetViewProjMatrix(D3DXMATRIX & ViewProjMatrix, D3DXMATRIX proj)
 {
-	ViewProjMatrix = mViewProjMatrix;
+	ViewProjMatrix = mViewMatrix * proj;
+	mViewProjMatrix = ViewProjMatrix;
 }
 
 void CCamera::RenderReflection(float waterHeight)
@@ -244,12 +245,12 @@ void CCamera::UpdateMatrices()
 	// The rendering pipeline requires the inverse of the camera world matrix, so calculate that (Thanks Laurent!)
 	D3DXMatrixInverse(&mViewMatrix, NULL, &mWorldMatrix);
 
-	// Initialise the projection matrix.
-	float aspectRatio = static_cast<float>(mScreenWidth / mScreenHeight);
-	D3DXMatrixPerspectiveFovLH(&mProjMatrix, mFov, aspectRatio, mNearClip, mFarClip);
+	//// Initialise the projection matrix.
+	//float aspectRatio = static_cast<float>(mScreenWidth / mScreenHeight);
+	//D3DXMatrixPerspectiveFovLH(&mProjMatrix, mFov, aspectRatio, mNearClip, mFarClip);
 
-	// Combine the view and proj matrix into one matrix. This comes in useful for efficiency, as it gets done in the vertex shader every time it has to draw a vertex shader.
-	mViewProjMatrix = mViewMatrix * mProjMatrix;
+	//// Combine the view and proj matrix into one matrix. This comes in useful for efficiency, as it gets done in the vertex shader every time it has to draw a vertex shader.
+	//mViewProjMatrix = mViewMatrix * mProjMatrix;
 }
 
 float CCamera::ToRadians(float degrees)

@@ -57,7 +57,7 @@ bool CMesh::LoadMesh(std::string filename, float modelRadius)
 	return result;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, D3DXMATRIX &view, D3DXMATRIX &proj, CLight* light)
+void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, CLight* light)
 {
 	for (auto model : mpModels)
 	{
@@ -78,11 +78,14 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 				bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
 				bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
 				shader->UpdateMapBuffer(context, useAlpha, useSpecular);
-
+				
+				//shader->SetViewMatrix(view);
+				//shader->SetProjMatrix(proj);
+				//shader->SetViewMatrix(view * proj);
+				shader->SetWorldMatrix(model->GetWorldMatrix());
 
 				// Pass over the textures for rendering.
 				if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
-					model->GetWorldMatrix(), view, proj,
 					mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
 					light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
 				{

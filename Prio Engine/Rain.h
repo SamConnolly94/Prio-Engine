@@ -30,7 +30,7 @@ public:
 	void Shutdown();
 	void Update(float updateTime);
 	void UpdateRender(ID3D11DeviceContext* deviceContext);
-	void Render(CD3D11* d3d, CRainShader* rainShader);
+	void Render(ID3D11DeviceContext * deviceContext);
 private:
 	void ShutdownBuffers();
 	ID3D11ShaderResourceView* CreateRandomTexture(ID3D11Device* device);
@@ -49,11 +49,12 @@ private:
 	D3DXVECTOR3 mEmitterDirection;
 public:
 	void SetNumberOfParticles(unsigned int numParticles);
-	void FirstRun(bool firstRun);
+	void SetFirstRun(bool firstRun);
 	void SetAge(float age);
 	void SetGameTime(float gameTime);
 	void SetEmitterPos(D3DXVECTOR3 pos);
 	void SetEmitterDir(D3DXVECTOR3 dir);
+	
 
 	unsigned int GetNumberOfParticles();
 	bool GetIsFirstRun();
