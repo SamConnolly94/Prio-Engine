@@ -1158,7 +1158,7 @@ bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 	mpRainShader->SetRainTexture(mpRain->GetRainTexture());
 	mpRainShader->SetFirstRun(mpRain->GetIsFirstRun());
 	mpRainShader->SetWindX(0.0f);
-	mpRainShader->SetWindZ(5.0f);
+	mpRainShader->SetWindZ(0.0f);
 
 	mpRainShader->SetWorldMatrix(world);
 	mpRainShader->SetViewMatrix(view);
