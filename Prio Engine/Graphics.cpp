@@ -583,6 +583,13 @@ bool CGraphics::RenderPrimitives(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX p
 /* Render any meshes / instances of meshes which we have created on the scene. */
 bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
 {
+	if (mpTerrain->GetUpdateFlag())
+	{
+		// Skip render pass.
+		logger->GetInstance().WriteLine("Updating terrain, skip the render pass.");
+		return true;
+	}
+
 	mpDiffuseLightShader->SetViewMatrix(view);
 	mpDiffuseLightShader->SetProjMatrix(proj);
 	mpDiffuseLightShader->SetViewProjMatrix(viewProj);
@@ -728,8 +735,6 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 /* Renders physical entities within the scene. */
 bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
 {
-	mMutex.lock();
-
 	if (!RenderWater(world, view, proj, viewProj))
 		return false;
 
@@ -744,8 +749,6 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 
 	if (!RenderRain(world, view, proj, viewProj))
 		return false;
-
-	mMutex.unlock();
 
 	return true;
 }
@@ -1105,9 +1108,17 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			mpDiffuseLightShader->SetViewMatrix(view);
 			mpDiffuseLightShader->SetProjMatrix(proj);
 			mpDiffuseLightShader->SetViewMatrix(view * proj);
-			for (auto mesh : mpMeshes)
+			if (mpTerrain->GetUpdateFlag())
 			{
-				mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight);
+				// Skip render pass.
+				logger->GetInstance().WriteLine("Updating terrain, skip the render pass.");
+			}
+			else
+			{
+				for (auto mesh : mpMeshes)
+				{
+					mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight);
+				}
 			}
 			mpD3D->TurnOnBackFaceCulling();
 
@@ -1142,7 +1153,7 @@ bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 {
 	mpD3D->GetWorldMatrix(world);
 
-	mpRain->SetEmitterPos(mpCamera->GetPosition());
+	mpRain->SetEmitterPos(D3DXVECTOR3(0.0f, 40.0f, 100.0f));
 	mpRain->SetEmitterDir(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 
 	mpRainShader->SetCameraWorldPosition(mpCamera->GetPosition());
@@ -1511,8 +1522,6 @@ bool CGraphics::RemovePrimitive(CPrimitive* &model)
 
 CMesh* CGraphics::LoadMesh(std::string filename, float radius)
 {
-	mMutex.lock();
-
 	// Allocate the mesh memory.
 	CMesh* mesh = new CMesh(mpD3D->GetDevice());
 
@@ -1531,16 +1540,12 @@ CMesh* CGraphics::LoadMesh(std::string filename, float radius)
 	// Push the pointer onto a member variable list so that we don't lose it.
 	mpMeshes.push_back(mesh);
 
-	mMutex.unlock();
-
 	return mesh;
 }
 
 /* Deletes any allocated memory to a mesh and removes it from the list. */
 bool CGraphics::RemoveMesh(CMesh *& mesh)
 {
-	mMutex.lock();
-
 	// Define an iterator.
 	std::list<CMesh*>::iterator it;
 	// Initialise it to the start of the meshes list.
@@ -1573,8 +1578,6 @@ bool CGraphics::RemoveMesh(CMesh *& mesh)
 
 	// If we got to this point, the mesh that was passed in was not found on the list. Output failure message to the log.
 	logger->GetInstance().WriteLine("Failed to find mesh to delete.");
-
-	mMutex.unlock();
 
 	// Return failure.
 	return false;

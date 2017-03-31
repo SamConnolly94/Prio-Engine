@@ -25,7 +25,6 @@
 #include "RefractReflectShader.h"
 #include "Water.h"
 #include "WaterShader.h"
-#include <mutex>
 #include "CloudPlane.h"
 #include "CloudShader.h"
 #include "RainShader.h"
@@ -161,7 +160,6 @@ public:
 	bool IsNightTime();
 	bool IsEveningTime();
 private:
-	std::mutex mMutex;
 	CCloudPlane* mpCloudPlane;
 	CCloudShader* mpCloudShader;
 	CRain* mpRain;
