@@ -11,6 +11,7 @@
 #include <vector>
 #include <sstream>
 #include "PrioEngineVars.h"
+#include "FoliageQuad.h"
 
 class CTerrain : public CModelControl
 {
@@ -130,6 +131,21 @@ private:
 	bool mUpdating = false;
 public:
 	bool GetUpdateFlag() { return mUpdating; };
+private:
+		CTexture* mpFoliageTex;
+		CTexture* mpFoliageAlphaTex;
+private:
+	bool GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices);
+	int mFoliageVertexCount;
+	int mFoliageIndexCount;
+	ID3D11Buffer* mpFoliageVertexBuffer;
+	// Buffer to store our indices.
+	ID3D11Buffer* mpFoliageIndexBuffer;
+public:
+	void RenderFoliage(ID3D11DeviceContext* context);
+	unsigned int GetFoliageIndexCount() { return mFoliageIndexCount; };
+	ID3D11ShaderResourceView* GetFoliageTexture() { return mpFoliageTex->GetTexture(); };
+	ID3D11ShaderResourceView* GetFoliageAlphaTexture() { return mpFoliageAlphaTex->GetTexture(); };
 };
 
 #endif

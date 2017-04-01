@@ -46,6 +46,9 @@
     <Filter Include="Shaders\Rain">
       <UniqueIdentifier>{41fac006-21fa-483a-bd40-90fb71ff880f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Foliage">
+      <UniqueIdentifier>{9786f927-6aee-44d7-891a-f4dc0895003f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -165,6 +168,8 @@
     <ClInclude Include="Rain.h">
       <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="FoliageShader.h" />
+    <ClInclude Include="FoliageQuad.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -284,6 +289,8 @@
     <ClCompile Include="Rain.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
+    <ClCompile Include="FoliageShader.cpp" />
+    <ClCompile Include="FoliageQuad.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Font.ps.hlsl">
@@ -378,6 +385,12 @@
     </None>
     <None Include="Shaders\RainParticleUpdate.vs.hlsl">
       <Filter>Shaders\Rain</Filter>
+    </None>
+    <None Include="Shaders\Foliage.ps.hlsl">
+      <Filter>Shaders\Foliage</Filter>
+    </None>
+    <None Include="Shaders\Foliage.vs.hlsl">
+      <Filter>Shaders\Foliage</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -28,6 +28,8 @@
     <ClInclude Include="D3D11.h" />
     <ClInclude Include="DiffuseLightShader.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="FoliageQuad.h" />
+    <ClInclude Include="FoliageShader.h" />
     <ClInclude Include="FontShader.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameFont.h" />
@@ -69,6 +71,8 @@
     <ClCompile Include="D3D11.cpp" />
     <ClCompile Include="DiffuseLightShader.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="FoliageQuad.cpp" />
+    <ClCompile Include="FoliageShader.cpp" />
     <ClCompile Include="FontShader.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameFont.cpp" />
@@ -212,6 +216,14 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\RainParticleUpdate.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Foliage.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Foliage.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

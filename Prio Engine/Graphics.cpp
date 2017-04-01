@@ -190,6 +190,13 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	mpFoliageShader = new CFoliageShader();
+	if (!mpFoliageShader->Initialise(mpD3D->GetDevice(), hwnd))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the foliage shader.");
+		return false;
+	}
+
 	mpCamera->SetPosition(0.0f, 50.0f, 20.0f);
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
@@ -746,6 +753,9 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 
 	if (!RenderTerrains(world, view, proj, viewProj))
 		return false;
+	
+	if (!RenderFoliage(world, view, proj, viewProj))
+		return false;
 
 	if (!RenderRain(world, view, proj, viewProj))
 		return false;
@@ -1197,6 +1207,62 @@ bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 	mpD3D->SetDepthState(true, false, false);
 	mpRainShader->Render(mpD3D->GetDeviceContext());
 
+	mpD3D->TurnOnBackFaceCulling();
+
+	return true;
+}
+
+bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
+{
+	if (mpTerrain == nullptr)
+	{
+		return true;
+	}
+
+	mpTerrain->RenderFoliage(mpD3D->GetDeviceContext());
+	mpTerrain->GetWorldMatrix(world);
+	mpFoliageShader->SetWorldMatrix(world);
+	mpFoliageShader->SetViewMatrix(view);
+	mpFoliageShader->SetProjMatrix(proj);
+	mpFoliageShader->SetViewProjMatrix(viewProj);
+
+	mpD3D->TurnOffBackFaceCulling();
+	mpD3D->EnableAlphaBlending();
+
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	{
+		logger->GetInstance().WriteLine("Failed to render foliage. ");
+		return false;
+	}
+
+	D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	mpFoliageShader->SetWorldMatrix(world);
+
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	{
+		logger->GetInstance().WriteLine("Failed to render foliage. ");
+		return false;
+	}
+
+	D3DXMatrixTranslation(&world, mpTerrain->GetPosX(), mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
+	mpFoliageShader->SetWorldMatrix(world);
+
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	{
+		logger->GetInstance().WriteLine("Failed to render foliage. ");
+		return false;
+	}
+
+	D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
+	mpFoliageShader->SetWorldMatrix(world);
+
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	{
+		logger->GetInstance().WriteLine("Failed to render foliage. ");
+		return false;
+	}
+
+	mpD3D->DisableAlphaBlending();
 	mpD3D->TurnOnBackFaceCulling();
 
 	return true;

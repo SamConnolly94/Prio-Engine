@@ -29,6 +29,7 @@
 #include "CloudShader.h"
 #include "RainShader.h"
 #include "Rain.h"
+#include "FoliageShader.h"
 
 // Global variables.
 
@@ -67,6 +68,7 @@ private:
 	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 	bool RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 private:
 	CD3D11* mpD3D;
 	CCamera* mpCamera;
@@ -84,6 +86,7 @@ private:
 	CWaterShader* mpWaterShader;
 	CReflectRefractShader* mpRefractionShader;
 	CRainShader* mpRainShader;
+	CFoliageShader* mpFoliageShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
 	bool RenderPrimitiveWithColour(CPrimitive* model, D3DMATRIX worldMatrix, D3DMATRIX viewMatrix, D3DMATRIX projMatrix);

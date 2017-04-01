@@ -1,0 +1,353 @@
+#include "FoliageShader.h"
+
+CFoliageShader::CFoliageShader()
+{
+	mpVertexShader = nullptr;
+	mpPixelShader = nullptr;
+	mpLayout = nullptr;
+	mpSampleState = nullptr;
+}
+
+
+CFoliageShader::~CFoliageShader()
+{
+}
+
+bool CFoliageShader::Initialise(ID3D11Device * device, HWND hwnd)
+{
+	bool result;
+
+	// Initialise the vertex pixel shaders.
+	result = InitialiseShader(device, hwnd, "Shaders/Foliage.vs.hlsl", "Shaders/Foliage.ps.hlsl");
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialsie the foliage shader class.");
+		return false;
+	}
+
+	return true;
+}
+
+void CFoliageShader::Shutdown()
+{
+	// Shutodwn the vertex and pixel shaders as well as all related objects.
+	ShutdownShader();
+}
+
+bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, ID3D11ShaderResourceView * grassTexture, ID3D11ShaderResourceView * alphaMask, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection)
+{
+	bool result;
+
+	// Set the shader parameters that will be used for rendering.
+	result = SetShaderParameters(deviceContext, grassTexture, alphaMask, ambientColour, diffuseColour, lightDirection);
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to set the shader parameters in foliage shader.");
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+{
+	HRESULT result;
+	ID3D10Blob* errorMessage;
+	ID3D10Blob* vertexShaderBuffer;
+	ID3D10Blob* pixelShaderBuffer;
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	unsigned int numElements;
+	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_SAMPLER_DESC samplerDesc;
+
+	// Initialise pointers in this function to null.
+	errorMessage = nullptr;
+	vertexShaderBuffer = nullptr;
+	pixelShaderBuffer = nullptr;
+
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "FoliageVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+		}
+		else
+		{
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
+			MessageBox(hwnd, vsFilename.c_str(), "Missing shader file. ", MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsFilename + "'");
+		return false;
+	}
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "FoliagePS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+		}
+		else
+		{
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilename + "'");
+			MessageBox(hwnd, psFilename.c_str(), "Missing shader file.", MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilename + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the vertex shader from the buffer.");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the pixel shader from the buffer.");
+		return false;
+	}
+
+	int polyIndex = 0;
+
+	// Setup the layout of the data that goes into the shader.
+	polygonLayout[polyIndex].SemanticName = "POSITION";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = 0;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 1;
+
+	// Position only has 2 co-ords. Only need format of R32G32.
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 2;
+
+	polygonLayout[polyIndex].SemanticName = "NORMAL";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+
+	// Get a count of the elements in the layout.
+	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create polygon layout.");
+		return false;
+	}
+
+	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	vertexShaderBuffer->Release();
+	vertexShaderBuffer = nullptr;
+
+	pixelShaderBuffer->Release();
+	pixelShaderBuffer = nullptr;
+
+	if (!SetupMatrixBuffer(device))
+	{
+		logger->GetInstance().WriteLine("Failed to set up matrix buffer in foliage shader class.");
+		return false;
+	}
+
+	// Set up the sampler state descriptor.
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &mpSampleState);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the sampler state in foliage shader class.");
+		return false;
+	}
+
+	D3D11_BUFFER_DESC lightBufferDesc;
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
+	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDesc.MiscFlags = 0;
+	lightBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&lightBufferDesc, NULL, &mpLightBuffer);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the buffer pointer to access the light buffer from foilage shader class.");
+		return false;
+	}
+
+	return true;
+}
+
+void CFoliageShader::ShutdownShader()
+{
+	if (mpSampleState)
+	{
+		mpSampleState->Release();
+		mpSampleState = nullptr;
+	}
+
+	if (mpLayout)
+	{
+		mpLayout->Release();
+		mpLayout = nullptr;
+	}
+
+	if (mpPixelShader)
+	{
+		mpPixelShader->Release();
+		mpPixelShader = nullptr;
+	}
+
+	if (mpVertexShader)
+	{
+		mpVertexShader->Release();
+		mpVertexShader = nullptr;
+	}
+}
+
+void CFoliageShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hwnd, std::string shaderFilename)
+{
+	std::string errMsg;
+	char* compileErrors;
+	unsigned long bufferSize;
+
+	// Grab pointer to the compile errors.
+	compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+	// Get the length of the message.
+	bufferSize = errorMessage->GetBufferSize();
+
+	// Reset string to store message in to be empty.
+	errMsg = "";
+
+	// Compile the error message into a string variable.
+	for (unsigned int i = 0; i < bufferSize; i++)
+	{
+		errMsg += compileErrors[i];
+	}
+
+	// Write the error string to the logs.
+	logger->GetInstance().WriteLine(errMsg);
+
+	// Clean up the BLOB file used to store the error message.
+	errorMessage->Release();
+	errorMessage = nullptr;
+
+	// Output a message box containing info describing what went wrong. Redirect to the logs.
+	MessageBox(hwnd, "Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename.c_str(), MB_OK);
+}
+
+bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * grassTexture, ID3D11ShaderResourceView * alphaMask, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	MatrixBufferType* dataPtr;
+	unsigned int bufferNumber;
+
+
+	bufferNumber = 0;
+
+	if (!SetMatrixBuffer(deviceContext, bufferNumber, ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer in terrain shader.");
+		return false;
+	}
+
+	/////////////////////////////
+	// Light buffer
+	/////////////////////////////
+
+	// Lock the matrix buffer for writing to.
+	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	// If we did not successfully lock the constant buffer.
+	if (FAILED(result))
+	{
+		// Output error message to the logs.
+		logger->GetInstance().WriteLine("Failed to lock the matrix buffer before writing to it in shader class.");
+		return false;
+	}
+
+	// Grab pointer to the matrix const buff.
+	LightBufferType* lightBufferPtr = static_cast<LightBufferType*>(mappedResource.pData);
+
+	// Set data in the structure.
+	lightBufferPtr->AmbientColour = ambientColour;
+	lightBufferPtr->DiffuseColour = diffuseColour;
+	lightBufferPtr->LightDirection = lightDirection;
+	lightBufferPtr->padding = 0.0f;
+
+	// Unlock the const buffer and write modifications to it.
+	deviceContext->Unmap(mpLightBuffer, 0);
+
+	// Pass buffer to shader
+	bufferNumber = 0;
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
+
+
+	// Set the shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &grassTexture);
+	deviceContext->PSSetShaderResources(1, 1, &alphaMask);
+
+	return true;
+}
+
+void CFoliageShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout
+	deviceContext->IASetInputLayout(mpLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpPixelShader, NULL, 0);
+
+	// Set sample state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
