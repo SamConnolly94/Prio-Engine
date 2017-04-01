@@ -16,24 +16,29 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	// Need to define a quad in the shape of an astericks *.
 	// This will result in relatively thick grass.
 
+	D3DXVECTOR3 LL = lowerL - lowerL;
+	D3DXVECTOR3 LR = lowerR - lowerL;
+	D3DXVECTOR3 UL = upperL - lowerL;
+	D3DXVECTOR3 UR = upperR - lowerL;
+
 	//////////////////////
 	// Horizontal line
 	//////////////////////
 
 	// Bottom left
-	mFoliageRect[0].Position[0] = { -0.5f, 0.0f, 0.5f };
+	mFoliageRect[0].Position[0] = { LL.x, LL.y, LL.z };
 	mFoliageRect[0].UV[0] = { 0.0f, 1.0f };
 	mFoliageRect[0].Normal[0] = { 0.0f, 1.0f, 0.0f };
 	// Bottom right
-	mFoliageRect[0].Position[1] = { 0.5f, 0.0f, 0.5f };
+	mFoliageRect[0].Position[1] = { LR.x, LR.y, LR.z};
 	mFoliageRect[0].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[0].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[0].Position[2] = { -0.5f, 1.0f, 0.5f };
+	mFoliageRect[0].Position[2] = { LL.x, LL.y + 1.0f, LL.z };
 	mFoliageRect[0].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[0].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[0].Position[3] = { 0.5f, 1.0f, 0.5f };
+	mFoliageRect[0].Position[3] = { LR.x, LR.y + 1.0f, LR.z };
 	mFoliageRect[0].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[0].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
@@ -41,19 +46,19 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	// Starting point top left, diag down to right
 	///////////////////////
 	// Bottom left
-	mFoliageRect[1].Position[0] = { -0.5f, 0.0f, 1.0f };
+	mFoliageRect[1].Position[0] = { UL.x, UL.y, UL.z };
 	mFoliageRect[1].UV[0] = { 0.0f, 1.0f };
 	mFoliageRect[1].Normal[0] = { 0.0f, 1.0f, 0.0f };
 	// Bottom right
-	mFoliageRect[1].Position[1] = { 0.5f, 0.0f, 0.0f };
+	mFoliageRect[1].Position[1] = { LR.x, LR.y, LR.z };
 	mFoliageRect[1].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[1].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[1].Position[2] = { -0.5f, 1.0f, 1.0f };
+	mFoliageRect[1].Position[2] = { UL.x, UL.y + 1.0f, UL.z };
 	mFoliageRect[1].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[1].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[1].Position[3] = { 0.5f, 1.0f, 0.0f };
+	mFoliageRect[1].Position[3] = { LR.x, LR.y + 1.0f, LR.z };
 	mFoliageRect[1].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[1].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
@@ -61,19 +66,19 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	// Starting point bottom left, diag up to right
 	///////////////////////
 	// Bottom left
-	mFoliageRect[2].Position[0] = { -0.5f, 0.0f, 0.0f };
+	mFoliageRect[2].Position[0] = { LL.x, LL.y, LL.z };
 	mFoliageRect[2].UV[0] = { 0.0f, 1.0f };
 	mFoliageRect[2].Normal[0] = { 0.0f, 1.0f, 0.0f };
 	// Bottom right
-	mFoliageRect[2].Position[1] = { 0.5f, 0.0f, 1.0f };
+	mFoliageRect[2].Position[1] = { UR.x, UR.y, UR.z };
 	mFoliageRect[2].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[2].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[2].Position[2] = { -0.5f, 1.0f, 0.0f };
+	mFoliageRect[2].Position[2] = { LL.x, LL.y + 1.0f, LL.z };
 	mFoliageRect[2].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[2].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[2].Position[3] = { 0.5f, 1.0f, 1.0f };
+	mFoliageRect[2].Position[3] = { UR.x, UR.y + 1.0f, UR.z };
 	mFoliageRect[2].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[2].Normal[3] = { 0.0f, 1.0f, 0.0f };
 

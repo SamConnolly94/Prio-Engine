@@ -1010,7 +1010,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 		for (int widthCount = 0; widthCount < mWidth; widthCount++)
 		{
 			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
-			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 3.0f);
+			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
 
 			if (areaType == CTerrain::VertexAreaType::Grass && upwards != CTerrain::VertexAreaType::Snow)
 			{
@@ -1032,19 +1032,23 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 	vertex = 0;
 	int currVertex = 0;
 
-	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
 	{
-		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
 		{
 			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
-			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 3.0f);
+			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
 
 			if (areaType == CTerrain::VertexAreaType::Grass && upwards != CTerrain::VertexAreaType::Snow)
 			{
 
 				CFoliageQuad foliage;
-				D3DXVECTOR3 pt = { 0.0f, 0.0f, 0.0f };
-				foliage.GeneratePoints(pt, pt, pt, pt);
+				D3DXVECTOR3 LL = terrainVertices[vertex].position;
+				D3DXVECTOR3 LR = terrainVertices[vertex + 1].position;
+				D3DXVECTOR3 UL = terrainVertices[vertex + mWidth].position;
+				D3DXVECTOR3 UR = terrainVertices[vertex + mWidth + 1].position;
+
+				foliage.GeneratePoints(LL, LR, UL, UR);
 				foliage.SetPosition(terrainVertices[vertex].position);
 
 				for (int i = 0; i < 3; i++)
@@ -1062,6 +1066,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 			}
 			vertex++;
 		}
+		vertex++;
 	}
 
 	/////////////////////////
