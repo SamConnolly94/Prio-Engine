@@ -39,8 +39,6 @@ PixelInputType RefractionVS(VertexInputType input)
 
 	output.WorldPosition = mul(input.WorldPosition, WorldMatrix);
 	output.ProjectedPosition = mul(output.WorldPosition, ViewProjMatrix);
-	//output.ProjectedPosition = mul(output.WorldPosition, ViewMatrix);
-	//output.ProjectedPosition = mul(output.ProjectedPosition, ProjectionMatrix);
 
 	output.Normal = mul(input.Normal, (float3x3)WorldMatrix);
 

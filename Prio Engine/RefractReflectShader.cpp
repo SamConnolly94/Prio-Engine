@@ -13,7 +13,8 @@ CReflectRefractShader::CReflectRefractShader()
 	mpReflectionPixelShader			= nullptr;
 	mpTerrainAreaBuffer				= nullptr;
 	mpPositioningBuffer				= nullptr;
-	//mpSkyboxRefractionPixelShader	= nullptr;
+	mpFoliageVertexShader			= nullptr;
+	mpFoliageRefractionPixelShader  = nullptr;
 }
 
 
@@ -32,8 +33,10 @@ bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 	std::string SkyboxVSName = "Shaders/SkyboxRefraction.vs.hlsl";
 	std::string SkyboxPSName = "Shaders/SkyboxRefraction.ps.hlsl";
 	std::string ModelReflectionPSName = "Shaders/ModelReflection.ps.hlsl";
+	std::string FoliageVSName = "Shaders/FoliageRefraction.vs.hlsl";
+	std::string FoliagePSName = "Shaders/FoliageRefraction.ps.hlsl";
 
-	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName);
+	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName, FoliageVSName, FoliagePSName);
 
 	if (!result)
 	{
@@ -86,25 +89,25 @@ bool CReflectRefractShader::ReflectionRender(ID3D11DeviceContext* deviceContext,
 	return true;
 }
 
-//bool CRefractionShader::SkyboxRefractionRender(ID3D11DeviceContext * deviceContext, int indexCount, 
-//	D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, 
-//	D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour, ID3D11ShaderResourceView* waterHeightMap)
-//{
-//	// Set the shader parameters that it will use for rendering.
-//	bool result = SetSkyboxShaderParameters(deviceContext, worldMatrix, viewMatrix, projMatrix, lightDirection, ambientColour, diffuseColour, apexColour, centreColour, waterHeightMap);
-//
-//	if (!result)
-//	{
-//		return false;
-//	}
-//
-//	// Now render the prepared buffers with the shader.
-//	RenderSkyboxRefractionShader(deviceContext, indexCount);
-//
-//	return true;
-//}
+bool CReflectRefractShader::RenderFoliageRefraction(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	bool result;
 
-bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName)
+	// Set the shader parameters that it will use for rendering.
+	result = SetFoliageShaderParameters(deviceContext);
+
+	if (!result)
+	{
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderFoliageRefractionShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName, std::string FoliageVSName, std::string FoliagePSName)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -119,7 +122,6 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC terrainAreaBufferDesc;
 	D3D11_BUFFER_DESC terrainPosBufferDesc;
-	D3D11_BUFFER_DESC gradientBufferDesc;
 
 
 	// Initialise pointers in this function to null.
@@ -238,57 +240,60 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	}
 
 	///////////////////////////////////
-	// Skybox refraction
+	// Foliage refraction
 	///////////////////////////////////
-	//result = D3DX11CompileFromFile(skyboxRefractionVSName.c_str(), NULL, NULL, "SkyboxVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &skyboxVertexShaderBuffer, &errorMessage, NULL);
-	//if (FAILED(result))
-	//{
-	//	if (errorMessage)
-	//	{
-	//		OutputShaderErrorMessage(errorMessage, hwnd, skyboxRefractionVSName);
-	//	}
-	//	else
-	//	{
-	//		std::string errMsg = "Missing shader file. ";
-	//		logger->GetInstance().WriteLine("Could not find a shader file with name '" + skyboxRefractionVSName + "'");
-	//		MessageBox(hwnd, skyboxRefractionVSName.c_str(), errMsg.c_str(), MB_OK);
-	//	}
-	//	logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + skyboxRefractionVSName + "'");
-	//	return false;
-	//}
 
-	//// Compile the pixel shader code.
-	//result = D3DX11CompileFromFile(skyboxRefractionPSName.c_str(), NULL, NULL, "SkyboxRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
-	//if (FAILED(result))
-	//{
-	//	if (errorMessage)
-	//	{
-	//		OutputShaderErrorMessage(errorMessage, hwnd, skyboxRefractionPSName);
-	//	}
-	//	else
-	//	{
-	//		std::string errMsg = "Missing shader file.";
-	//		logger->GetInstance().WriteLine("Could not find a shader file with name '" + skyboxRefractionPSName + "'");
-	//		MessageBox(hwnd, skyboxRefractionPSName.c_str(), errMsg.c_str(), MB_OK);
-	//	}
-	//	logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + skyboxRefractionPSName + "'");
-	//	return false;
-	//}
-	//// Create the vertex shader from the buffer.
-	//result = device->CreateVertexShader(skyboxVertexShaderBuffer->GetBufferPointer(), skyboxVertexShaderBuffer->GetBufferSize(), NULL, &mpSkyboxVertexShader);
-	//if (FAILED(result))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to create the skybox vertex shader from the buffer.");
-	//	return false;
-	//}
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(FoliageVSName.c_str(), NULL, NULL, "FoliageRefractionVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, FoliageVSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file. ";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + FoliageVSName + "'");
+			MessageBox(hwnd, FoliageVSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + FoliageVSName + "'");
+		return false;
+	}
 
-	//// Create the pixel shader from the buffer.
-	//result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpSkyboxRefractionPixelShader);
-	//if (FAILED(result))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to create the skybox refraction pixel shader from the buffer.");
-	//	return false;
-	//}
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(FoliagePSName.c_str(), NULL, NULL, "FoliageRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, FoliagePSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + FoliagePSName + "'");
+			MessageBox(hwnd, FoliagePSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + FoliagePSName + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpFoliageVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction vertex shader from the buffer.");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpFoliageRefractionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction pixel shader from the buffer.");
+		return false;
+	}
 
 	/*
 	* The polygonLayout.Format describes what size item should be placed in here, check if it's a float3 or float2 basically, and pass in DXGI_FORMAT_R32/G32/B32_FLOAT accordingly.
@@ -331,19 +336,9 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 		return false;
 	}
 
-	//result = device->CreateInputLayout(polygonLayout, numElements, skyboxVertexShaderBuffer->GetBufferPointer(), skyboxVertexShaderBuffer->GetBufferSize(), &mpLayout);
-	//if (FAILED(result))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to create polygon layout.");
-	//	return false;
-	//}
-
 	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
 	vertexShaderBuffer->Release();
 	vertexShaderBuffer = nullptr;
-
-	//skyboxVertexShaderBuffer->Release();
-	//skyboxVertexShaderBuffer = nullptr;
 
 	pixelShaderBuffer->Release();
 	pixelShaderBuffer = nullptr;
@@ -369,6 +364,20 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the sampler state in RefractionShader.cpp");
+		return false;
+	}
+	
+
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+
+	// Create the texture sampler state.
+	result = device->CreateSamplerState(&samplerDesc, &mpPointClamp);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the point clamp sampler state in RefractionShader.cpp");
 		return false;
 	}
 
@@ -472,22 +481,23 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	}
 
 	//////////////////////////////////
-	// Set up gradient buffer
+	// Set up foliage buffer
 	/////////////////////////////////
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	gradientBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	gradientBufferDesc.ByteWidth = sizeof(GradientBufferType);
-	gradientBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	gradientBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	gradientBufferDesc.MiscFlags = 0;
-	gradientBufferDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC foliageBufferDesc;
+	foliageBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	foliageBufferDesc.ByteWidth = sizeof(FoliageBufferType);
+	foliageBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	foliageBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	foliageBufferDesc.MiscFlags = 0;
+	foliageBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&gradientBufferDesc, NULL, &mpGradientBuffer);
+	result = device->CreateBuffer(&foliageBufferDesc, NULL, &mpFoliageBuffer);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the gradient buffer from within the refraction shader class.");
+		logger->GetInstance().WriteLine("Failed to create the foliage buffer from within the refraction shader class.");
 		return false;
 	}
 
@@ -500,6 +510,18 @@ void CReflectRefractShader::ShutdownShader()
 	{
 		mpTrilinearWrap->Release();
 		mpTrilinearWrap = nullptr;
+	}
+
+	if (mpPointClamp)
+	{
+		mpPointClamp->Release();
+		mpPointClamp = nullptr;
+	}
+
+	if (mpFoliageBuffer)
+	{
+		mpFoliageBuffer->Release();
+		mpFoliageBuffer = nullptr;
 	}
 
 	if (mpTerrainAreaBuffer)
@@ -537,12 +559,6 @@ void CReflectRefractShader::ShutdownShader()
 		mpRefractionPixelShader->Release();
 		mpRefractionPixelShader = nullptr;
 	}
-
-	//if (mpSkyboxRefractionPixelShader)
-	//{
-	//	mpSkyboxRefractionPixelShader->Release();
-	//	mpSkyboxRefractionPixelShader = nullptr;
-	//}
 
 	if (mpReflectionPixelShader)
 	{
@@ -738,109 +754,89 @@ bool CReflectRefractShader::SetShaderParameters(ID3D11DeviceContext* deviceConte
 
 	return true;
 }
-//
-//bool CRefractionShader::SetSkyboxShaderParameters(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix, 
-//	D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour, ID3D11ShaderResourceView* waterHeightMap)
-//{
-//	HRESULT result;
-//	D3D11_MAPPED_SUBRESOURCE mappedResource;
-//	unsigned int bufferNumber;
-//	MatrixBufferType* matrixBufferPtr;
-//	LightBufferType* lightBufferPtr;
-//	ViewportBufferType* viewportBufferPtr;
-//
-//	////////////////////////////
-//	// Update the matrices constant buffer.
-//	///////////////////////////
-//
-//	// Lock the constant buffer so it can be written to.
-//	result = deviceContext->Map(mpMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-//	if (FAILED(result))
-//	{
-//		logger->GetInstance().WriteLine("Failed to lock the constant buffer to write to the matrices values in refraction shader.");
-//		return false;
-//	}
-//
-//	// Get a pointer to the data in the constant buffer.
-//	matrixBufferPtr = (MatrixBufferType*)mappedResource.pData;
-//
-//	// Copy the matrices into the constant buffer.
-//	matrixBufferPtr->world = worldMatrix;
-//	matrixBufferPtr->view = viewMatrix;
-//	matrixBufferPtr->projection = projMatrix;
-//
-//	// Unlock the constant buffer.
-//	deviceContext->Unmap(mpMatrixBuffer, 0);
-//
-//	// Set the position of the constant buffer in the vertex shader.
-//	bufferNumber = 0;
-//
-//	// Now set the constant buffer in the vertex shader with the updated values.
-//	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpMatrixBuffer);
-//
-//	/////////////////////////////////
-//	// Update the light constant buffer.
-//	/////////////////////////////////
-//	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-//
-//	if (FAILED(result))
-//	{
-//		logger->GetInstance().WriteLine("Failed to set the light constant buffer in refraction shader class.");
-//		return false;
-//	}
-//
-//	// Get pointer to the data inside the constant buffer.
-//	lightBufferPtr = (LightBufferType*)mappedResource.pData;
-//
-//	// Copy the current light values into the constant buffer.
-//	lightBufferPtr->AmbientColour = ambientColour;
-//	lightBufferPtr->DiffuseColour = diffuseColour;
-//	lightBufferPtr->LightDirection = lightDirection;
-//	lightBufferPtr->padding = 0.0f;
-//
-//	// Unlock the constnat buffer so we can write to it elsewhere.
-//	deviceContext->Unmap(mpLightBuffer, 0);
-//
-//	// Update the position of our constant buffer in the shader.
-//	bufferNumber = 1;
-//
-//	// Set the constant buffer in the shader.
-//	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
-//
-//	/////////////////////////////////
-//	// Update the gradient constant buffer.
-//	/////////////////////////////////
-//	result = deviceContext->Map(mpGradientBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-//
-//	if (FAILED(result))
-//	{
-//		logger->GetInstance().WriteLine("Failed to set the gradient constant buffer in refraction shader class.");
-//		return false;
-//	}
-//
-//	// Get pointer to the data inside the constant buffer.
-//	GradientBufferType* gradientBufferPtr = (GradientBufferType*)mappedResource.pData;
-//
-//	// Copy the current light values into the constant buffer.
-//	gradientBufferPtr->apexColour = apexColour;
-//	gradientBufferPtr->centreColour = centreColour;
-//
-//	// Unlock the constnat buffer so we can write to it elsewhere.
-//	deviceContext->Unmap(mpGradientBuffer, 0);
-//
-//	// Update the position of our constant buffer in the shader.
-//	bufferNumber = 2;
-//
-//	// Set the constant buffer in the shader.
-//	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpGradientBuffer);
-//
-//	/////////////////////////////////
-//	// Update shader resources
-//	/////////////////////////////////
-//	deviceContext->PSSetShaderResources(0, 1, &waterHeightMap);
-//
-//	return true;
-//}
+bool CReflectRefractShader::SetFoliageShaderParameters(ID3D11DeviceContext * deviceContext)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	unsigned int bufferNumber;
+
+	if (!SetMatrixBuffer(deviceContext, 0, CShader::ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer when setting foliage shader parameters in refraction shader.");
+		return false;
+	}
+
+	/////////////////////////////////
+	// Update the light constant buffer.
+	/////////////////////////////////
+	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the light constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	LightBufferType* lightBufferPtr = (LightBufferType*)mappedResource.pData;
+
+	// Copy the current light values into the constant buffer.
+	lightBufferPtr->AmbientColour = mAmbientColour;
+	lightBufferPtr->DiffuseColour = mDiffuseColour;
+	lightBufferPtr->LightDirection = mLightDirection;
+	lightBufferPtr->mLightPosition = mLightPosition;
+	lightBufferPtr->mSpecularColour = mSpecularColour;
+	lightBufferPtr->mSpecularPower = mSpecularPower;
+	lightBufferPtr->lightBufferPadding = 0.0f;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpLightBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 1;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
+
+	/////////////////////////////////
+	// Update the foliage buffer
+	/////////////////////////////////
+	result = deviceContext->Map(mpFoliageBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the foliage constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	FoliageBufferType* foliageBufferPtr = (FoliageBufferType*)mappedResource.pData;
+
+	// Set values.
+	foliageBufferPtr->FrameTime = mFrameTime;
+	foliageBufferPtr->WindDirection = mWindDirection;
+	foliageBufferPtr->WindStrength = mStrength;
+	foliageBufferPtr->FoliageTranslation = mTranslation;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpFoliageBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 1;
+
+	// Set the constant buffer in the shader.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpFoliageBuffer);
+
+	/////////////////////////////////////
+	// Resources
+	////////////////////////////////////
+
+	deviceContext->PSSetShaderResources(0, 1, &mpWaterHeightMap);
+	deviceContext->PSSetShaderResources(1, 1, &mpGrassTexture);
+	deviceContext->PSSetShaderResources(2, 1, &mpGrassAlphaTexture);
+
+	return true;
+}
 
 void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
@@ -858,34 +854,26 @@ void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceC
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 
-	// Unbind the resources we used.
-	ID3D11ShaderResourceView* nullResource = nullptr;
-	for (int i = 0; i < 7; i++)
-	{
-		deviceContext->PSSetShaderResources(i, 1, &nullResource);
-	}
-
 	return;
 }
-//
-//void CRefractionShader::RenderSkyboxRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
-//{
-//	// Set the vertex input layout.
-//	deviceContext->IASetInputLayout(mpLayout);
-//
-//	// Set the vertex and pixel shaders that will be used to render this triangle.
-//	deviceContext->VSSetShader(mpSkyboxVertexShader, NULL, 0);
-//	deviceContext->PSSetShader(mpSkyboxRefractionPixelShader, NULL, 0);
-//
-//	// Set the sampler state in the pixel shader.
-//	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
-//	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
-//
-//	// Render the triangle.
-//	deviceContext->DrawIndexed(indexCount, 0, 0);
-//
-//	return;
-//}
+
+void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(mpLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpFoliageVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpFoliageRefractionPixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
+	deviceContext->PSSetSamplers(2, 1, &mpPointClamp);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
 
 void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
@@ -968,4 +956,34 @@ void CReflectRefractShader::SetRockTexture(CTexture ** rockTexArray)
 {
 	mpRockTextures[0] = rockTexArray[0]->GetTexture();
 	mpRockTextures[1] = rockTexArray[1]->GetTexture();
+}
+
+void CReflectRefractShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)
+{
+	mpGrassTexture = grassTexture;
+}
+
+void CReflectRefractShader::SetGrassAlphaTexture(ID3D11ShaderResourceView * alphaTexture)
+{
+	mpGrassAlphaTexture = alphaTexture;
+}
+
+void CReflectRefractShader::SetWindDirection(D3DXVECTOR3 direction)
+{
+	mWindDirection;
+}
+
+void CReflectRefractShader::SetFrameTime(float frameTime)
+{
+	mFrameTime = frameTime;
+}
+
+void CReflectRefractShader::SetWindStrength(float strength)
+{
+	mStrength = strength;
+}
+
+void CReflectRefractShader::SetTranslation(D3DXVECTOR3 translation)
+{
+	mTranslation = translation;
 }

@@ -173,16 +173,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\SkyboxRefraction.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\SkyboxRefraction.vs.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Shaders\Transparent.ps.hlsl">
       <FileType>Document</FileType>
     </None>
@@ -224,6 +214,14 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\Foliage.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\FoliageRefraction.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\FoliageRefraction.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
