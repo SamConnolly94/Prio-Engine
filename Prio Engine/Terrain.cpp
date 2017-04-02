@@ -1021,7 +1021,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
 			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
 
-			if (areaType == CTerrain::VertexAreaType::Grass && upwards != CTerrain::VertexAreaType::Snow)
+			if ((areaType == CTerrain::VertexAreaType::Grass || areaType ==  CTerrain::VertexAreaType::Dirt) && upwards != CTerrain::VertexAreaType::Snow )
 			{
 				numGrassTiles++;
 			}
@@ -1048,7 +1048,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
 			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
 
-			if (areaType == CTerrain::VertexAreaType::Grass && upwards != CTerrain::VertexAreaType::Snow)
+			if ((areaType == CTerrain::VertexAreaType::Grass || areaType == CTerrain::VertexAreaType::Dirt) && upwards != CTerrain::VertexAreaType::Snow)
 			{
 
 				CFoliageQuad foliage;

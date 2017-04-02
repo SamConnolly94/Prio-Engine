@@ -1244,19 +1244,19 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 		return false;
 	}
 
-	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
-	//mpFoliageShader->SetWorldMatrix(world);
+	D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	mpFoliageShader->SetWorldMatrix(world);
 
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
-	//	return false;
-	//}
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
+	{
+		logger->GetInstance().WriteLine("Failed to render foliage. ");
+		return false;
+	}
 
 	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX(), mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
 	//mpFoliageShader->SetWorldMatrix(world);
 
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
 	//{
 	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
 	//	return false;
@@ -1265,7 +1265,7 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
 	//mpFoliageShader->SetWorldMatrix(world);
 
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
 	//{
 	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
 	//	return false;
