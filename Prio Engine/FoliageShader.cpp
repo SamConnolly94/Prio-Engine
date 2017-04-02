@@ -35,12 +35,12 @@ void CFoliageShader::Shutdown()
 	ShutdownShader();
 }
 
-bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int indexCount, ID3D11ShaderResourceView * grassTexture, ID3D11ShaderResourceView * alphaMask, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection)
+bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	bool result;
 
 	// Set the shader parameters that will be used for rendering.
-	result = SetShaderParameters(deviceContext, grassTexture, alphaMask, ambientColour, diffuseColour, lightDirection);
+	result = SetShaderParameters(deviceContext);
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to set the shader parameters in foliage shader.");
@@ -152,6 +152,16 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	polygonLayout[polyIndex].InstanceDataStepRate = 0;
 
 
+	//polyIndex = 3;
+
+	//polygonLayout[polyIndex].SemanticName = "OBJPOS";
+	//polygonLayout[polyIndex].SemanticIndex = 0;
+	//polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//polygonLayout[polyIndex].InputSlot = 0;
+	//polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	//polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	//polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
@@ -200,6 +210,10 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 		return false;
 	}
 
+	////////////////////////////////
+	// Light buffer
+	///////////////////////////////
+
 	D3D11_BUFFER_DESC lightBufferDesc;
 
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
@@ -216,6 +230,29 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the buffer pointer to access the light buffer from foilage shader class.");
+		return false;
+	}
+
+	////////////////////////////////
+	// Compliment buffer
+	///////////////////////////////
+
+	D3D11_BUFFER_DESC foliageBufferDesc;
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	foliageBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	foliageBufferDesc.ByteWidth = sizeof(FoliageBufferType);
+	foliageBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	foliageBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	foliageBufferDesc.MiscFlags = 0;
+	foliageBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&foliageBufferDesc, NULL, &mpFoliageBuffer);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the buffer pointer to access the foliage buffer from foilage shader class.");
 		return false;
 	}
 
@@ -281,7 +318,7 @@ void CFoliageShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hw
 	MessageBox(hwnd, "Error compiling the shader. Check the logs for a more detailed error message.", shaderFilename.c_str(), MB_OK);
 }
 
-bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * grassTexture, ID3D11ShaderResourceView * alphaMask, D3DXVECTOR4 ambientColour, D3DXVECTOR4 diffuseColour, D3DXVECTOR3 lightDirection)
+bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -308,7 +345,7 @@ bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID
 	if (FAILED(result))
 	{
 		// Output error message to the logs.
-		logger->GetInstance().WriteLine("Failed to lock the matrix buffer before writing to it in shader class.");
+		logger->GetInstance().WriteLine("Failed to lock the light buffer before writing to it in shader class.");
 		return false;
 	}
 
@@ -316,9 +353,9 @@ bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID
 	LightBufferType* lightBufferPtr = static_cast<LightBufferType*>(mappedResource.pData);
 
 	// Set data in the structure.
-	lightBufferPtr->AmbientColour = ambientColour;
-	lightBufferPtr->DiffuseColour = diffuseColour;
-	lightBufferPtr->LightDirection = lightDirection;
+	lightBufferPtr->AmbientColour = mAmbientColour;
+	lightBufferPtr->DiffuseColour = mDiffuseColour;
+	lightBufferPtr->LightDirection = mLightDirection;
 	lightBufferPtr->padding = 0.0f;
 
 	// Unlock the const buffer and write modifications to it.
@@ -328,10 +365,44 @@ bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID
 	bufferNumber = 0;
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
 
+	/////////////////////////////
+	// Foliage buffer
+	/////////////////////////////
+
+	// Lock the matrix buffer for writing to.
+	result = deviceContext->Map(mpFoliageBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	// If we did not successfully lock the constant buffer.
+	if (FAILED(result))
+	{
+		// Output error message to the logs.
+		logger->GetInstance().WriteLine("Failed to lock the foliage buffer before writing to it in shader class.");
+		return false;
+	}
+
+	// Grab pointer to the matrix const buff.
+	FoliageBufferType* foliageBufferPtr = static_cast<FoliageBufferType*>(mappedResource.pData);
+
+	// Set data in the structure.
+	foliageBufferPtr->FrameTime = mFrameTime;
+	foliageBufferPtr->WindDirection = mWindDirection;
+	foliageBufferPtr->WindStrength = mStrength;
+	foliageBufferPtr->FoliageTranslation = mTranslation;
+
+	// Unlock the const buffer and write modifications to it.
+	deviceContext->Unmap(mpFoliageBuffer, 0);
+
+	// Pass buffer to shader
+	bufferNumber = 1;
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &mpFoliageBuffer);
+
+	/////////////////////////////
+	// Resources buffer
+	/////////////////////////////
 
 	// Set the shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &grassTexture);
-	deviceContext->PSSetShaderResources(1, 1, &alphaMask);
+	deviceContext->PSSetShaderResources(0, 1, &mpGrassTexture);
+	deviceContext->PSSetShaderResources(1, 1, &mpAlphaTexture);
 
 	return true;
 }
@@ -350,4 +421,49 @@ void CFoliageShader::RenderShader(ID3D11DeviceContext * deviceContext, int index
 
 	// Render the triangle.
 	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
+void CFoliageShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)
+{
+	mpGrassTexture = grassTexture;
+}
+
+void CFoliageShader::SetGrassAlphaTexture(ID3D11ShaderResourceView * alphaTexture)
+{
+	mpAlphaTexture = alphaTexture;
+}
+
+void CFoliageShader::SetAmbientColour(D3DXVECTOR4 ambientColour)
+{
+	mAmbientColour = ambientColour;
+}
+
+void CFoliageShader::SetDiffuseColour(D3DXVECTOR4 diffuseColour)
+{
+	mDiffuseColour = diffuseColour;
+}
+
+void CFoliageShader::SetLightDirection(D3DXVECTOR3 lightDirection)
+{
+	mLightDirection = lightDirection;
+}
+
+void CFoliageShader::SetWindDirection(D3DXVECTOR3 direction)
+{
+	mWindDirection;
+}
+
+void CFoliageShader::SetFrameTime(float frameTime)
+{
+	mFrameTime = frameTime;
+}
+
+void CFoliageShader::SetWindStrength(float strength)
+{
+	mStrength = strength;
+}
+
+void CFoliageShader::SetTranslation(D3DXVECTOR3 translation)
+{
+	mTranslation = translation;
 }

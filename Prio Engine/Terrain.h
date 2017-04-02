@@ -25,6 +25,14 @@ private:
 		D3DXVECTOR3 normal;
 	};
 
+	struct FoliageType
+	{
+		D3DXVECTOR3 position;
+		D3DXVECTOR2 UV;
+		D3DXVECTOR3 normal;
+		//D3DXVECTOR3 centrePos;
+	};
+
 	enum VertexAreaType
 	{
 		Snow,
@@ -141,11 +149,14 @@ private:
 	ID3D11Buffer* mpFoliageVertexBuffer;
 	// Buffer to store our indices.
 	ID3D11Buffer* mpFoliageIndexBuffer;
+	D3DXVECTOR3 mFoliageTranslation;
+	D3DXVECTOR3 mWindDirection = { 0.0f, 0.0f, 0.2f };
 public:
 	void RenderFoliage(ID3D11DeviceContext* context);
 	unsigned int GetFoliageIndexCount() { return mFoliageIndexCount; };
 	ID3D11ShaderResourceView* GetFoliageTexture() { return mpFoliageTex->GetTexture(); };
 	ID3D11ShaderResourceView* GetFoliageAlphaTexture() { return mpFoliageAlphaTex->GetTexture(); };
+	D3DXVECTOR3 GetFoliageTranslation() { return mFoliageTranslation; };
 };
 
 #endif

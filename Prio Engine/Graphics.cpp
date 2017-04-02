@@ -1225,11 +1225,20 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	mpFoliageShader->SetViewMatrix(view);
 	mpFoliageShader->SetProjMatrix(proj);
 	mpFoliageShader->SetViewProjMatrix(viewProj);
+	mpFoliageShader->SetAmbientColour(mpSceneLight->GetAmbientColour());
+	mpFoliageShader->SetDiffuseColour(mpSceneLight->GetDiffuseColour());
+	mpFoliageShader->SetLightDirection(mpSceneLight->GetDirection());
+	mpFoliageShader->SetFrameTime(mFrameTime);
+	mpFoliageShader->SetGrassTexture(mpTerrain->GetFoliageTexture());
+	mpFoliageShader->SetGrassAlphaTexture(mpTerrain->GetFoliageAlphaTexture());
+	mpFoliageShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
+	mpFoliageShader->SetWindStrength(1.0f);
+	mpFoliageShader->SetTranslation(mpTerrain->GetFoliageTranslation());
 
 	mpD3D->TurnOffBackFaceCulling();
 	mpD3D->EnableAlphaBlending();
 
-	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount(), mpTerrain->GetFoliageTexture(), mpTerrain->GetFoliageAlphaTexture(), mpSceneLight->GetAmbientColour(), mpSceneLight->GetDiffuseColour(), mpSceneLight->GetDirection()))
+	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
 	{
 		logger->GetInstance().WriteLine("Failed to render foliage. ");
 		return false;

@@ -86,6 +86,8 @@ CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 	{
 		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/GrassAlpha.png'.");
 	}
+
+	mFoliageTranslation = { 0.0f, 0.0f, 0.0f };
 }
 
 
@@ -216,6 +218,13 @@ void CTerrain::Render(ID3D11DeviceContext * context)
 
 void CTerrain::Update(float updateTime)
 {
+	mFoliageTranslation += mWindDirection * updateTime;
+
+	if (mFoliageTranslation.z > 1.0f || mFoliageTranslation.z < 0.0f)
+	{
+		mWindDirection = -mWindDirection;
+	}
+
 	if (mpWater)
 	{
 		mpWater->SetYPos(GetPosY() +  mpWater->GetDepth());
@@ -991,7 +1000,7 @@ CTerrain::VertexAreaType CTerrain::FindAreaType(float height)
 
 bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices)
 {
-	VertexType* vertices;
+	FoliageType* vertices;
 	unsigned int* indices;
 	int index;
 	int vertex;
@@ -1027,7 +1036,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 	////////////////////////
 
 	mFoliageVertexCount = 12 * numGrassTiles;
-	vertices = new VertexType[mFoliageVertexCount];
+	vertices = new FoliageType[mFoliageVertexCount];
 
 	vertex = 0;
 	int currVertex = 0;
@@ -1059,7 +1068,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 						vertices[currVertex].position = quad.Position[j];
 						vertices[currVertex].UV = quad.UV[j];
 						vertices[currVertex].normal = quad.Normal[j];
-
+						//vertices[currVertex].centrePos = (LL + LR + UL + UR) / 4.0f;
 						currVertex++;
 					}
 				}
@@ -1098,7 +1107,7 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * mFoliageVertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(FoliageType) * mFoliageVertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
