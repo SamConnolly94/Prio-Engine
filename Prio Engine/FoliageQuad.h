@@ -2,6 +2,7 @@
 #define FOLIAGEQUAD_H
 
 #include <D3DX10math.h>
+#include "PrioEngineVars.h"
 
 class CFoliageQuad
 {

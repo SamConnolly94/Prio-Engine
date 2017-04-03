@@ -79,9 +79,6 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 				bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
 				shader->UpdateMapBuffer(context, useAlpha, useSpecular);
 				
-				//shader->SetViewMatrix(view);
-				//shader->SetProjMatrix(proj);
-				//shader->SetViewMatrix(view * proj);
 				shader->SetWorldMatrix(model->GetWorldMatrix());
 
 				// Pass over the textures for rendering.

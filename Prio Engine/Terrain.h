@@ -30,7 +30,6 @@ private:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 UV;
 		D3DXVECTOR3 normal;
-		//D3DXVECTOR3 centrePos;
 	};
 
 	enum VertexAreaType

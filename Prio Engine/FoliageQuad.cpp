@@ -21,6 +21,38 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	D3DXVECTOR3 UL = upperL - lowerL;
 	D3DXVECTOR3 UR = upperR - lowerL;
 
+	float num2 = 0.0f;
+
+	float sqr = PrioEngine::Math::Square(UR.y - LL.y);
+
+	// If it's relatively flat.
+	//if (sqrt(sqr) < 0.5f)
+	//{
+		// Add a random number between 0 and 1 to offset slightly.
+		float num1 = ((float)rand() / (RAND_MAX));
+		//float num2 = ((float)rand() / (RAND_MAX)) + 1;
+		float num3 = ((float)rand() / (RAND_MAX));
+		LL += D3DXVECTOR3(num1, num2, num3);
+
+		// Add a random number between 0 and 1 to offset slightly.
+		num1 = ((float)rand() / (RAND_MAX));
+		//num2 = ((float)rand() / (RAND_MAX)) + 1;
+		num3 = ((float)rand() / (RAND_MAX));
+		LR += D3DXVECTOR3(num1, num2, num3);
+
+		// Add a random number between 0 and 1 to offset slightly.
+		num1 = ((float)rand() / (RAND_MAX));
+		//num2 = ((float)rand() / (RAND_MAX)) + 1;
+		num3 = ((float)rand() / (RAND_MAX));
+		UL += D3DXVECTOR3(num1, num2, num3);
+
+		// Add a random number between 0 and 1 to offset slightly.
+		num1 = ((float)rand() / (RAND_MAX));
+		//num2 = ((float)rand() / (RAND_MAX)) + 1;
+		num3 = ((float)rand() / (RAND_MAX));
+		UR += D3DXVECTOR3(num1, num2, num3);
+	//}
+
 	//////////////////////
 	// Horizontal line
 	//////////////////////

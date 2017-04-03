@@ -5,7 +5,6 @@ CGraphics::CGraphics()
 	// Initialise the Direct 3D class to null.
 	mpD3D = nullptr;
 	mpCamera = nullptr;
-	mpTriangle = nullptr;
 	mpColourShader = nullptr;
 	mpTextureShader = nullptr;
 	mpDiffuseLightShader = nullptr;
@@ -1063,6 +1062,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			return false;
 		}
 
+		D3DXMatrixRotationY(&world, 90.0f);
 		D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
 		mpFoliageShader->SetWorldMatrix(world);
 
@@ -1268,7 +1268,10 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	mpFoliageShader->SetWindStrength(1.0f);
 	mpFoliageShader->SetTranslation(mpTerrain->GetFoliageTranslation());
 
-	mpD3D->TurnOffBackFaceCulling();
+	if (!mWireframeEnabled)
+	{
+		mpD3D->TurnOffBackFaceCulling();
+	}
 	mpD3D->EnableAlphaBlending();
 
 	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
@@ -1277,14 +1280,15 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 		return false;
 	}
 
-	D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
-	mpFoliageShader->SetWorldMatrix(world);
+	//D3DXMatrixRotationY(&world, 90.0f);
+	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	//mpFoliageShader->SetWorldMatrix(world);
 
-	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
-	{
-		logger->GetInstance().WriteLine("Failed to render foliage. ");
-		return false;
-	}
+	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
+	//{
+	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
+	//	return false;
+	//}
 
 	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX(), mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
 	//mpFoliageShader->SetWorldMatrix(world);

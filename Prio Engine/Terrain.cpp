@@ -220,7 +220,7 @@ void CTerrain::Update(float updateTime)
 {
 	mFoliageTranslation += mWindDirection * updateTime;
 
-	if (mFoliageTranslation.z > 1.0f || mFoliageTranslation.z < 0.0f)
+	if (mFoliageTranslation.z > 0.5f || mFoliageTranslation.z < 0.0f)
 	{
 		mWindDirection = -mWindDirection;
 	}
