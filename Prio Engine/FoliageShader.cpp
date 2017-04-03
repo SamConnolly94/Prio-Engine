@@ -59,7 +59,7 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -150,17 +150,16 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+	
+	polyIndex = 3;
 
-
-	//polyIndex = 3;
-
-	//polygonLayout[polyIndex].SemanticName = "OBJPOS";
-	//polygonLayout[polyIndex].SemanticIndex = 0;
-	//polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	//polygonLayout[polyIndex].InputSlot = 0;
-	//polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	//polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	//polygonLayout[polyIndex].InstanceDataStepRate = 0;
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 1;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);

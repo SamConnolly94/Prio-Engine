@@ -14,8 +14,8 @@ cbuffer FoliageBuffer : register(b1)
 {
 	float3 WindDirection;
 	float FrameTime;
-	float WindStrength;
 	float3 FoliageTranslation;
+	float WindStrength;
 };
 
 ///////////////////////////
@@ -27,7 +27,7 @@ struct VertexInputType
 	float4 WorldPosition : POSITION;
 	float2 UV : TEXCOORD0;
 	float3 Normal : NORMAL;
-	//float3 ObjectPosition : OBJPOS;
+	uint IsTopVertex : TEXCOORD1;
 };
 
 struct PixelInputType
@@ -42,13 +42,6 @@ struct PixelInputType
 // Vertex shader
 ///////////////////////////
 
-//float3 CalcTranslation(VertexInputType input)
-//{
-//	float3 pos = input.ObjectPosition;
-//	pos = pos + (WindDirection * WindStrength * (FrameTime));
-//	return pos;
-//}
-
 PixelInputType FoliageVS(VertexInputType input)
 {
 	PixelInputType output;
@@ -56,9 +49,9 @@ PixelInputType FoliageVS(VertexInputType input)
 	// Give a 4th element to our matrix so it's the correct size;
 	input.WorldPosition.w = 1.0f;
 	
-	if (input.UV.y <= 0.1f)
+	if (input.IsTopVertex == 1)
 	{
-		input.WorldPosition.xyz += FoliageTranslation;
+		input.WorldPosition.z += FoliageTranslation.z;
 	}
 
 	output.WorldPosition = input.WorldPosition;

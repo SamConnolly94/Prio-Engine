@@ -1067,7 +1067,15 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 						vertices[currVertex].position = quad.Position[j];
 						vertices[currVertex].UV = quad.UV[j];
 						vertices[currVertex].normal = quad.Normal[j];
-						//vertices[currVertex].centrePos = (LL + LR + UL + UR) / 4.0f;
+
+						if (j >= 2)
+						{
+							vertices[currVertex].IsTopVertex = 1;
+						}
+						else
+						{
+							vertices[currVertex].IsTopVertex = 0;
+						}
 						currVertex++;
 					}
 				}

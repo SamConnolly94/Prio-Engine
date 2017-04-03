@@ -21,6 +21,8 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	D3DXVECTOR3 UL = upperL - lowerL;
 	D3DXVECTOR3 UR = upperR - lowerL;
 
+	mCentrePos = (LL + LR + UL + UR) / 4;
+
 	//////////////////////
 	// Horizontal line
 	//////////////////////
@@ -132,4 +134,9 @@ CFoliageQuad::QuadType CFoliageQuad::GetFoliageRect(int index)
 unsigned int CFoliageQuad::GetIndex(int index)
 {
 	return indices[index];
+}
+
+D3DXVECTOR3 CFoliageQuad::GetCentrePos()
+{
+	return mCentrePos;
 }

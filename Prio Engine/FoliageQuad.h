@@ -20,11 +20,13 @@ public:
 private:
 	QuadType mFoliageRect[3];
 	D3DXVECTOR3 mPosition;
+	D3DXVECTOR3 mCentrePos;
 	unsigned int indices[18];
 public:
 	void SetPosition(D3DXVECTOR3 pos);
 	QuadType GetFoliageRect(int index);
 	unsigned int GetIndex(int index);
+	D3DXVECTOR3 GetCentrePos();
 };
 
 #endif

@@ -15,6 +15,7 @@ public:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 UV;
 		D3DXVECTOR3 normal;
+		unsigned int IsTopVertex; // Boolean val.
 	};
 public:
 	CFoliage();
