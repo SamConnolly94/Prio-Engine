@@ -71,52 +71,17 @@ CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 
 	mpWater = nullptr;
 
-	///////////////////////////
-	// Foliage textures
-	///////////////////////////
-
-	mpFoliageTex = new CTexture();
-	if (!mpFoliageTex->Initialise(device, "Resources/Textures/Foliage/Grass.png"))
-	{
-		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/Grass.png'.");
-	}
-
-	mpFoliageAlphaTex = new CTexture();
-	if (!mpFoliageAlphaTex->Initialise(device, "Resources/Textures/Foliage/GrassAlpha.png"))
-	{
-		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/GrassAlpha.png'.");
-	}
-
-	mFoliageTranslation = { 0.0f, 0.0f, 0.0f };
+	mpFoliage = new CFoliage();
 }
 
 
 CTerrain::~CTerrain()
 {
-	if (mpFoliageAlphaTex)
+	if (mpFoliage)
 	{
-		mpFoliageAlphaTex->Shutdown();
-		delete mpFoliageAlphaTex;
-		mpFoliageAlphaTex = nullptr;
-	}
-
-	if (mpFoliageTex)
-	{
-		mpFoliageTex->Shutdown();
-		delete mpFoliageTex;
-		mpFoliageTex = nullptr;
-	}
-
-	if (mpFoliageVertexBuffer)
-	{
-		mpFoliageVertexBuffer->Release();
-		mpFoliageVertexBuffer = nullptr;
-	}
-
-	if (mpFoliageIndexBuffer)
-	{
-		mpFoliageIndexBuffer->Release();
-		mpFoliageIndexBuffer = nullptr;
+		mpFoliage->Shutdown();
+		delete mpFoliage;
+		mpFoliage = nullptr;
 	}
 
 	// Output dealloc message to memory log.
@@ -218,11 +183,9 @@ void CTerrain::Render(ID3D11DeviceContext * context)
 
 void CTerrain::Update(float updateTime)
 {
-	mFoliageTranslation += mWindDirection * updateTime;
-
-	if (mFoliageTranslation.z > 0.5f || mFoliageTranslation.z < 0.0f)
+	if (mpFoliage)
 	{
-		mWindDirection = -mWindDirection;
+		mpFoliage->Update(updateTime);
 	}
 
 	if (mpWater)
@@ -1000,16 +963,10 @@ CTerrain::VertexAreaType CTerrain::FindAreaType(float height)
 
 bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices)
 {
-	FoliageType* vertices;
+	CFoliage::FoliageVertexType* vertices;
 	unsigned int* indices;
 	int index;
 	int vertex;
-
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	D3D11_BUFFER_DESC indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData;
-	D3D11_SUBRESOURCE_DATA indexData;
-	HRESULT result;
 
 	vertex = 0;
 
@@ -1035,8 +992,8 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 	//// Vertices
 	////////////////////////
 
-	mFoliageVertexCount = 12 * numGrassTiles;
-	vertices = new FoliageType[mFoliageVertexCount];
+	int vertexCount = 12 * numGrassTiles;
+	vertices = new CFoliage::FoliageVertexType[vertexCount];
 
 	vertex = 0;
 	int currVertex = 0;
@@ -1052,10 +1009,52 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 			{
 
 				CFoliageQuad foliage;
-				D3DXVECTOR3 LL = terrainVertices[vertex].position;
-				D3DXVECTOR3 LR = terrainVertices[vertex + 1].position;
-				D3DXVECTOR3 UL = terrainVertices[vertex + mWidth].position;
-				D3DXVECTOR3 UR = terrainVertices[vertex + mWidth + 1].position;
+				D3DXVECTOR3 LL;
+				D3DXVECTOR3 UL;
+				D3DXVECTOR3 LR;
+				D3DXVECTOR3 UR;
+
+				if (widthCount > 0)
+				{
+					LL = terrainVertices[vertex - 1].position;
+					
+					if (heightCount < mHeight - 2)
+					{
+						UL = terrainVertices[vertex + (mWidth * 2)- 1].position;
+					}
+					else
+					{
+						UL = terrainVertices[vertex + mWidth - 1].position;
+					}
+				}
+				else
+				{
+					LL = terrainVertices[vertex].position;
+					UL = terrainVertices[vertex + mWidth].position;
+				}
+
+				if (widthCount < mWidth - 2)
+				{
+					LR = terrainVertices[vertex + 2].position;
+					//UR = terrainVertices[vertex + mWidth + 2].position;
+
+					if (heightCount < mHeight - 2)
+					{
+						UR = terrainVertices[vertex + (mWidth * 2) + 2].position;
+					}
+					else
+					{
+						UR = terrainVertices[vertex + mWidth + 2].position;
+					}
+				}
+				else
+				{
+					LR = terrainVertices[vertex + 1].position;
+					UR = terrainVertices[vertex + mWidth + 1].position;
+				}
+
+
+
 
 				foliage.GeneratePoints(LL, LR, UL, UR);
 				foliage.SetPosition(terrainVertices[vertex].position);
@@ -1082,8 +1081,8 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 	//// Indices
 	////////////////////////
 
-	mFoliageIndexCount = 18 * numGrassTiles;
-	indices = new unsigned int[mFoliageIndexCount];
+	int indexCount = 18 * numGrassTiles;
+	indices = new unsigned int[indexCount];
 	CFoliageQuad foliage;
 	D3DXVECTOR3 pt = { 0.0f, 0.0f, 0.0f };
 	foliage.GeneratePoints(pt, pt, pt, pt);
@@ -1101,52 +1100,12 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 		}
 	}
 
-	///////////////////////
-	// Buffer setup
-	//////////////////////
-
-	// Set up the descriptor of the static vertex buffer.
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(FoliageType) * mFoliageVertexCount;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	// Create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mpFoliageVertexBuffer);
-	if (FAILED(result))
+	bool result = mpFoliage->Initialise(device, vertices, vertexCount, indices, indexCount);
+	if (!result)
 	{
-		logger->GetInstance().WriteLine("Failed to create the foliage vertex buffer from the buffer description.");
+		logger->GetInstance().WriteLine("Failed to initialise the foliage buffers.");
 		return false;
 	}
-
-	// Set up the description of the static index buffer.
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned int) * mFoliageIndexCount;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
-
-	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &mpFoliageIndexBuffer);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the foliage index buffer from the buffer description.");
-		return false;
-	}
-
 
 	// Clean up the memory allocated to arrays.
 	delete[] vertices;
@@ -1158,23 +1117,4 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 	indices = nullptr;
 
 	return true;
-}
-
-void CTerrain::RenderFoliage(ID3D11DeviceContext * context)
-{
-	unsigned int stride;
-	unsigned int offset;
-
-	// Set the vertex buffer stride and offset.
-	stride = sizeof(VertexType);
-	offset = 0;
-
-	// Set the vertex buffer to active in the input assembler.
-	context->IASetVertexBuffers(0, 1, &mpFoliageVertexBuffer, &stride, &offset);
-
-	// Set the index buffer to active in the input assembler.
-	context->IASetIndexBuffer(mpFoliageIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// Tell directx we've passed it a triangle list in the form of indices.
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

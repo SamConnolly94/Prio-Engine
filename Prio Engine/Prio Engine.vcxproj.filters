@@ -168,9 +168,14 @@
     <ClInclude Include="Rain.h">
       <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
-    <ClInclude Include="FoliageQuad.h" />
     <ClInclude Include="FoliageShader.h">
       <Filter>Header Files\Engine\Render\Shader Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="FoliageQuad.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Foliage.h">
+      <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -291,9 +296,14 @@
     <ClCompile Include="Rain.cpp">
       <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
-    <ClCompile Include="FoliageQuad.cpp" />
     <ClCompile Include="FoliageShader.cpp">
       <Filter>Source Files\Engine\Render\Shader Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FoliageQuad.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Foliage.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

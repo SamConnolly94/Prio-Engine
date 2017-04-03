@@ -21,56 +21,24 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	D3DXVECTOR3 UL = upperL - lowerL;
 	D3DXVECTOR3 UR = upperR - lowerL;
 
-	float num2 = 0.0f;
-
-	float sqr = PrioEngine::Math::Square(UR.y - LL.y);
-
-	// If it's relatively flat.
-	//if (sqrt(sqr) < 0.5f)
-	//{
-		// Add a random number between 0 and 1 to offset slightly.
-		float num1 = ((float)rand() / (RAND_MAX));
-		//float num2 = ((float)rand() / (RAND_MAX)) + 1;
-		float num3 = ((float)rand() / (RAND_MAX));
-		LL += D3DXVECTOR3(num1, num2, num3);
-
-		// Add a random number between 0 and 1 to offset slightly.
-		num1 = ((float)rand() / (RAND_MAX));
-		//num2 = ((float)rand() / (RAND_MAX)) + 1;
-		num3 = ((float)rand() / (RAND_MAX));
-		LR += D3DXVECTOR3(num1, num2, num3);
-
-		// Add a random number between 0 and 1 to offset slightly.
-		num1 = ((float)rand() / (RAND_MAX));
-		//num2 = ((float)rand() / (RAND_MAX)) + 1;
-		num3 = ((float)rand() / (RAND_MAX));
-		UL += D3DXVECTOR3(num1, num2, num3);
-
-		// Add a random number between 0 and 1 to offset slightly.
-		num1 = ((float)rand() / (RAND_MAX));
-		//num2 = ((float)rand() / (RAND_MAX)) + 1;
-		num3 = ((float)rand() / (RAND_MAX));
-		UR += D3DXVECTOR3(num1, num2, num3);
-	//}
-
 	//////////////////////
 	// Horizontal line
 	//////////////////////
 
 	// Bottom left
-	mFoliageRect[0].Position[0] = { LL.x, LL.y, LL.z };
+	mFoliageRect[0].Position[0] = (LL + UL) / 2;
 	mFoliageRect[0].UV[0] = { 0.0f, 1.0f };
 	mFoliageRect[0].Normal[0] = { 0.0f, 1.0f, 0.0f };
 	// Bottom right
-	mFoliageRect[0].Position[1] = { LR.x, LR.y, LR.z};
+	mFoliageRect[0].Position[1] = (LR + UR) / 2;
 	mFoliageRect[0].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[0].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[0].Position[2] = { LL.x, LL.y + 1.0f, LL.z };
+	mFoliageRect[0].Position[2] = { (LL.x + UL.x) / 2, ((LL.y + UL.y) / 2) + 1.0f, (LL.z + UL.z) / 2 };
 	mFoliageRect[0].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[0].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[0].Position[3] = { LR.x, LR.y + 1.0f, LR.z };
+	mFoliageRect[0].Position[3] = { (LR.x + UR.x) / 2, ((LR.y + UR.y) / 2) + 1.0f, (LR.z + UR.z) / 2 };
 	mFoliageRect[0].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[0].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
