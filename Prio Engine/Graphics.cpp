@@ -1044,12 +1044,12 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		////////////////////////////////////
 		// Foliage refraction
 		////////////////////////////////////
+
 		CFoliage* foliagePtr = mpTerrain->GetFoliage();
 		foliagePtr->Render(mpD3D->GetDeviceContext());
-		//mpTerrain->RenderFoliage(mpD3D->GetDeviceContext());
 		mpRefractionShader->SetFrameTime(mFrameTime);
-		mpRefractionShader->SetGrassTexture(foliagePtr->GetFoliageTexture());
-		mpRefractionShader->SetGrassAlphaTexture(foliagePtr->GetFoliageAlphaTexture());
+		mpRefractionShader->SetGrassTexture(foliagePtr->GetReedsTexture());
+		mpRefractionShader->SetGrassAlphaTexture(foliagePtr->GetReedsAlphaTexture());
 		mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
 		mpRefractionShader->SetWindStrength(1.0f);
 		mpRefractionShader->SetTranslation(foliagePtr->GetTranslation());
@@ -1257,6 +1257,8 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	mpFoliageShader->SetFrameTime(mFrameTime);
 	mpFoliageShader->SetGrassTexture(foliagePtr->GetFoliageTexture());
 	mpFoliageShader->SetGrassAlphaTexture(foliagePtr->GetFoliageAlphaTexture());
+	mpFoliageShader->SetReedTexture(foliagePtr->GetReedsTexture());
+	mpFoliageShader->SetReedAlphaTexture(foliagePtr->GetReedsAlphaTexture());
 	mpFoliageShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
 	mpFoliageShader->SetWindStrength(1.0f);
 	mpFoliageShader->SetTranslation(foliagePtr->GetTranslation());
@@ -1272,34 +1274,6 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 		logger->GetInstance().WriteLine("Failed to render foliage. ");
 		return false;
 	}
-
-	//D3DXMatrixRotationY(&world, 90.0f);
-	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
-	//mpFoliageShader->SetWorldMatrix(world);
-
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
-	//	return false;
-	//}
-
-	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX(), mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
-	//mpFoliageShader->SetWorldMatrix(world);
-
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
-	//	return false;
-	//}
-
-	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ() + 0.5f);
-	//mpFoliageShader->SetWorldMatrix(world);
-
-	//if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpTerrain->GetFoliageIndexCount()))
-	//{
-	//	logger->GetInstance().WriteLine("Failed to render foliage. ");
-	//	return false;
-	//}
 
 	mpD3D->DisableAlphaBlending();
 	mpD3D->TurnOnBackFaceCulling();

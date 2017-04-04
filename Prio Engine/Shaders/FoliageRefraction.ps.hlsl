@@ -11,8 +11,9 @@ SamplerState PointClamp : register(s2);
 //////////////////////////
 
 Texture2D WaterHeightMap : register(t0);
-Texture2D GrassTexture : register(t1);
-Texture2D AlphaMask : register(t2);
+Texture2D ReedTexture : register(t1);
+Texture2D ReedAlphaTexture : register(t2);
+
 
 //////////////////////////
 // Constant buffers
@@ -52,10 +53,12 @@ struct PixelInputType
 
 float4 FoliagePS(PixelInputType input) : SV_TARGET
 {
-	float4 textureColour;
+	float4 textureColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	float4 alpha = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	textureColour = GrassTexture.Sample(PointClamp, input.UV);
-	float4 alpha = AlphaMask.Sample(PointClamp, input.UV);
+	
+	textureColour = ReedTexture.Sample(PointClamp, input.UV);
+	alpha = ReedAlphaTexture.Sample(PointClamp, input.UV);
 
 	if (alpha.g == 0.0f)
 	{
@@ -85,7 +88,7 @@ float4 FoliagePS(PixelInputType input) : SV_TARGET
 
 	if (lightIntensity > 0.0f)
 	{
-		colour += (DiffuseColour * lightIntensity);
+		colour += (AmbientColour * lightIntensity);
 	}
 
 	// Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.

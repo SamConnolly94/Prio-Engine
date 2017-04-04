@@ -158,6 +158,13 @@ bool CTerrain::CreateTerrain(ID3D11Device* device)
 		mHeight = 100;
 	}
 
+	mpWater = new CWater();
+	if (!mpWater->Initialise(device, D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(mWidth - 1.0f, 0.0f, mHeight - 1.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
+		return false;
+	}
+
 	// Initialise the vertex buffers.
 	result = InitialiseBuffers(device);
 
@@ -540,13 +547,6 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	delete[] indices;
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
-
-	mpWater = new CWater();
-	if (!mpWater->Initialise(device, D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(mWidth - 1.0f, 0.0f, mHeight - 1.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
-	{
-		logger->GetInstance().WriteLine("Failed to initialise the body of water.");
-		return false;
-	}
 
 	mpWater->SetXPos(GetPosX());
 	mpWater->SetZPos(GetPosY());
@@ -1062,6 +1062,8 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 				for (int i = 0; i < 3; i++)
 				{
 					CFoliageQuad::QuadType quad = foliage.GetFoliageRect(i);
+					float avPos = ((quad.Position[0] + quad.Position[1] + quad.Position[2] + quad.Position[3]) / 4.0f).y;
+					CTerrain::VertexAreaType averageAreaType = FindAreaType(avPos);
 					for (int j = 0; j < 4; j++)
 					{
 						vertices[currVertex].position = quad.Position[j];
@@ -1076,8 +1078,27 @@ bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices
 						{
 							vertices[currVertex].IsTopVertex = 0;
 						}
+
+						if (avPos < mpWater->GetDepth() + 0.5f)
+						{
+							// Reeds
+							vertices[currVertex].Type = 1;
+						}
+						else if (averageAreaType == Grass)
+						{
+							// Grass
+							vertices[currVertex].Type = 0;
+						}
+						else
+						{
+							// Set it to a random number we can't deal with.
+							vertices[currVertex].Type = 500;
+						}
+
 						currVertex++;
 					}
+
+					
 				}
 			}
 			vertex++;

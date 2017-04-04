@@ -10,6 +10,8 @@ SamplerState PointClamp : register(s0);
 
 Texture2D GrassTexture : register(t0);
 Texture2D AlphaMask : register(t1);
+Texture2D ReedTexture : register(t2);
+Texture2D ReedAlphaTexture : register(t3);
 
 //////////////////////////
 // Input Structures
@@ -21,6 +23,7 @@ struct PixelInputType
 	float4 WorldPosition : POSITION;
 	float2 UV : TEXCOORD0;
 	float3 Normal : NORMAL;
+	uint Type : TEXCOORD1;
 };
 
 //////////////////////////
@@ -38,13 +41,28 @@ cbuffer LightBuffer : register(b0)
 //////////////////////////
 // Pixel Shader
 /////////////////////////
+#define GrassType 0
+#define ReedType 1
 
 float4 FoliagePS(PixelInputType input) : SV_TARGET
 {
-	float4 textureColour;
+	float4 textureColour = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	float4 alpha = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	textureColour = GrassTexture.Sample(PointClamp, input.UV);
-	float4 alpha = AlphaMask.Sample(PointClamp, input.UV);
+	if (input.Type == GrassType)
+	{
+		textureColour = GrassTexture.Sample(PointClamp, input.UV);
+		alpha = AlphaMask.Sample(PointClamp, input.UV);
+	}
+	else if (input.Type == ReedType)
+	{
+		textureColour = ReedTexture.Sample(PointClamp, input.UV);
+		alpha = ReedAlphaTexture.Sample(PointClamp, input.UV);
+	}
+	else
+	{
+		discard;
+	}
 
 	if (alpha.g == 0.0f)
 	{

@@ -33,6 +33,19 @@ bool CFoliage::Initialise(ID3D11Device * device, FoliageVertexType * vertices, i
 		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/GrassAlpha.png'.");
 	}
 
+
+	mpReedsTexture = new CTexture();
+	if (!mpReedsTexture->Initialise(device, "Resources/Textures/Foliage/Reeds.png"))
+	{
+		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/Reeds.png'.");
+	}
+
+	mpReedsAlphaTexture = new CTexture();
+	if (!mpReedsAlphaTexture->Initialise(device, "Resources/Textures/Foliage/ReedsAlpha.png"))
+	{
+		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/ReedsAlpha.png'.");
+	}
+
 	if (!InitialiseBuffers(device, vertices, indices))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise foliage buffers.");

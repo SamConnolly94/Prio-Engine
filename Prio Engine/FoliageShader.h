@@ -46,6 +46,8 @@ private:
 public:
 	void SetGrassTexture(ID3D11ShaderResourceView * grassTexture);
 	void SetGrassAlphaTexture(ID3D11ShaderResourceView * alphaTexture);
+	void SetReedTexture(ID3D11ShaderResourceView * reedTexture);
+	void SetReedAlphaTexture(ID3D11ShaderResourceView * alphaTexture);
 	void SetAmbientColour(D3DXVECTOR4 ambientColour);
 	void SetDiffuseColour(D3DXVECTOR4 diffuseColour);
 	void SetLightDirection(D3DXVECTOR3 lightDirection);
@@ -56,6 +58,8 @@ public:
 public:
 	ID3D11ShaderResourceView * mpGrassTexture;
 	ID3D11ShaderResourceView * mpAlphaTexture;
+	ID3D11ShaderResourceView * mpReedTexture;
+	ID3D11ShaderResourceView * mpReedAlphaTexture;
 	D3DXVECTOR4 mAmbientColour;
 	D3DXVECTOR4 mDiffuseColour;
 	D3DXVECTOR3 mLightDirection;

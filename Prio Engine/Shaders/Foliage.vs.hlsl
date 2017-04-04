@@ -28,6 +28,7 @@ struct VertexInputType
 	float2 UV : TEXCOORD0;
 	float3 Normal : NORMAL;
 	uint IsTopVertex : TEXCOORD1;
+	uint Type : TEXCOORD2;
 };
 
 struct PixelInputType
@@ -36,11 +37,13 @@ struct PixelInputType
 	float4 WorldPosition : POSITION;
 	float2 UV : TEXCOORD0;
 	float3 Normal : NORMAL;
+	uint Type : TEXCOORD1;
 };
 
 ///////////////////////////
 // Vertex shader
 ///////////////////////////
+#define GrassType 0
 
 PixelInputType FoliageVS(VertexInputType input)
 {
@@ -49,9 +52,9 @@ PixelInputType FoliageVS(VertexInputType input)
 	// Give a 4th element to our matrix so it's the correct size;
 	input.WorldPosition.w = 1.0f;
 	
-	if (input.IsTopVertex == 1)
+	if (input.IsTopVertex == 1 && input.Type == GrassType)
 	{
-		input.WorldPosition.z += FoliageTranslation.z;
+		input.WorldPosition.xyz += FoliageTranslation;
 	}
 
 	output.WorldPosition = input.WorldPosition;
@@ -68,6 +71,8 @@ PixelInputType FoliageVS(VertexInputType input)
 
 	// Normalise the vector.
 	output.Normal = normalize(output.Normal);
+
+	output.Type = input.Type;
 
 	return output;
 }

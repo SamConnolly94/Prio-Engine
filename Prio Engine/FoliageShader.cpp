@@ -59,7 +59,7 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[5];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -155,6 +155,16 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 
 	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
 	polygonLayout[polyIndex].SemanticIndex = 1;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 4;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 2;
 	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
 	polygonLayout[polyIndex].InputSlot = 0;
 	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
@@ -402,6 +412,8 @@ bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext)
 	// Set the shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &mpGrassTexture);
 	deviceContext->PSSetShaderResources(1, 1, &mpAlphaTexture);
+	deviceContext->PSSetShaderResources(2, 1, &mpReedTexture);
+	deviceContext->PSSetShaderResources(3, 1, &mpReedAlphaTexture);
 
 	return true;
 }
@@ -430,6 +442,16 @@ void CFoliageShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)
 void CFoliageShader::SetGrassAlphaTexture(ID3D11ShaderResourceView * alphaTexture)
 {
 	mpAlphaTexture = alphaTexture;
+}
+
+void CFoliageShader::SetReedTexture(ID3D11ShaderResourceView * reedTexture)
+{
+	mpReedTexture = reedTexture;
+}
+
+void CFoliageShader::SetReedAlphaTexture(ID3D11ShaderResourceView * alphaTexture)
+{
+	mpReedAlphaTexture = alphaTexture;
 }
 
 void CFoliageShader::SetAmbientColour(D3DXVECTOR4 ambientColour)

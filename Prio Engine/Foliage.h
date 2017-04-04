@@ -16,6 +16,7 @@ public:
 		D3DXVECTOR2 UV;
 		D3DXVECTOR3 normal;
 		unsigned int IsTopVertex; // Boolean val.
+		unsigned int Type; // Graass or reed.
 	};
 public:
 	CFoliage();
@@ -32,16 +33,18 @@ public:
 	int GetNumberOfIndices();
 	ID3D11ShaderResourceView* GetFoliageTexture() { return mpFoliageTex->GetTexture(); };
 	ID3D11ShaderResourceView* GetFoliageAlphaTexture() { return mpFoliageAlphaTex->GetTexture(); };
+	ID3D11ShaderResourceView* GetReedsTexture() { return mpReedsTexture->GetTexture(); };
+	ID3D11ShaderResourceView* GetReedsAlphaTexture() { return mpReedsAlphaTexture->GetTexture(); };
 	D3DXVECTOR3 GetTranslation() { return mFoliageTranslation; };
 private:
 	int mIndexCount;
 	int mVertexCount;
 	ID3D11Buffer* mpVertexBuffer;
 	ID3D11Buffer* mpIndexBuffer;
-	CTexture* mpGrassTexture;
-	CTexture* mpGrassAlphaTexture;
-	CTexture* mpFoliageTex;
 	CTexture* mpFoliageAlphaTex;
+	CTexture* mpFoliageTex;
+	CTexture* mpReedsAlphaTexture;
+	CTexture* mpReedsTexture;
 	D3DXVECTOR3 mFoliageTranslation;
 	D3DXVECTOR3 mWindDirection = { 0.0f, 0.0f, 0.2f };
 };

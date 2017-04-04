@@ -37,6 +37,7 @@ struct PixelInputType
 	float3 Normal : NORMAL;
 };
 
+
 //////////////////////////
 // Vertex shader
 //////////////////////////
@@ -47,11 +48,6 @@ PixelInputType FoliageRefractionVS(VertexInputType input)
 
 	// Give a 4th element to our matrix so it's the correct size;
 	input.WorldPosition.w = 1.0f;
-
-	if (input.UV.y <= 0.1f)
-	{
-		input.WorldPosition.xyz += FoliageTranslation;
-	}
 
 	output.WorldPosition = input.WorldPosition;
 

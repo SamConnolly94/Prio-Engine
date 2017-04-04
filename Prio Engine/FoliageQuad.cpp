@@ -27,6 +27,8 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	// Horizontal line
 	//////////////////////
 
+	float height = 1.0f;
+
 	// Bottom left
 	mFoliageRect[0].Position[0] = (LL + UL) / 2;
 	mFoliageRect[0].UV[0] = { 0.0f, 1.0f };
@@ -36,11 +38,11 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	mFoliageRect[0].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[0].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[0].Position[2] = { (LL.x + UL.x) / 2, ((LL.y + UL.y) / 2) + 1.0f, (LL.z + UL.z) / 2 };
+	mFoliageRect[0].Position[2] = { (LL.x + UL.x) / 2, ((LL.y + UL.y) / 2) + height, (LL.z + UL.z) / 2 };
 	mFoliageRect[0].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[0].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[0].Position[3] = { (LR.x + UR.x) / 2, ((LR.y + UR.y) / 2) + 1.0f, (LR.z + UR.z) / 2 };
+	mFoliageRect[0].Position[3] = { (LR.x + UR.x) / 2, ((LR.y + UR.y) / 2) + height, (LR.z + UR.z) / 2 };
 	mFoliageRect[0].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[0].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
@@ -56,11 +58,11 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	mFoliageRect[1].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[1].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[1].Position[2] = { UL.x, UL.y + 1.0f, UL.z };
+	mFoliageRect[1].Position[2] = { UL.x, UL.y + height, UL.z };
 	mFoliageRect[1].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[1].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[1].Position[3] = { LR.x, LR.y + 1.0f, LR.z };
+	mFoliageRect[1].Position[3] = { LR.x, LR.y + height, LR.z };
 	mFoliageRect[1].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[1].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
@@ -76,11 +78,11 @@ void CFoliageQuad::GeneratePoints(D3DXVECTOR3 lowerL, D3DXVECTOR3 lowerR, D3DXVE
 	mFoliageRect[2].UV[1] = { 1.0f, 1.0f };
 	mFoliageRect[2].Normal[1] = { 0.0f, 1.0f, 0.0f };
 	// Top left
-	mFoliageRect[2].Position[2] = { LL.x, LL.y + 1.0f, LL.z };
+	mFoliageRect[2].Position[2] = { LL.x, LL.y + height, LL.z };
 	mFoliageRect[2].UV[2] = { 0.0f, 0.0f };
 	mFoliageRect[2].Normal[2] = { 0.0f, 1.0f, 0.0f };
 	// Top right
-	mFoliageRect[2].Position[3] = { UR.x, UR.y + 1.0f, UR.z };
+	mFoliageRect[2].Position[3] = { UR.x, UR.y + height, UR.z };
 	mFoliageRect[2].UV[3] = { 1.0f, 0.0f };
 	mFoliageRect[2].Normal[3] = { 0.0f, 1.0f, 0.0f };
 
