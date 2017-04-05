@@ -45,7 +45,6 @@ private:
 	ID3D11Buffer* mpVertexBufferRect2Tri2;
 	ID3D11Buffer* mpVertexBufferRect3Tri1;
 	ID3D11Buffer* mpVertexBufferRect3Tri2;
-
 public:
 	void SetPosition(D3DXVECTOR3 pos);
 	D3DXVECTOR3 GetCentrePos();

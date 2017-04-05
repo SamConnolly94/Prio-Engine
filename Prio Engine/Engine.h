@@ -99,6 +99,10 @@ public:
 	CFoliage* CreateFoliage(std::string mapFile);
 	// Create foliage from a dynamic array height map passed in which should have a higher frequency than the standard terrain height map.
 	CFoliage* CreateFoliage(double** heightMap, int mapWidth, int mapHeight);
+	// Update the foliage map being used. May prove to be useful when generating new terrains.
+	bool UpdateFoliage(double** heightMap, int width, int height);
+	// Get a pointer to the foliage object.
+	CFoliage* GetFoliage();
 
 	/////////////////////////
 	// Mesh control

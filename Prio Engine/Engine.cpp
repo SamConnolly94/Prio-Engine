@@ -610,6 +610,16 @@ CFoliage * CEngine::CreateFoliage(double ** heightMap, int mapWidth, int mapHeig
 	return mpGraphics->GetFoliage();
 }
 
+bool CEngine::UpdateFoliage(double ** heightMap, int width, int height)
+{
+	return mpGraphics->UpdateFoliage(heightMap, width, height);
+}
+
+CFoliage * CEngine::GetFoliage()
+{
+	return mpGraphics->GetFoliage();
+}
+
 bool CEngine::RemovePrimitive(CPrimitive * model)
 {
 	mpGraphics->RemovePrimitive(model);

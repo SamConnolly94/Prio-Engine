@@ -171,6 +171,7 @@ public:
 	bool CreateFoliage(std::string filename);
 	bool CreateFoliage(double** heightMap, int width, int height);
 	CFoliage* GetFoliage() { return mpFoliage; };
+	bool UpdateFoliage(double** heightMap, int width, int height);
 };
 
 #endif

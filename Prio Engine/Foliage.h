@@ -47,6 +47,8 @@ private:
 	CFoliageQuad* mpQuadMesh;
 	std::vector<InstanceType> mIstanceInfoList;
 	int mInstanceCount;
+	float mFoliageMinCuttoff;
+	float mFoliageMaxCutoff;
 // Height map functions
 private:
 	double** mpHeightMap;
@@ -60,6 +62,11 @@ public:
 	int GetInstanceCount();
 	int GetQuadVertexCount() { return mpQuadMesh->GetVertexCount(); };
 	void RenderBuffers(ID3D11DeviceContext* deviceContext, int quadIndex, int triangleIndex);
+	void SetFoliageMinimumFreq(float value) { mFoliageMinCuttoff = value; };
+	void SetFoliageMaximumFreq(float value) { mFoliageMaxCutoff = value; };
+	bool UpdateBuffers(ID3D11Device* device, double** heightMap, int mapWidth, int mapHeight, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight);
+	float GetFoliageMinimumFreq() { return mFoliageMinCuttoff; };
+	float GetFoliageMaximumFreq() { return mFoliageMaxCutoff; };
 };
 
 #endif

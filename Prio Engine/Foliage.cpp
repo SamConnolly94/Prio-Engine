@@ -6,6 +6,8 @@ CFoliage::CFoliage()
 {
 	mFoliageTranslation = { 0.0f, 0.0f, 0.0f };
 	mpInstanceBuffer = nullptr;
+	mFoliageMinCuttoff = 120.0f;
+	mFoliageMaxCutoff = 125.0f;
 }
 
 
@@ -122,13 +124,12 @@ bool CFoliage::InitialiseBuffers(ID3D11Device * device, CTerrainTile** terrainTi
 	///////////////////////////////////
 	// Plot vertices.
 	///////////////////////////////////
-	float foliageMinCuttoff = 120.0f;
-	float foliageMaxCutoff = 125.0f;
+
 	for (int heightCount = 0; heightCount < mHeight; heightCount++)
 	{
 		for (int widthCount = 0; widthCount < mWidth; widthCount++)
 		{
-			if (mpHeightMap[heightCount][widthCount] > foliageMinCuttoff && mpHeightMap[heightCount][widthCount] < foliageMaxCutoff)
+			if (mpHeightMap[heightCount][widthCount] > mFoliageMinCuttoff && mpHeightMap[heightCount][widthCount] < mFoliageMaxCutoff)
 			{
 				D3DXVECTOR3 pos = terrainTiles[heightCount][widthCount].GetLowerLeftVertexPosition();
 				//D3DXVECTOR3 rotation = { 0.0f, ((double)rand() / (RAND_MAX)) + 360, 0.0f };
@@ -364,6 +365,25 @@ void CFoliage::RenderBuffers(ID3D11DeviceContext * deviceContext, int quadIndex,
 	deviceContext->IASetVertexBuffers(0, 2, bufferPtrs, strides, offsets);
 
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+bool CFoliage::UpdateBuffers(ID3D11Device* device, double** heightMap, int mapWidth, int mapHeight, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight)
+{
+	Shutdown();
+
+	SetWidth(mapWidth);
+	SetHeight(mapHeight);
+	LoadHeightMap(heightMap);
+
+	bool result = InitialiseBuffers(device, terrainTiles, terrainWidth, terrainHeight);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the foliage buffers when updating with new height map.");
+		return false;
+	}
+	
+	return true;
 }
 
 void CFoliage::ShutdownHeightMap()

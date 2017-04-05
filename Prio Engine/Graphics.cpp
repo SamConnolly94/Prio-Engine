@@ -1908,6 +1908,24 @@ bool CGraphics::CreateFoliage(double ** heightMap, int width, int height)
 	return true;
 }
 
+bool CGraphics::UpdateFoliage(double ** heightMap, int width, int height)
+{
+	if (mpTerrain == nullptr)
+	{
+		logger->GetInstance().WriteLine("Can not update foliage before the terrain has been initialised.");
+		return false;
+	}
+
+	if (mpFoliage == nullptr)
+	{
+		logger->GetInstance().WriteLine("Can not update foliage before the foliage has been created in the first place.");
+		return false;
+	}
+
+	mpFoliage->UpdateBuffers(mpD3D->GetDevice(), heightMap, width, height, mpTerrain->GetTerrainTiles(), mpTerrain->GetWidth(), mpTerrain->GetHeight());
+	return false;
+}
+
 CCamera* CGraphics::CreateCamera()
 {
 	// Create the camera.
