@@ -70,18 +70,22 @@ CTerrain::CTerrain(ID3D11Device* device, int screenWidth, int screenHeight)
 	}
 
 	mpWater = nullptr;
-
-	mpFoliage = new CFoliage();
 }
 
 
 CTerrain::~CTerrain()
 {
-	if (mpFoliage)
+	if (mpTerrainTiles != nullptr)
 	{
-		mpFoliage->Shutdown();
-		delete mpFoliage;
-		mpFoliage = nullptr;
+		for (int i = 0; i < mHeight; ++i)
+		{
+			delete[] mpTerrainTiles[i];
+			logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTerrainTiles[i]).name());
+			mpTerrainTiles[i] = nullptr;
+		}
+		delete[] mpTerrainTiles;
+		mpTerrainTiles = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTerrainTiles).name());
 	}
 
 	// Output dealloc message to memory log.
@@ -190,11 +194,6 @@ void CTerrain::Render(ID3D11DeviceContext * context)
 
 void CTerrain::Update(float updateTime)
 {
-	if (mpFoliage)
-	{
-		mpFoliage->Update(updateTime);
-	}
-
 	if (mpWater)
 	{
 		mpWater->SetYPos(GetPosY() +  mpWater->GetDepth());
@@ -246,6 +245,20 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 
 	const int kNumIndicesInSquare = 6;
 	int numberOfNormals;
+
+	/////////////////////////////
+	// Terrain tiles setup.
+	/////////////////////////////
+	if (mpTerrainTiles == nullptr)
+	{
+		mpTerrainTiles = new CTerrainTile*[mHeight];
+
+		for (int y = 0; y < mHeight; y++)
+		{
+			mpTerrainTiles[y] = new CTerrainTile[mWidth];
+		}
+	}
+
 
 	// Calculate the number of vertices in the terrain mesh. 
 	mVertexCount = (mWidth * mHeight);
@@ -490,11 +503,144 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 		}
 	}
 
-	if (!GenerateFoliage(device, vertices))
+	vertex = 0;
+
+	///////////////////////////////
+	// Set up the terrain tiles.
+	///////////////////////////////
+
+	for (int y = 0; y < mHeight; y++)
 	{
-		logger->GetInstance().WriteLine("Failed to generate the foliage for terrain.");
-		return false;
+		for (int x = 0; x < mWidth; x++)
+		{
+			D3DXVECTOR3 LL, LR, UL, UR;
+
+			// Pass in the surrounding tiles.
+			if (y > 0)
+			{
+				mpTerrainTiles[y][x].SetDownTile(&mpTerrainTiles[y - 1][x]);
+			}
+			else
+			{
+				mpTerrainTiles[y][x].SetDownTile(nullptr);
+			}
+
+			if (x > 0)
+			{
+				mpTerrainTiles[y][x].SetLeftTile(&mpTerrainTiles[y][x - 1]);
+			}
+			else
+			{
+				mpTerrainTiles[y][x].SetLeftTile(nullptr);
+			}
+
+			if (y < mHeight - 1)
+			{
+				mpTerrainTiles[y][x].SetUpTile(&mpTerrainTiles[y + 1][x]);
+			}
+			else
+			{
+				mpTerrainTiles[y][x].SetUpTile(nullptr);
+			}
+
+			if (x < mWidth - 1)
+			{
+				mpTerrainTiles[y][x].SetRightTile(&mpTerrainTiles[y][x + 1]);
+			}
+			else
+			{
+				mpTerrainTiles[y][x].SetRightTile(nullptr);
+			}
+
+			/////////////////////////////////
+			// Calculate vertices of surrounding grids.
+			////////////////////////////////
+			LL = vertices[vertex].position;
+
+			if (x < mWidth - 1)
+			{
+				LR = vertices[vertex + 1].position;
+			}
+			else
+			{
+				LR = vertices[vertex + 1].position;
+			}
+
+			if (y < mHeight - 1)
+			{
+				UL = vertices[vertex + mWidth].position;
+			}
+			else
+			{
+				UL = vertices[vertex - mWidth].position;
+			}
+
+			if (y < mHeight - 1)
+			{
+				if (x < mWidth - 1)
+				{
+					UR = vertices[vertex + mWidth + 1].position;
+				}
+				else
+				{
+					UR = vertices[vertex + mWidth - 1].position;
+				}
+			}
+			else
+			{
+				if (x < mWidth - 1)
+				{
+					UR = vertices[vertex - mWidth + 1].position;
+				}
+				else
+				{
+					UR = vertices[vertex - mWidth - 1].position;
+				}
+			}
+			D3DXVECTOR3 centrePos = (LL + LR + UL + UR) / 4;
+			mpTerrainTiles[y][x].SetCentrePosition(centrePos);
+			mpTerrainTiles[y][x].SetLowerLeftVertexPosition(LL);
+			mpTerrainTiles[y][x].SetLowerRightVertexPosition(LR);
+			mpTerrainTiles[y][x].SetUpperLeftVertexPosition(UL);
+			mpTerrainTiles[y][x].SetUpperRightVertexPosition(UR);
+
+			VertexAreaType areatype = FindAreaType(centrePos.y);
+
+			switch (areatype)
+			{
+			case VertexAreaType::Snow:
+				mpTerrainTiles[y][x].SetTileType(CTerrainTile::TileType::Rock);
+				break;
+			case VertexAreaType::Grass:
+				mpTerrainTiles[y][x].SetTileType(CTerrainTile::TileType::Grass);
+				break;
+			case VertexAreaType::Dirt:
+				mpTerrainTiles[y][x].SetTileType(CTerrainTile::TileType::Dirt);
+				break;
+			case VertexAreaType::Sand:
+				mpTerrainTiles[y][x].SetTileType(CTerrainTile::TileType::Sand);
+				break;
+			default:
+				mpTerrainTiles[y][x].SetTileType(CTerrainTile::TileType::Rock);
+				break;
+			}
+
+			vertex++;
+		}
 	}
+
+	//////////////////////////
+	// Generate foliage
+	// TODO:
+	// Remove all of this creation from the terrain. Let the engine do it, give the user control.
+	// Also allows seperation of objects.
+	/////////////////////////
+
+	//if (!GenerateFoliage(device, vertices))
+	//{
+	//	logger->GetInstance().WriteLine("Failed to generate the foliage for terrain.");
+	//	return false;
+	//}
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -959,191 +1105,4 @@ CTerrain::VertexAreaType CTerrain::FindAreaType(float height)
 	}
 
 	return area;
-}
-
-bool CTerrain::GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices)
-{
-	CFoliage::FoliageVertexType* vertices;
-	unsigned int* indices;
-	int index;
-	int vertex;
-
-	vertex = 0;
-
-	int numGrassTiles = 0;
-	for (int heightCount = 0; heightCount < mHeight; heightCount++)
-	{
-		for (int widthCount = 0; widthCount < mWidth; widthCount++)
-		{
-			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
-			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
-
-			if ((areaType == CTerrain::VertexAreaType::Grass || areaType ==  CTerrain::VertexAreaType::Dirt) && upwards != CTerrain::VertexAreaType::Snow )
-			{
-				numGrassTiles++;
-			}
-			vertex++;
-		}
-	}
-
-	vertex = 0;
-
-	/////////////////////////
-	//// Vertices
-	////////////////////////
-
-	int vertexCount = 12 * numGrassTiles;
-	vertices = new CFoliage::FoliageVertexType[vertexCount];
-
-	vertex = 0;
-	int currVertex = 0;
-
-	for (int heightCount = 0; heightCount < mHeight - 1; heightCount++)
-	{
-		for (int widthCount = 0; widthCount < mWidth - 1; widthCount++)
-		{
-			CTerrain::VertexAreaType areaType = FindAreaType(terrainVertices[vertex].position.y);
-			CTerrain::VertexAreaType upwards = FindAreaType(terrainVertices[vertex].position.y + 2.0f);
-
-			if ((areaType == CTerrain::VertexAreaType::Grass || areaType == CTerrain::VertexAreaType::Dirt) && upwards != CTerrain::VertexAreaType::Snow)
-			{
-
-				CFoliageQuad foliage;
-				D3DXVECTOR3 LL;
-				D3DXVECTOR3 UL;
-				D3DXVECTOR3 LR;
-				D3DXVECTOR3 UR;
-
-				if (widthCount > 0)
-				{
-					LL = terrainVertices[vertex - 1].position;
-					
-					if (heightCount < mHeight - 2)
-					{
-						UL = terrainVertices[vertex + (mWidth * 2)- 1].position;
-					}
-					else
-					{
-						UL = terrainVertices[vertex + mWidth - 1].position;
-					}
-				}
-				else
-				{
-					LL = terrainVertices[vertex].position;
-					UL = terrainVertices[vertex + mWidth].position;
-				}
-
-				if (widthCount < mWidth - 2)
-				{
-					LR = terrainVertices[vertex + 2].position;
-					//UR = terrainVertices[vertex + mWidth + 2].position;
-
-					if (heightCount < mHeight - 2)
-					{
-						UR = terrainVertices[vertex + (mWidth * 2) + 2].position;
-					}
-					else
-					{
-						UR = terrainVertices[vertex + mWidth + 2].position;
-					}
-				}
-				else
-				{
-					LR = terrainVertices[vertex + 1].position;
-					UR = terrainVertices[vertex + mWidth + 1].position;
-				}
-
-
-
-
-				foliage.GeneratePoints(LL, LR, UL, UR);
-				foliage.SetPosition(terrainVertices[vertex].position);
-
-				for (int i = 0; i < 3; i++)
-				{
-					CFoliageQuad::QuadType quad = foliage.GetFoliageRect(i);
-					float avPos = ((quad.Position[0] + quad.Position[1] + quad.Position[2] + quad.Position[3]) / 4.0f).y;
-					CTerrain::VertexAreaType averageAreaType = FindAreaType(avPos);
-					for (int j = 0; j < 4; j++)
-					{
-						vertices[currVertex].position = quad.Position[j];
-						vertices[currVertex].UV = quad.UV[j];
-						vertices[currVertex].normal = quad.Normal[j];
-
-						if (j >= 2)
-						{
-							vertices[currVertex].IsTopVertex = 1;
-						}
-						else
-						{
-							vertices[currVertex].IsTopVertex = 0;
-						}
-
-						if (avPos < mpWater->GetDepth() + 0.5f)
-						{
-							// Reeds
-							vertices[currVertex].Type = 1;
-						}
-						else if (averageAreaType == Grass)
-						{
-							// Grass
-							vertices[currVertex].Type = 0;
-						}
-						else
-						{
-							// Set it to a random number we can't deal with.
-							vertices[currVertex].Type = 500;
-						}
-
-						currVertex++;
-					}
-
-					
-				}
-			}
-			vertex++;
-		}
-		vertex++;
-	}
-
-	/////////////////////////
-	//// Indices
-	////////////////////////
-
-	int indexCount = 18 * numGrassTiles;
-	indices = new unsigned int[indexCount];
-	CFoliageQuad foliage;
-	D3DXVECTOR3 pt = { 0.0f, 0.0f, 0.0f };
-	foliage.GeneratePoints(pt, pt, pt, pt);
-	foliage.SetPosition(terrainVertices[vertex].position);
-
-	index = 0;
-	vertex = 0;
-	int indexOffset = 12;
-	for (int i = 0; i < numGrassTiles; i++)
-	{
-		for (int j = 0; j < 18; j++)
-		{
-			indices[index] = foliage.GetIndex(j) + (indexOffset * i);
-			index++;
-		}
-	}
-
-	bool result = mpFoliage->Initialise(device, vertices, vertexCount, indices, indexCount);
-	if (!result)
-	{
-		logger->GetInstance().WriteLine("Failed to initialise the foliage buffers.");
-		return false;
-	}
-
-	// Clean up the memory allocated to arrays.
-	delete[] vertices;
-	logger->GetInstance().MemoryDeallocWriteLine(typeid(vertices).name());
-	vertices = nullptr;
-
-	delete[] indices;
-	logger->GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
-	indices = nullptr;
-
-	return true;
 }

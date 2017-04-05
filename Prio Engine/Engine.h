@@ -92,6 +92,15 @@ public:
 	bool AddSceneryToTerrain(CTerrain* terrainPtr);
 
 	/////////////////////////
+	// Foliage control
+	////////////////////////
+
+	// Create foliage quads from a height map text file with a higher frequency than the standard terrain.
+	CFoliage* CreateFoliage(std::string mapFile);
+	// Create foliage from a dynamic array height map passed in which should have a higher frequency than the standard terrain height map.
+	CFoliage* CreateFoliage(double** heightMap, int mapWidth, int mapHeight);
+
+	/////////////////////////
 	// Mesh control
 	////////////////////////
 	

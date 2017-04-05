@@ -26,7 +26,7 @@ public:
 public:
 	bool Initialise(ID3D11Device* device, HWND hwnd);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext* deviceContext, int indexCount);
+	bool Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount);
 
 private:
 	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename);
@@ -34,7 +34,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, std::string shaderFilename);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext);
-	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
+	void RenderShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount);
 
 private:
 	ID3D11VertexShader* mpVertexShader;

@@ -29,6 +29,7 @@ struct VertexInputType
 	float3 Normal : NORMAL;
 	uint IsTopVertex : TEXCOORD1;
 	uint Type : TEXCOORD2;
+	float3 instancePosition : TEXCOORD3;
 };
 
 struct PixelInputType
@@ -49,6 +50,10 @@ PixelInputType FoliageVS(VertexInputType input)
 {
 	PixelInputType output;
 
+	input.WorldPosition.x += input.instancePosition.x;
+	input.WorldPosition.y += input.instancePosition.y;
+	input.WorldPosition.z += input.instancePosition.z;
+
 	// Give a 4th element to our matrix so it's the correct size;
 	input.WorldPosition.w = 1.0f;
 	
@@ -56,6 +61,7 @@ PixelInputType FoliageVS(VertexInputType input)
 	{
 		input.WorldPosition.xyz += FoliageTranslation;
 	}
+
 
 	output.WorldPosition = input.WorldPosition;
 

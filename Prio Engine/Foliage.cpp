@@ -5,6 +5,7 @@
 CFoliage::CFoliage()
 {
 	mFoliageTranslation = { 0.0f, 0.0f, 0.0f };
+	mpInstanceBuffer = nullptr;
 }
 
 
@@ -12,14 +13,18 @@ CFoliage::~CFoliage()
 {
 }
 
-bool CFoliage::Initialise(ID3D11Device * device, FoliageVertexType * vertices, int numberOfVertices, unsigned int * indices, int numberOfIndices)
+bool CFoliage::Initialise(ID3D11Device * device, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight)
 {
-	mVertexCount = numberOfVertices;
-	mIndexCount = numberOfIndices;
-
 	///////////////////////////
 	// Foliage textures
 	///////////////////////////
+
+	mpQuadMesh = new CFoliageQuad();
+	if (!mpQuadMesh->Initialise(device))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the foliage quad mesh.");
+		return false;
+	}
 
 	mpFoliageTex = new CTexture();
 	if (!mpFoliageTex->Initialise(device, "Resources/Textures/Foliage/Grass.png"))
@@ -33,7 +38,6 @@ bool CFoliage::Initialise(ID3D11Device * device, FoliageVertexType * vertices, i
 		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/GrassAlpha.png'.");
 	}
 
-
 	mpReedsTexture = new CTexture();
 	if (!mpReedsTexture->Initialise(device, "Resources/Textures/Foliage/Reeds.png"))
 	{
@@ -46,7 +50,7 @@ bool CFoliage::Initialise(ID3D11Device * device, FoliageVertexType * vertices, i
 		logger->GetInstance().WriteLine("Failed to load 'Resources/Textures/Foliage/ReedsAlpha.png'.");
 	}
 
-	if (!InitialiseBuffers(device, vertices, indices))
+	if (!InitialiseBuffers(device, terrainTiles, mWidth, mHeight))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise foliage buffers.");
 		return false;
@@ -71,22 +75,29 @@ void CFoliage::Shutdown()
 		mpFoliageTex = nullptr;
 	}
 
-	if (mpVertexBuffer)
+	if (mpReedsTexture)
 	{
-		mpVertexBuffer->Release();
-		mpVertexBuffer = nullptr;
+		mpReedsTexture->Shutdown();
+		delete mpReedsTexture;
+		mpReedsTexture = nullptr;
 	}
 
-	if (mpIndexBuffer)
+	if (mpReedsAlphaTexture)
 	{
-		mpIndexBuffer->Release();
-		mpIndexBuffer = nullptr;
+		mpReedsAlphaTexture->Shutdown();
+		delete mpReedsAlphaTexture;
+		mpReedsAlphaTexture = nullptr;
 	}
-}
 
-void CFoliage::Render(ID3D11DeviceContext * deviceContext)
-{
-	RenderBuffers(deviceContext);
+	ShutdownHeightMap();
+
+	ShutdownQuads();
+
+	if (mpInstanceBuffer)
+	{
+		mpInstanceBuffer->Release();
+		mpInstanceBuffer = nullptr;
+	}
 }
 
 void CFoliage::Update(float updateTime)
@@ -99,83 +110,274 @@ void CFoliage::Update(float updateTime)
 	}
 }
 
-bool CFoliage::InitialiseBuffers(ID3D11Device * device, FoliageVertexType * vertices, unsigned int * indices)
+bool CFoliage::InitialiseBuffers(ID3D11Device * device, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight)
 {
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	D3D11_BUFFER_DESC indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData;
-	D3D11_SUBRESOURCE_DATA indexData;
-	HRESULT result;
 
-	///////////////////////
-	// Buffer setup
-	//////////////////////
-
-	// Set up the descriptor of the static vertex buffer.
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(FoliageVertexType) * mVertexCount;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	// Create the vertex buffer.
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &mpVertexBuffer);
-	if (FAILED(result))
+	if (terrainWidth != mWidth && terrainHeight != mHeight)
 	{
-		logger->GetInstance().WriteLine("Failed to create the foliage vertex buffer from the buffer description.");
+		logger->GetInstance().WriteLine("The height of the terrain height map did not match that of the foliage height map. Can not create foliage.");
 		return false;
 	}
 
-	// Set up the description of the static index buffer.
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned int) * mIndexCount;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
+	///////////////////////////////////
+	// Plot vertices.
+	///////////////////////////////////
+	float foliageMinCuttoff = 120.0f;
+	float foliageMaxCutoff = 125.0f;
+	for (int heightCount = 0; heightCount < mHeight; heightCount++)
+	{
+		for (int widthCount = 0; widthCount < mWidth; widthCount++)
+		{
+			if (mpHeightMap[heightCount][widthCount] > foliageMinCuttoff && mpHeightMap[heightCount][widthCount] < foliageMaxCutoff)
+			{
+				D3DXVECTOR3 pos = terrainTiles[heightCount][widthCount].GetLowerLeftVertexPosition();
+				//D3DXVECTOR3 rotation = { 0.0f, ((double)rand() / (RAND_MAX)) + 360, 0.0f };
+				InstanceType info;
+				info.Position = pos;
+				//info.Rotation = rotation;
+				mIstanceInfoList.push_back(info);
+			}
+		}
+	}
 
-	// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
+	mInstanceCount = mIstanceInfoList.size();
 
-	// Create the index buffer.
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &mpIndexBuffer);
+	InstanceType* instances = new InstanceType[mInstanceCount];
+
+	// Copy instance data.
+	for (int i = 0; i < mInstanceCount; i++)
+	{
+		instances[i].Position = mIstanceInfoList[i].Position;
+		//instances[i].Rotation = mIstanceInfoList[i].Rotation;
+	}
+	D3D11_BUFFER_DESC instanceBufferDesc;
+	D3D11_SUBRESOURCE_DATA instanceData;
+
+	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	instanceBufferDesc.ByteWidth = sizeof(InstanceType) * mInstanceCount;
+	instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	instanceBufferDesc.CPUAccessFlags = 0;
+	instanceBufferDesc.MiscFlags = 0;
+	instanceBufferDesc.StructureByteStride = 0;
+
+	instanceData.pSysMem = instances;
+	instanceData.SysMemPitch = 0;
+	instanceData.SysMemSlicePitch = 0;
+
+	HRESULT result = device->CreateBuffer(&instanceBufferDesc, &instanceData, &mpInstanceBuffer);
 	if (FAILED(result))
 	{
-		logger->GetInstance().WriteLine("Failed to create the foliage index buffer from the buffer description.");
+		logger->GetInstance().WriteLine("Failed to create the instance buffer for foliage.");
 		return false;
+	}
+
+	delete[] instances;
+	instances = nullptr;
+
+	return true;
+}
+
+void CFoliage::ShutdownQuads()
+{
+	mpQuadMesh->Shutdown();
+	delete mpQuadMesh;
+	mpQuadMesh = nullptr;
+}
+
+void CFoliage::SetWidth(int width)
+{
+	mWidth = width;
+}
+
+void CFoliage::SetHeight(int height)
+{
+	mHeight = height;
+}
+
+void CFoliage::LoadHeightMap(double ** heightMap)
+{
+	if (mpHeightMap != nullptr)
+	{
+		ShutdownHeightMap();
+	}
+
+	if (mpHeightMap == nullptr)
+	{
+		mpHeightMap = new double*[mHeight];
+
+		for (int y = 0; y < mHeight; y++)
+		{
+			// Allocate space for the columns.
+			mpHeightMap[y] = new double[mWidth];
+
+			for (int x = 0; x < mWidth; x++)
+			{
+				mpHeightMap[y][x] = heightMap[y][x];
+			}
+		}
+	}
+
+
+	// Outpout a log to let the user know where we're up to in the function.
+	logger->GetInstance().WriteLine("Copied height map over to foliage.");
+}
+
+bool CFoliage::LoadHeightMap(std::string filename)
+{
+	std::string line;
+	std::ifstream inFile;
+
+	if (mpHeightMap != nullptr)
+	{
+		ShutdownHeightMap();
+	}
+
+	// Open the file.
+	inFile.open(filename);
+
+	// Check we successfully opened.
+	if (!inFile.is_open())
+	{
+		logger->GetInstance().WriteLine("Failed to open the map file with name: " + filename);
+		return false;
+	}
+
+	int height = 0;
+	int width = 0;
+	// Calculate the array size for now.
+	while (std::getline(inFile, line))
+	{
+		// Reset the width count.
+		width = 0;
+
+		double value;
+		std::stringstream  lineStream(line);
+
+		// Go through this line.
+		while (lineStream >> value)
+		{
+			// One more on the width!
+			width++;
+		}
+
+		// Increment height.
+		height++;
+	}
+
+	// Set width and height.
+	mWidth = width;
+	mHeight = height;
+
+	inFile.close();
+	inFile.open(filename);
+
+	if (!inFile.is_open())
+	{
+		logger->GetInstance().WriteLine("Failed to open " + filename + ", but managed to open it the first time.");
+		return false;
+	}
+
+	// Create height map.
+	if (!mpHeightMap)
+	{
+		// Allocate memory to this array.
+		mpHeightMap = new double*[mHeight];
+	}
+
+	// Iterate through all the rows.
+	for (int x = 0; x < mHeight; x++)
+	{
+		// Allocate space for the columns.
+		mpHeightMap[x] = new double[mWidth];
+	}
+
+	// Create a heightmap.
+	for (int y = 0; y < mHeight; y++)
+	{
+		// Get the line of this file.
+		std::getline(inFile, line);
+		std::stringstream  lineStream(line);
+		double value;
+
+		// Iterate through the width.
+		for (int x = 0; x < mWidth; x++)
+		{
+			lineStream >> value;
+			mpHeightMap[y][x] = value;
+		}
 	}
 
 	return true;
 }
 
-void CFoliage::RenderBuffers(ID3D11DeviceContext * deviceContext)
+int CFoliage::GetInstanceCount()
 {
-	unsigned int stride;
-	unsigned int offset;
+	return mInstanceCount;
+}
 
-	// Set the vertex buffer stride and offset.
-	stride = sizeof(FoliageVertexType);
-	offset = 0;
+void CFoliage::RenderBuffers(ID3D11DeviceContext * deviceContext, int quadIndex, int triangleIndex)
+{
+	unsigned int strides[2];
+	unsigned int offsets[2];
+	ID3D11Buffer* bufferPtrs[2];
 
-	// Set the vertex buffer to active in the input assembler.
-	deviceContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &stride, &offset);
+	strides[0] = sizeof(CFoliageQuad::FoliageVertexType);
+	strides[1] = sizeof(InstanceType);
 
-	// Set the index buffer to active in the input assembler.
-	deviceContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	offsets[0] = 0;
+	offsets[1] = 0;
+	if (quadIndex == 0)
+	{
+		if (triangleIndex == 0)
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect1Tri1();
+		}
+		else
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect1Tri2();
+		}
+	}
+	else if (quadIndex == 1)
+	{
+		if (triangleIndex == 0)
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect2Tri1();
+		}
+		else
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect2Tri2();
+		}
+	}
+	else
+	{
+		if (triangleIndex == 0)
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect3Tri1();
+		}
+		else
+		{
+			bufferPtrs[0] = mpQuadMesh->GetVertexBufferRect3Tri2();
+		}
+	}
+	bufferPtrs[1] = mpInstanceBuffer;
 
-	// Tell directx we've passed it a triangle list in the form of indices.
+	deviceContext->IASetVertexBuffers(0, 2, bufferPtrs, strides, offsets);
+
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-int CFoliage::GetNumberOfIndices()
+void CFoliage::ShutdownHeightMap()
 {
-	return mIndexCount;
+	if (mpHeightMap != nullptr)
+	{
+		for (int i = 0; i < mHeight; ++i) 
+		{
+			delete[] mpHeightMap[i];
+			logger->GetInstance().MemoryDeallocWriteLine(typeid(mpHeightMap[i]).name());
+			mpHeightMap[i] = nullptr;
+		}
+		delete[] mpHeightMap;
+		mpHeightMap = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpHeightMap).name());
+	}
 }

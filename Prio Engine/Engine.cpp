@@ -590,6 +590,26 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 	return true;
 }
 
+CFoliage * CEngine::CreateFoliage(std::string mapFile)
+{
+	if (!mpGraphics->CreateFoliage(mapFile))
+	{
+		return nullptr;
+	}
+
+	return mpGraphics->GetFoliage();
+}
+
+CFoliage * CEngine::CreateFoliage(double ** heightMap, int mapWidth, int mapHeight)
+{
+	if (!mpGraphics->CreateFoliage(heightMap, mapWidth, mapHeight))
+	{
+		return nullptr;
+	}
+
+	return mpGraphics->GetFoliage();
+}
+
 bool CEngine::RemovePrimitive(CPrimitive * model)
 {
 	mpGraphics->RemovePrimitive(model);

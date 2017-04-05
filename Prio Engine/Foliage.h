@@ -4,49 +4,62 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include "Texture.h"
+#include <sstream>
+#include <vector>
+#include "FoliageQuad.h"
+#include "TerrainTile.h"
 
 class CFoliage
 {
 private:
 	CLogger* logger;
-public:
-	struct FoliageVertexType
+private:
+	struct InstanceType
 	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 UV;
-		D3DXVECTOR3 normal;
-		unsigned int IsTopVertex; // Boolean val.
-		unsigned int Type; // Graass or reed.
+		D3DXVECTOR3 Position;
 	};
+
 public:
 	CFoliage();
 	~CFoliage();
 public:
-	bool Initialise(ID3D11Device* device, FoliageVertexType* vertices, int numberOfVertices, unsigned int* indices, int numberOfIndices);
+	bool Initialise(ID3D11Device * device, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight);
 	void Shutdown();
-	void Render(ID3D11DeviceContext* deviceContext);
 	void Update(float updateTime);
 private:
-	bool InitialiseBuffers(ID3D11Device* device, FoliageVertexType* vertices, unsigned int* indices);
-	void RenderBuffers(ID3D11DeviceContext* deviceContext);
+	bool InitialiseBuffers(ID3D11Device * device, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight);
+	void ShutdownQuads();
+	void ShutdownHeightMap();
 public:
-	int GetNumberOfIndices();
 	ID3D11ShaderResourceView* GetFoliageTexture() { return mpFoliageTex->GetTexture(); };
 	ID3D11ShaderResourceView* GetFoliageAlphaTexture() { return mpFoliageAlphaTex->GetTexture(); };
 	ID3D11ShaderResourceView* GetReedsTexture() { return mpReedsTexture->GetTexture(); };
 	ID3D11ShaderResourceView* GetReedsAlphaTexture() { return mpReedsAlphaTexture->GetTexture(); };
 	D3DXVECTOR3 GetTranslation() { return mFoliageTranslation; };
 private:
-	int mIndexCount;
-	int mVertexCount;
-	ID3D11Buffer* mpVertexBuffer;
-	ID3D11Buffer* mpIndexBuffer;
 	CTexture* mpFoliageAlphaTex;
 	CTexture* mpFoliageTex;
 	CTexture* mpReedsAlphaTexture;
 	CTexture* mpReedsTexture;
 	D3DXVECTOR3 mFoliageTranslation;
 	D3DXVECTOR3 mWindDirection = { 0.0f, 0.0f, 0.2f };
+	ID3D11Buffer* mpInstanceBuffer;
+	CFoliageQuad* mpQuadMesh;
+	std::vector<InstanceType> mIstanceInfoList;
+	int mInstanceCount;
+// Height map functions
+private:
+	double** mpHeightMap;
+	int mWidth;
+	int mHeight;
+public:
+	void SetWidth(int width);
+	void SetHeight(int height);
+	void LoadHeightMap(double** heightMap);
+	bool LoadHeightMap(std::string filename);
+	int GetInstanceCount();
+	int GetQuadVertexCount() { return mpQuadMesh->GetVertexCount(); };
+	void RenderBuffers(ID3D11DeviceContext* deviceContext, int quadIndex, int triangleIndex);
 };
 
 #endif

@@ -55,6 +55,7 @@
     <ClInclude Include="SpecularLightingShader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainShader.h" />
+    <ClInclude Include="TerrainTile.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureShader.h" />
     <ClInclude Include="Triangle.h" />
@@ -99,6 +100,7 @@
     <ClCompile Include="SpecularLightingShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
+    <ClCompile Include="TerrainTile.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureShader.cpp" />
     <ClCompile Include="Triangle.cpp" />

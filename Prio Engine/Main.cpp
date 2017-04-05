@@ -70,6 +70,7 @@ void GameLoop(CEngine* &engine)
 	myCam = engine->GetMainCamera();
 
 	CTerrain* terrain = engine->CreateTerrain("Default.map");
+	CFoliage* foliage = engine->CreateFoliage("Foliage.map");
 
 	SentenceType* frametimeText = engine->CreateText("Frametime: ", frameTimePosX, frameTimePosY, 32);
 	SentenceType* FPSText = engine->CreateText("FPS: ", static_cast<int>(FPSPosX), static_cast<int>(FPSPosY), 32);

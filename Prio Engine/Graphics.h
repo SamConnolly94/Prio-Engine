@@ -30,6 +30,7 @@
 #include "RainShader.h"
 #include "Rain.h"
 #include "FoliageShader.h"
+#include "Foliage.h"
 
 // Global variables.
 
@@ -165,6 +166,11 @@ private:
 	CCloudShader* mpCloudShader;
 	CRain* mpRain;
 	float mRunTime = 0.0f;
+	CFoliage* mpFoliage;
+public:
+	bool CreateFoliage(std::string filename);
+	bool CreateFoliage(double** heightMap, int width, int height);
+	CFoliage* GetFoliage() { return mpFoliage; };
 };
 
 #endif

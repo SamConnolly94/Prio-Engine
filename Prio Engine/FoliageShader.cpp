@@ -35,7 +35,7 @@ void CFoliageShader::Shutdown()
 	ShutdownShader();
 }
 
-bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int indexCount)
+bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount)
 {
 	bool result;
 
@@ -48,7 +48,7 @@ bool CFoliageShader::Render(ID3D11DeviceContext * deviceContext, int indexCount)
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(deviceContext, vertexCount, instanceCount);
 
 	return true;
 }
@@ -59,7 +59,7 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[5];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[6];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -170,6 +170,16 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 5;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 3;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = 0;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
 
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -418,7 +428,7 @@ bool CFoliageShader::SetShaderParameters(ID3D11DeviceContext * deviceContext)
 	return true;
 }
 
-void CFoliageShader::RenderShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CFoliageShader::RenderShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount)
 {
 	// Set the vertex input layout
 	deviceContext->IASetInputLayout(mpLayout);
@@ -429,9 +439,8 @@ void CFoliageShader::RenderShader(ID3D11DeviceContext * deviceContext, int index
 
 	// Set sample state in the pixel shader.
 	deviceContext->PSSetSamplers(0, 1, &mpSampleState);
-
-	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	
+	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
 }
 
 void CFoliageShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)

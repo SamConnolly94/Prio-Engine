@@ -11,8 +11,7 @@
 #include <vector>
 #include <sstream>
 #include "PrioEngineVars.h"
-#include "FoliageQuad.h"
-#include "Foliage.h"
+#include "TerrainTile.h"
 
 class CTerrain : public CModelControl
 {
@@ -20,13 +19,6 @@ private:
 	CLogger* logger;
 private:
 	struct VertexType
-	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 UV;
-		D3DXVECTOR3 normal;
-	};
-
-	struct FoliageType
 	{
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 UV;
@@ -140,11 +132,9 @@ private:
 public:
 	bool GetUpdateFlag() { return mUpdating; };
 private:
-	bool GenerateFoliage(ID3D11Device* device, VertexType* terrainVertices);
-private:
-	CFoliage* mpFoliage;
+	CTerrainTile** mpTerrainTiles;
 public:
-	CFoliage* GetFoliage() { return mpFoliage; };
+	CTerrainTile** GetTerrainTiles() { return mpTerrainTiles; };
 };
 
 #endif

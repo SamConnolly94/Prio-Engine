@@ -22,6 +22,7 @@ CGraphics::CGraphics()
 	mFrameTime = 0.0f;
 	mpRain = nullptr;
 	mpRainShader = nullptr;
+	mpFoliage = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -204,6 +205,20 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpFoliage)
+	{
+		mpFoliage->Shutdown();
+		delete mpFoliage;
+		mpFoliage = nullptr;
+	}
+
+	if (mpFoliageShader)
+	{
+		mpFoliageShader->Shutdown();
+		delete mpFoliageShader;
+		mpFoliageShader = nullptr;
+	}
+
 	if (mpRain)
 	{
 		mpRain->Shutdown();
@@ -403,6 +418,11 @@ void CGraphics::UpdateScene(float updateTime)
 {
 	mFrameTime = updateTime;
 	mRunTime += updateTime;
+
+	if (mpFoliage != nullptr)
+	{
+		mpFoliage->Update(updateTime);
+	}
 
 	mpCamera->Render();
 
@@ -1045,27 +1065,33 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Foliage refraction
 		////////////////////////////////////
 
-		CFoliage* foliagePtr = mpTerrain->GetFoliage();
-		foliagePtr->Render(mpD3D->GetDeviceContext());
-		mpRefractionShader->SetFrameTime(mFrameTime);
-		mpRefractionShader->SetGrassTexture(foliagePtr->GetReedsTexture());
-		mpRefractionShader->SetGrassAlphaTexture(foliagePtr->GetReedsAlphaTexture());
-		mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
-		mpRefractionShader->SetWindStrength(1.0f);
-		mpRefractionShader->SetTranslation(foliagePtr->GetTranslation());
-
-		mpD3D->TurnOffBackFaceCulling();
-		mpD3D->EnableAlphaBlending();
-
-		if (!mpRefractionShader->RenderFoliageRefraction(mpD3D->GetDeviceContext(), foliagePtr->GetNumberOfIndices()))
+		/*if (mpFoliage != nullptr)
 		{
-			logger->GetInstance().WriteLine("Failed to render foliage. ");
-			return false;
-		}
+			mpRefractionShader->SetFrameTime(mFrameTime);
+			mpRefractionShader->SetGrassTexture(mpFoliage->GetReedsTexture());
+			mpRefractionShader->SetGrassAlphaTexture(mpFoliage->GetReedsAlphaTexture());
+			mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
+			mpRefractionShader->SetWindStrength(1.0f);
+			mpRefractionShader->SetTranslation(mpFoliage->GetTranslation());
 
-		mpD3D->DisableAlphaBlending();
-		mpD3D->TurnOnBackFaceCulling();
-
+			mpD3D->TurnOffBackFaceCulling();
+			mpD3D->EnableAlphaBlending();
+			
+			for (auto quad : mpFoliage->GetQuads())
+			{
+				if (mpFrustum->CheckSphere(quad->GetCentrePos(), 1.0f))
+				{
+					quad->Render(mpD3D->GetDeviceContext());
+					if (!mpRefractionShader->RenderFoliageRefraction(mpD3D->GetDeviceContext(), quad->GetIndexCount()))
+					{
+						logger->GetInstance().WriteLine("Failed to render foliage. ");
+						return false;
+					}
+				}
+			}
+			mpD3D->DisableAlphaBlending();
+			mpD3D->TurnOnBackFaceCulling();
+		}*/
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
@@ -1243,9 +1269,11 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 		return true;
 	}
 
-	CFoliage* foliagePtr = mpTerrain->GetFoliage();
+	if (mpFoliage == nullptr)
+	{
+		return true;
+	}
 
-	foliagePtr->Render(mpD3D->GetDeviceContext());
 	mpTerrain->GetWorldMatrix(world);
 	mpFoliageShader->SetWorldMatrix(world);
 	mpFoliageShader->SetViewMatrix(view);
@@ -1255,13 +1283,13 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	mpFoliageShader->SetDiffuseColour(mpSceneLight->GetDiffuseColour());
 	mpFoliageShader->SetLightDirection(mpSceneLight->GetDirection());
 	mpFoliageShader->SetFrameTime(mFrameTime);
-	mpFoliageShader->SetGrassTexture(foliagePtr->GetFoliageTexture());
-	mpFoliageShader->SetGrassAlphaTexture(foliagePtr->GetFoliageAlphaTexture());
-	mpFoliageShader->SetReedTexture(foliagePtr->GetReedsTexture());
-	mpFoliageShader->SetReedAlphaTexture(foliagePtr->GetReedsAlphaTexture());
+	mpFoliageShader->SetGrassTexture(mpFoliage->GetFoliageTexture());
+	mpFoliageShader->SetGrassAlphaTexture(mpFoliage->GetFoliageAlphaTexture());
+	mpFoliageShader->SetReedTexture(mpFoliage->GetReedsTexture());
+	mpFoliageShader->SetReedAlphaTexture(mpFoliage->GetReedsAlphaTexture());
 	mpFoliageShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
 	mpFoliageShader->SetWindStrength(1.0f);
-	mpFoliageShader->SetTranslation(foliagePtr->GetTranslation());
+	mpFoliageShader->SetTranslation(mpFoliage->GetTranslation());
 
 	if (!mWireframeEnabled)
 	{
@@ -1269,12 +1297,19 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	}
 	mpD3D->EnableAlphaBlending();
 
-	if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), foliagePtr->GetNumberOfIndices()))
+	for (int quadCount = 0; quadCount < 3; quadCount++)
 	{
-		logger->GetInstance().WriteLine("Failed to render foliage. ");
-		return false;
-	}
+		for (int triangleCount = 0; triangleCount < 2; triangleCount++)
+		{
+			mpFoliage->RenderBuffers(mpD3D->GetDeviceContext(), quadCount, triangleCount);
 
+			if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpFoliage->GetQuadVertexCount(), mpFoliage->GetInstanceCount()))
+			{
+				logger->GetInstance().WriteLine("Failed to render foliage. ");
+				return false;
+			}
+		}
+	}
 	mpD3D->DisableAlphaBlending();
 	mpD3D->TurnOnBackFaceCulling();
 
@@ -1799,6 +1834,78 @@ bool CGraphics::IsNightTime()
 bool CGraphics::IsEveningTime()
 {
 	return mpSkybox->IsEveningTime();
+}
+
+bool CGraphics::CreateFoliage(std::string filename)
+{
+	if (mpTerrain == nullptr)
+	{
+		logger->GetInstance().WriteLine("Can not create foliage before the terrain has been initialised.");
+		return false;
+	}
+
+	if (mpFoliage != nullptr)
+	{
+		mpFoliage->Shutdown();
+		delete mpFoliage;
+		mpFoliage = nullptr;
+	}
+
+	mpFoliage = new CFoliage();
+
+	bool result = mpFoliage->LoadHeightMap(filename);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to load the height map when creating foliage in graphics object.");
+		return false;
+	}
+
+	// Initialise the foliage buffers.
+	result = mpFoliage->Initialise(mpD3D->GetDevice(), mpTerrain->GetTerrainTiles(), mpTerrain->GetWidth(), mpTerrain->GetHeight());
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage object in graphics object.");
+		return false;
+	}
+
+	logger->GetInstance().WriteLine("Successfully created foliage.");
+	return true;
+}
+
+bool CGraphics::CreateFoliage(double ** heightMap, int width, int height)
+{
+	if (mpTerrain == nullptr)
+	{
+		logger->GetInstance().WriteLine("Can not create foliage before the terrain has been initialised.");
+		return false;
+	}
+
+	if (mpFoliage != nullptr)
+	{
+		mpFoliage->Shutdown();
+		delete mpFoliage;
+		mpFoliage = nullptr;
+	}
+
+	mpFoliage = new CFoliage();
+
+	mpFoliage->SetWidth(width);
+	mpFoliage->SetHeight(height);
+	mpFoliage->LoadHeightMap(heightMap);
+
+	// Initialise the foliage buffers.
+	bool result = mpFoliage->Initialise(mpD3D->GetDevice(), mpTerrain->GetTerrainTiles(), mpTerrain->GetWidth(), mpTerrain->GetHeight());
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage object in graphics object.");
+		return false;
+	}
+
+	logger->GetInstance().WriteLine("Successfully created foliage.");
+	return true;
 }
 
 CCamera* CGraphics::CreateCamera()

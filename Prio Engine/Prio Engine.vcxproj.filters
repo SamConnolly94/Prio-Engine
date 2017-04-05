@@ -177,6 +177,9 @@
     <ClInclude Include="Foliage.h">
       <Filter>Header Files\Engine\Render</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainTile.h">
+      <Filter>Header Files\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -304,6 +307,9 @@
     </ClCompile>
     <ClCompile Include="Foliage.cpp">
       <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTile.cpp">
+      <Filter>Source Files\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
