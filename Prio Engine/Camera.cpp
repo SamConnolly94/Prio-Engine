@@ -166,10 +166,12 @@ void CCamera::GetViewMatrix(D3DXMATRIX & viewMatrix)
 
 void CCamera::GetReflectionView(D3DXMATRIX& view)
 {
-	D3DXMATRIX invertYMatrix = D3DXMATRIX(	1.0F, 0.0F, 0.0F, 0.0F, 
-											0.0F, -1.0F, 0.0F, 0.0F, 
-											0.0F, 0.0F, 1.0F, 0.0F, 
-											0.0F, 0.0F, 0.0F, 1.0F);
+	D3DXMATRIX invertYMatrix = D3DXMATRIX(
+		1.0F, 0.0F, 0.0F, 0.0F,
+		0.0F, -1.0F, 0.0F, 0.0F,
+		0.0F, 0.0F, 1.0F, 0.0F,
+		0.0F, 0.0F, 0.0F, 1.0F);
+
 	view = mViewMatrix * invertYMatrix;
 }
 

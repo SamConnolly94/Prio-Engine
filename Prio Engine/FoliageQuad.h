@@ -24,6 +24,7 @@ public:
 		D3DXVECTOR3 normal;
 		unsigned int IsTopVertex; // Boolean val.
 		unsigned int Type; // Graass or reed.
+		D3DXVECTOR3 instancePos;
 	};
 
 public:

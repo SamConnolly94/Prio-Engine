@@ -130,7 +130,7 @@ public:
 	void SetFrameTime(float frameTime);
 	void SetWindStrength(float strength);
 	void SetTranslation(D3DXVECTOR3 translation);
-public:
+private:
 	ID3D11ShaderResourceView * mpGrassTexture;
 	ID3D11ShaderResourceView * mpGrassAlphaTexture;
 	D3DXVECTOR3 mWindDirection;

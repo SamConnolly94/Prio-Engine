@@ -23,6 +23,7 @@ CGraphics::CGraphics()
 	mpRain = nullptr;
 	mpRainShader = nullptr;
 	mpFoliage = nullptr;
+	mpReflectionCamera = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -198,6 +199,9 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	mpCamera->SetPosition(0.0f, 50.0f, 20.0f);
+
+	mpReflectionCamera = new CCamera(mScreenWidth, mScreenHeight, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
+
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -511,6 +515,10 @@ void CGraphics::UpdateScene(float updateTime)
 	mTimeSinceLastSkyboxUpdate += updateTime;
 
 	mpRain->Update(updateTime);
+
+	mpReflectionCamera->SetPosition(mpCamera->GetPosition().x, (mpTerrain->GetWater()->GetPosY() + mpTerrain->GetWater()->GetDepth()) - mpCamera->GetPosition().y, mpCamera->GetPosition().z);
+	mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
+	mpReflectionCamera->Render();
 }
 
 bool CGraphics::Render()
@@ -520,6 +528,8 @@ bool CGraphics::Render()
 	D3DXMATRIX projMatrix;
 	D3DXMATRIX viewProj;
 	D3DXMATRIX orthoMatrix;
+	D3DXMATRIX reflectionView;
+
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 
 	// Set the back buffer as the render target
@@ -535,13 +545,15 @@ bool CGraphics::Render()
 	mpD3D->GetProjectionMatrix(projMatrix);
 	mpD3D->GetOrthogonalMatrix(orthoMatrix);
 	mpCamera->GetViewProjMatrix(viewProj, projMatrix);
+	mpReflectionCamera->GetReflectionView(reflectionView);
+	reflectionView *= projMatrix;
 
 	mpFrustum->ConstructFrustum(SCREEN_DEPTH, projMatrix, viewMatrix);
 
 	if (!RenderSkybox(worldMatrix, viewMatrix, projMatrix, viewProj))
 		return false;
 
-	if (!RenderModels(worldMatrix, viewMatrix, projMatrix, viewProj))
+	if (!RenderModels(worldMatrix, viewMatrix, projMatrix, viewProj, reflectionView))
 		return false;
 
 	if (!RenderBitmaps(mBaseView, mBaseView, orthoMatrix, viewProj))
@@ -759,9 +771,9 @@ bool CGraphics::RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 }
 
 /* Renders physical entities within the scene. */
-bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
+bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj, D3DXMATRIX reflectionViewProj)
 {
-	if (!RenderWater(world, view, proj, viewProj))
+	if (!RenderWater(world, view, proj, viewProj, reflectionViewProj))
 		return false;
 
 	if (!RenderPrimitives(world, view, proj, viewProj))
@@ -957,7 +969,7 @@ CSkyBox * CGraphics::CreateSkybox()
 }
 
 
-bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
+bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj, D3DXMATRIX reflectionView)
 {
 	if (mpTerrain == nullptr)
 	{
@@ -1044,7 +1056,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpRefractionShader->SetLightProperties(mpSceneLight);
 		mpRefractionShader->SetViewportProperties(mScreenWidth, mScreenHeight);
 		mpRefractionShader->SetTerrainAreaProperties(mpTerrain->GetSnowHeight(), mpTerrain->GetGrassHeight(), mpTerrain->GetDirtHeight(), mpTerrain->GetSandHeight());
-		mpRefractionShader->SetPositioningProperties(mpTerrain->GetPosY(), mpTerrain->GetWater()->GetPosY());
+		mpRefractionShader->SetPositioningProperties(mpTerrain->GetPosY(), mpTerrain->GetWater()->GetPosY() + mpTerrain->GetWater()->GetDepth());
 		mpRefractionShader->SetWaterHeightmap(mpTerrain->GetWater()->GetHeightTexture()->GetShaderResourceView());
 		mpRefractionShader->SetDirtTextureArray(mpTerrain->GetTexturesArray());
 		mpRefractionShader->SetGrassTextureArray(mpTerrain->GetGrassTextureArray());
@@ -1061,126 +1073,40 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			return false;
 		}
 
-		////////////////////////////////////
-		// Foliage refraction
-		////////////////////////////////////
-
-		/*if (mpFoliage != nullptr)
-		{
-			mpRefractionShader->SetFrameTime(mFrameTime);
-			mpRefractionShader->SetGrassTexture(mpFoliage->GetReedsTexture());
-			mpRefractionShader->SetGrassAlphaTexture(mpFoliage->GetReedsAlphaTexture());
-			mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
-			mpRefractionShader->SetWindStrength(1.0f);
-			mpRefractionShader->SetTranslation(mpFoliage->GetTranslation());
-
-			mpD3D->TurnOffBackFaceCulling();
-			mpD3D->EnableAlphaBlending();
-			
-			for (auto quad : mpFoliage->GetQuads())
-			{
-				if (mpFrustum->CheckSphere(quad->GetCentrePos(), 1.0f))
-				{
-					quad->Render(mpD3D->GetDeviceContext());
-					if (!mpRefractionShader->RenderFoliageRefraction(mpD3D->GetDeviceContext(), quad->GetIndexCount()))
-					{
-						logger->GetInstance().WriteLine("Failed to render foliage. ");
-						return false;
-					}
-				}
-			}
-			mpD3D->DisableAlphaBlending();
-			mpD3D->TurnOnBackFaceCulling();
-		}*/
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
 
-			//mpCamera->GetReflectionViewMatrix(view);
-			// Render vertices using reflection shader.
-			mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
+		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-			mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-			mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		mpTerrain->GetWorldMatrix(world);
+		mpRefractionShader->SetWorldMatrix(world);
+		mpReflectionCamera->GetReflectionView(reflectionView);
+		mpRefractionShader->SetViewMatrix(reflectionView);
+		mpRefractionShader->SetProjMatrix(proj);
 
-			mpCamera->GetReflectionView(view);
-			mpRefractionShader->SetWorldMatrix(world);
-			mpRefractionShader->SetViewMatrix(view);
-			mpRefractionShader->SetProjMatrix(proj);
-			mpRefractionShader->SetViewProjMatrix(view * proj);
+		mpD3D->TurnOffBackFaceCulling();
 
-			mpD3D->TurnOffBackFaceCulling();
+		////////////////////////////
+		// Terrain
+		////////////////////////////
 
-			/////////////////////////////
-			// SKYBOX
-			////////////////////////////
-			mpD3D->DisableZBuffer();
-			mpD3D->GetWorldMatrix(world);
-			// Translate the sky dome to be centered around the camera position.
-			D3DXMatrixTranslation(&world, mpCamera->GetPosition().x, mpCamera->GetPosition().y, mpCamera->GetPosition().z);
-			// Allow the clouds to additively blend with the skybox.
-			mpD3D->EnableAdditiveAlphaBlending();
+		mpRefractionShader->SetWaterHeightmap(mpTerrain->GetWater()->GetHeightTexture()->GetShaderResourceView());
+		mpRefractionShader->SetPatchMap(mpTerrain->GetPatchMap());
 
-			// Place the cloud plane vertex / index data onto the rendering pipeline.
-			mpCloudPlane->Render(mpD3D->GetDeviceContext());
+		mpTerrain->Render(mpD3D->GetDeviceContext());
+		if (!mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount()))
+		{
+			logger->GetInstance().WriteLine("Failed to render the reflection of terrain on the reflection render target.");
+			return false;
+		}
+		///////////////////////////////
+		// End of terrain
+		///////////////////////////////
 
-			// Set shader variables before rendering clouds with the shader.
-			mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
-			mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
-			mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
-			mpCloudShader->SetWorldMatrix(world);
-			mpCloudShader->SetViewMatrix(view);
-			mpCloudShader->SetProjMatrix(proj);
-			mpCloudShader->SetViewProjMatrix(view * proj);
-			mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
-			mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
-
-			// Render the clouds using vertex and pixel shaders.
-			mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
-
-			// Turn off alpha blending.
-			mpD3D->DisableAlphaBlending();
-			mpD3D->EnableZBuffer();
-
-			////////////////////////////
-			// Terrain
-			////////////////////////////
-
-			RenderTerrains(world, view, proj, view * proj);
-			//// Reset the terrain world matrix
-			//mpTerrain->GetWorldMatrix(world);
-
-			///* Render the reflection of the terrain. */
-
-			//// Place vertices onto render pipeline.
-			//mpTerrain->Render(mpD3D->GetDeviceContext());
-
-			//result = mpRefractionShader->ReflectionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
-			//if (!result)
-			//{
-			//	logger->GetInstance().WriteLine("Failed to render the reflection shader for water. ");
-			//	return false;
-			//}
-
-			/* Render the reflection of models within the scene. */
-
-			// Render any models which belong to each mesh. Do this in batches to make it faster.
-			mpDiffuseLightShader->SetViewMatrix(view);
-			mpDiffuseLightShader->SetProjMatrix(proj);
-			mpDiffuseLightShader->SetViewMatrix(view * proj);
-			if (mpTerrain->GetUpdateFlag())
-			{
-				// Skip render pass.
-				logger->GetInstance().WriteLine("Updating terrain, skip the render pass.");
-			}
-			else
-			{
-				for (auto mesh : mpMeshes)
-				{
-					mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight);
-				}
-			}
-			mpD3D->TurnOnBackFaceCulling();
+		mpD3D->TurnOnBackFaceCulling();
 
 		
 	}
