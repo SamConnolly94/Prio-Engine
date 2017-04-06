@@ -59,7 +59,7 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[6];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[11];
 	unsigned int numElements;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -171,16 +171,78 @@ bool CFoliageShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[polyIndex].InstanceDataStepRate = 0;
 
+	/// Vertex index 
+
 	polyIndex = 5;
 
 	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
 	polygonLayout[polyIndex].SemanticIndex = 3;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	/// Tile centre pos
+
+	polyIndex = 6;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 4;
 	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	polygonLayout[polyIndex].InputSlot = 1;
 	polygonLayout[polyIndex].AlignedByteOffset = 0;
 	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	polygonLayout[polyIndex].InstanceDataStepRate = 1;
 
+	/// Tile LL pos
+
+	polyIndex = 7;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 5;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile LR pos
+
+	polyIndex = 8;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 6;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile UL pos
+
+	polyIndex = 9;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 7;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile UL pos
+
+	polyIndex = 10;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 8;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
 	// Get a count of the elements in the layout.
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 

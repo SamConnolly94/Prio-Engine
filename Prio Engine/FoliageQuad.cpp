@@ -145,6 +145,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[0].normal			= mFoliageRect[0].Normal[0];
 	vertices[0].Type			= 0;
 	vertices[0].IsTopVertex		= 0;
+	vertices[0].VertexIndex		= 0;
 
 	// Lower right
 	vertices[1].position		= mFoliageRect[0].Position[1];
@@ -152,6 +153,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[1].normal			= mFoliageRect[0].Normal[1];
 	vertices[1].Type			= 0;
 	vertices[1].IsTopVertex		= 0;
+	vertices[1].VertexIndex		= 1;
 
 	// Upper left
 	vertices[2].position		= mFoliageRect[0].Position[2];
@@ -159,6 +161,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[2].normal			= mFoliageRect[0].Normal[2];
 	vertices[2].Type			= 0;
 	vertices[2].IsTopVertex		= 1;
+	vertices[2].VertexIndex		= 2;
 
 	//////////////////////////////////////////
 	// Set up vertex buffer desc
@@ -190,25 +193,29 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	// Rect 1, Triangle 2
 	///////////////////////////////////////////
 
+	// Lower right
 	vertices[0].position	= mFoliageRect[0].Position[1];
 	vertices[0].UV			= mFoliageRect[0].UV[1];
 	vertices[0].normal		= mFoliageRect[0].Normal[1];
 	vertices[0].Type		= 0;
 	vertices[0].IsTopVertex = 0;
+	vertices[0].VertexIndex = 1;
 
-	// Lower right
+	// Upper left
 	vertices[1].position	= mFoliageRect[0].Position[2];
 	vertices[1].UV			= mFoliageRect[0].UV[2];
 	vertices[1].normal		= mFoliageRect[0].Normal[2];
 	vertices[1].Type		= 0;
 	vertices[1].IsTopVertex = 1;
+	vertices[1].VertexIndex = 2;
 
-	// Upper left
+	// Upper right
 	vertices[2].position	= mFoliageRect[0].Position[3];
 	vertices[2].UV			= mFoliageRect[0].UV[3];
 	vertices[2].normal		= mFoliageRect[0].Normal[3];
 	vertices[2].Type		= 0;
 	vertices[2].IsTopVertex = 1;
+	vertices[2].VertexIndex = 3;
 
 
 	// Set up the descriptor of the static vertex buffer.
@@ -232,6 +239,8 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[0].normal		= mFoliageRect[1].Normal[0];
 	vertices[0].Type		= 0;
 	vertices[0].IsTopVertex = 0;
+	vertices[0].VertexIndex = 0;
+	vertices[0].VertexIndex = 4;
 
 	// Lower right
 	vertices[1].position	= mFoliageRect[1].Position[1];
@@ -239,6 +248,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[1].normal		= mFoliageRect[1].Normal[1];
 	vertices[1].Type		= 0;
 	vertices[1].IsTopVertex = 0;
+	vertices[1].VertexIndex = 5;
 
 	// Upper left
 	vertices[2].position	= mFoliageRect[1].Position[2];
@@ -246,6 +256,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[2].normal		= mFoliageRect[1].Normal[2];
 	vertices[2].Type		= 0;
 	vertices[2].IsTopVertex = 1;
+	vertices[2].VertexIndex = 6;
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexData.pSysMem = vertices;
@@ -262,24 +273,29 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	// Rect 2, Triangle 2
 	///////////////////////////////////////////
 
+	// Lower right
 	vertices[0].position	= mFoliageRect[1].Position[1];
 	vertices[0].UV			= mFoliageRect[1].UV[1];
 	vertices[0].normal		= mFoliageRect[1].Normal[1];
 	vertices[0].Type		= 0;
 	vertices[0].IsTopVertex = 0;
+	vertices[0].VertexIndex = 5;
 	
+	// Upper left
 	vertices[1].position	= mFoliageRect[1].Position[2];
 	vertices[1].UV			= mFoliageRect[1].UV[2];
 	vertices[1].normal		= mFoliageRect[1].Normal[2];
 	vertices[1].Type		= 0;
 	vertices[1].IsTopVertex = 1;
+	vertices[1].VertexIndex = 6;
 
+	// Upper right
 	vertices[2].position	= mFoliageRect[1].Position[3];
 	vertices[2].UV			= mFoliageRect[1].UV[3];
 	vertices[2].normal		= mFoliageRect[1].Normal[3];
 	vertices[2].Type		= 0;
 	vertices[2].IsTopVertex = 1;
-
+	vertices[2].VertexIndex = 7;
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexData.pSysMem = vertices;
@@ -302,6 +318,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[0].normal		= mFoliageRect[2].Normal[0];
 	vertices[0].Type		= 0;
 	vertices[0].IsTopVertex = 0;
+	vertices[0].VertexIndex = 8;
 
 	// Lower right
 	vertices[1].position	= mFoliageRect[2].Position[1];
@@ -309,6 +326,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[1].normal		= mFoliageRect[2].Normal[1];
 	vertices[1].Type		= 0;
 	vertices[1].IsTopVertex = 0;
+	vertices[1].VertexIndex = 9;
 
 	// Upper left
 	vertices[2].position	= mFoliageRect[2].Position[2];
@@ -316,6 +334,7 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	vertices[2].normal		= mFoliageRect[2].Normal[2];
 	vertices[2].Type		= 0;
 	vertices[2].IsTopVertex = 1;
+	vertices[2].VertexIndex = 10;
 
 	// Set up the descriptor of the static vertex buffer.
 	vertexData.pSysMem = vertices;
@@ -332,23 +351,29 @@ bool CFoliageQuad::InitialiseBuffers(ID3D11Device * device)
 	// Rect 3, Triangle 2
 	///////////////////////////////////////////
 
+	// Lower right
 	vertices[0].position	= mFoliageRect[2].Position[1];
 	vertices[0].UV			= mFoliageRect[2].UV[1];
 	vertices[0].normal		= mFoliageRect[2].Normal[1];
 	vertices[0].Type		= 0;
 	vertices[0].IsTopVertex = 0;
+	vertices[0].VertexIndex = 9;
 
+	// Upper left
 	vertices[1].position	= mFoliageRect[2].Position[2];
 	vertices[1].UV			= mFoliageRect[2].UV[2];
 	vertices[1].normal		= mFoliageRect[2].Normal[2];
 	vertices[1].Type		= 0;
 	vertices[1].IsTopVertex = 1;
+	vertices[1].VertexIndex = 10;
 
+	// Upper right
 	vertices[2].position	= mFoliageRect[2].Position[3];
 	vertices[2].UV			= mFoliageRect[2].UV[3];
 	vertices[2].normal		= mFoliageRect[2].Normal[3];
 	vertices[2].Type		= 0;
 	vertices[2].IsTopVertex = 1;
+	vertices[2].VertexIndex = 11;
 
 
 	// Set up the descriptor of the static vertex buffer.

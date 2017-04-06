@@ -29,7 +29,12 @@ struct VertexInputType
 	float3 Normal : NORMAL;
 	uint IsTopVertex : TEXCOORD1;
 	uint Type : TEXCOORD2;
-	float3 instancePosition : TEXCOORD3;
+	uint VertexIndex : TEXCOORD3;
+	float3 instanceTileCentrePos : TEXCOORD4;
+	float3 instanceTileLLVertexPos : TEXCOORD5;
+	float3 instanceTileLRVertexPos : TEXCOORD6;
+	float3 instanceTileULVertexPos : TEXCOORD7;
+	float3 instanceTileURVertexPos : TEXCOORD8;
 };
 
 struct PixelInputType
@@ -46,13 +51,73 @@ struct PixelInputType
 ///////////////////////////
 #define GrassType 0
 
+float3 GetPosition(VertexInputType input)
+{
+	float3 pos = float3(0.0f, 0.0f, 0.0f);
+
+	switch (input.VertexIndex)
+	{
+		// Lower left vertex on centre quad.
+	case 0:
+		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Lower right vertex on centre quad.
+	case 1:
+		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
+		break;
+		// Upper left vertex on centre quad.
+	case 2:
+		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Upper right vertex on centre quad.
+	case 3:
+		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
+		break;
+		// Lower left vertex on diag down and to the right quad.
+	case 4:
+		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Lower right vertex on diag down and to the right quad.
+	case 5:
+		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Upper left vertex on diag down and to the right quad.
+	case 6:
+		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Upper right vertex on diag down and to the right quad.
+	case 7:
+		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+		// Lower left vertex on diag up and to the right quad.
+	case 8:
+		pos.y = 0.0f;
+		break;
+		// Lower right vertex on diag up and to the right.
+	case 9:
+		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+	case 10:
+		pos.y = 0.0f;
+		break;
+	case 11:
+		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
+		break;
+	}
+
+	//pos += input.instanceTileLLVertexPos;
+
+	return input.instanceTileLLVertexPos + pos;
+}
+
 PixelInputType FoliageVS(VertexInputType input)
 {
 	PixelInputType output;
 
-	input.WorldPosition.x += input.instancePosition.x;
-	input.WorldPosition.y += input.instancePosition.y;
-	input.WorldPosition.z += input.instancePosition.z;
+	input.WorldPosition.xyz += GetPosition(input);
+	//input.WorldPosition.x += input.instanceTileCentrePos.x;
+	//input.WorldPosition.y += input.instanceTileCentrePos.y;
+	//input.WorldPosition.z += input.instanceTileCentrePos.z;
 
 	// Give a 4th element to our matrix so it's the correct size;
 	input.WorldPosition.w = 1.0f;
@@ -61,7 +126,6 @@ PixelInputType FoliageVS(VertexInputType input)
 	{
 		input.WorldPosition.xyz += FoliageTranslation;
 	}
-
 
 	output.WorldPosition = input.WorldPosition;
 

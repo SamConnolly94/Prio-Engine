@@ -140,7 +140,7 @@ float4 WaterSurfacePS(PixelInputType input) : SV_TARGET
 	float3 halfWayVector = normalize(normalize(-LightDirection) + normalToCamera);
 	float3 specLight = AmbientColour * pow(max(dot(waterNormal, halfWayVector), 0), SpecularPower);
 	
-	//reflectColour.rgb += specLight * 0.5f;
+	reflectColour.rgb += specLight * 0.5f;
 
 	float n1 = 1.0; // Refractive index of air
 	float n2 = 1.5f;

@@ -131,10 +131,20 @@ bool CFoliage::InitialiseBuffers(ID3D11Device * device, CTerrainTile** terrainTi
 		{
 			if (mpHeightMap[heightCount][widthCount] > mFoliageMinCuttoff && mpHeightMap[heightCount][widthCount] < mFoliageMaxCutoff)
 			{
-				D3DXVECTOR3 pos = terrainTiles[heightCount][widthCount].GetLowerLeftVertexPosition();
-				//D3DXVECTOR3 rotation = { 0.0f, ((double)rand() / (RAND_MAX)) + 360, 0.0f };
+				D3DXVECTOR3 LL = terrainTiles[heightCount][widthCount].GetLowerLeftVertexPosition();
+				D3DXVECTOR3 LR = terrainTiles[heightCount][widthCount].GetLowerRightVertexPosition();
+				D3DXVECTOR3 UL = terrainTiles[heightCount][widthCount].GetUpperLeftVertexPosition();
+				D3DXVECTOR3 UR = terrainTiles[heightCount][widthCount].GetUpperRightVertexPosition();
+				D3DXVECTOR3 centrePos = terrainTiles[heightCount][widthCount].GetCentrePosition();
+
 				InstanceType info;
-				info.Position = pos;
+				
+				info.TileLLVertexPos = LL;
+				info.TileLRVertexPos = LR;
+				info.TileULVertexPos = UL;
+				info.TileURVertexPos = UR;
+				info.TileCentrePos = centrePos;
+
 				//info.Rotation = rotation;
 				mIstanceInfoList.push_back(info);
 			}
@@ -148,8 +158,11 @@ bool CFoliage::InitialiseBuffers(ID3D11Device * device, CTerrainTile** terrainTi
 	// Copy instance data.
 	for (int i = 0; i < mInstanceCount; i++)
 	{
-		instances[i].Position = mIstanceInfoList[i].Position;
-		//instances[i].Rotation = mIstanceInfoList[i].Rotation;
+		instances[i].TileCentrePos = mIstanceInfoList[i].TileCentrePos;
+		instances[i].TileLLVertexPos = mIstanceInfoList[i].TileLLVertexPos;
+		instances[i].TileLRVertexPos = mIstanceInfoList[i].TileLRVertexPos;
+		instances[i].TileULVertexPos = mIstanceInfoList[i].TileULVertexPos;
+		instances[i].TileURVertexPos = mIstanceInfoList[i].TileURVertexPos;
 	}
 	D3D11_BUFFER_DESC instanceBufferDesc;
 	D3D11_SUBRESOURCE_DATA instanceData;

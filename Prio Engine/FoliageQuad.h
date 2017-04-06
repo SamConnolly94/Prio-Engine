@@ -22,9 +22,14 @@ public:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 UV;
 		D3DXVECTOR3 normal;
-		unsigned int IsTopVertex; // Boolean val.
-		unsigned int Type; // Graass or reed.
-		D3DXVECTOR3 instancePos;
+		unsigned int IsTopVertex;
+		unsigned int Type;
+		unsigned int VertexIndex;
+		D3DXVECTOR3 instanceTileLLVertexPos;
+		D3DXVECTOR3 instanceTileLRVertexPos;
+		D3DXVECTOR3 instanceTileULVertexPos;
+		D3DXVECTOR3 instanceTileURVertexPos;
+		D3DXVECTOR3 instanceTileCentrePos;
 	};
 
 public:

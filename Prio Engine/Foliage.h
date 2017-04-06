@@ -16,7 +16,11 @@ private:
 private:
 	struct InstanceType
 	{
-		D3DXVECTOR3 Position;
+		D3DXVECTOR3 TileLLVertexPos;
+		D3DXVECTOR3 TileLRVertexPos;
+		D3DXVECTOR3 TileULVertexPos;
+		D3DXVECTOR3 TileURVertexPos;
+		D3DXVECTOR3 TileCentrePos;
 	};
 
 public:
