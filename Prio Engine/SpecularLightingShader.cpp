@@ -310,7 +310,6 @@ bool CSpecularLightingShader::SetShaderParameters(	ID3D11DeviceContext * deviceC
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
-	MatrixBufferType* dataPtr;
 	LightBufferType* dataPtr2;
 	CameraBufferType* dataPtr3;
 

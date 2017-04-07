@@ -149,9 +149,9 @@ bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DX
 	auto vertices = std::make_unique<char[]>(mNumVertices * vertexSize);
 
 	auto vert = vertices.get();
-	for (int z = 0; z <= subDivisionZ; ++z)
+	for (unsigned int z = 0; z <= subDivisionZ; ++z)
 	{
-		for (int x = 0; x <= subDivisionX; ++x)
+		for (unsigned int x = 0; x <= subDivisionX; ++x)
 		{
 			*reinterpret_cast<D3DXVECTOR3*>(vert) = pt;
 			vert += sizeof(D3DXVECTOR3);
@@ -179,9 +179,9 @@ bool CWater::InitialiseBuffers(ID3D11Device * device, D3DXVECTOR3 minPoint, D3DX
 	uint32_t tlIndex = 0;
 	auto index = reinterpret_cast<uint32_t*>(indices.get());
 
-	for (int z = 0; z < subDivisionZ; ++z)
+	for (unsigned int z = 0; z < subDivisionZ; ++z)
 	{
-		for (int x = 0; x < subDivisionX; ++x)
+		for (unsigned int x = 0; x < subDivisionX; ++x)
 		{
 			*index++ = tlIndex;
 			*index++ = tlIndex + subDivisionX + 1;

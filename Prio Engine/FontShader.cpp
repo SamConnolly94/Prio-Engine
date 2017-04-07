@@ -59,7 +59,6 @@ bool CFontShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC constantBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC pixelBufferDesc;
 
@@ -275,7 +274,6 @@ bool CFontShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, ID3D11
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
 	PixelBufferType* dataPtr2;
 

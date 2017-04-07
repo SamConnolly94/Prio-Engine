@@ -59,7 +59,6 @@ bool CSkyboxShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::stri
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[1];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC gradientBufferDesc;
 
 	// Initialise pointers in this function to null.

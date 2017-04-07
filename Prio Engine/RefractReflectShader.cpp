@@ -117,7 +117,6 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
 	D3D11_SAMPLER_DESC samplerDesc;
-	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC viewportBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC terrainAreaBufferDesc;
@@ -610,7 +609,6 @@ bool CReflectRefractShader::SetShaderParameters(ID3D11DeviceContext* deviceConte
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
-	MatrixBufferType* matrixBufferPtr;
 	LightBufferType* lightBufferPtr;
 	ViewportBufferType* viewportBufferPtr;
 

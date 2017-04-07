@@ -20,6 +20,8 @@ bool CFoliageQuad::Initialise(ID3D11Device* device)
 		logger->GetInstance().WriteLine("Failed to initialise the buffers for foliage quad.");
 		return false;
 	}
+
+	return true;
 }
 
 void CFoliageQuad::Shutdown()

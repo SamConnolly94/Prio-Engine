@@ -60,7 +60,6 @@ bool CTextureShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Initialise pointers in this function to null.
@@ -247,11 +246,7 @@ void CTextureShader::OutputShaderErrorMessage(ID3D10Blob * errorMessage, HWND hw
 
 bool CTextureShader::SetShaderParameters(ID3D11DeviceContext * deviceContext, ID3D11ShaderResourceView * texture)
 {
-	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
 	unsigned int bufferNumber;
-
 
 	bufferNumber = 0;
 

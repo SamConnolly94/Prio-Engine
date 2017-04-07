@@ -694,8 +694,11 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	logger->GetInstance().MemoryDeallocWriteLine(typeid(indices).name());
 	indices = nullptr;
 
-	mpWater->SetXPos(GetPosX());
-	mpWater->SetZPos(GetPosY());
+	if (mpWater != nullptr)
+	{
+		mpWater->SetXPos(GetPosX());
+		mpWater->SetZPos(GetPosY());
+	}
 
 	return true;
 }
@@ -962,6 +965,19 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 	{
 		ReleaseHeightMap();
 	}
+	
+	if (mpTerrainTiles != nullptr)
+	{
+		for (int i = 0; i < mHeight; ++i)
+		{
+			delete[] mpTerrainTiles[i];
+			logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTerrainTiles[i]).name());
+			mpTerrainTiles[i] = nullptr;
+		}
+		delete[] mpTerrainTiles;
+		mpTerrainTiles = nullptr;
+		logger->GetInstance().MemoryDeallocWriteLine(typeid(mpTerrainTiles).name());
+	}
 
 	mHeight = newHeight;
 	mWidth = newWidth;
@@ -982,13 +998,19 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 		mpIndexBuffer = nullptr;
 	}
 
-	if (mpWater)
+	if (mpWater != nullptr)
 	{
 		mpWater->Shutdown();
 		delete mpWater;
 		mpWater = nullptr;
-	}
+		mpWater = new CWater();
+		if (!mpWater->Initialise(device, D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(mWidth - 1.0f, 0.0f, mHeight - 1.0f), 200, 200, "Resources/Textures/WaterNormalHeight.png", mScreenWidth, mScreenHeight))
+		{
+			logger->GetInstance().WriteLine("Failed to initialise the body of water.");
+			return false;
+		}
 
+	}
 	mTreesInfo.clear();
 	mPlantsInfo.clear();
 
