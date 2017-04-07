@@ -518,6 +518,9 @@ bool CEngine::UpdateTerrainBuffers(CTerrain *& terrain, double ** heightmap, int
 
 void CEngine::RemoveScenery()
 {
+	// Wait for all meshes to finish rendering.
+	while (mpGraphics->IsRenderingMeshes()) {}
+	
 	std::vector<CMesh*>::iterator it = mpListOfTreeMeshes.begin();
 
 	while (it != mpListOfTreeMeshes.end())
@@ -559,12 +562,13 @@ CTerrain * CEngine::CreateTerrain(double ** heightMap, int mapWidth, int mapHeig
 
 bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 {
+	while (mpGraphics->IsRenderingMeshes()) {}
 	mpListOfTreeMeshes.clear();
 
 	if (terrainPtr != nullptr)
 	{
 		CMesh* treeMesh = LoadMesh("Resources/Models/firtree3.3ds", 2.0f);
-		mpListOfTreeMeshes.push_back(treeMesh);
+		
 
 		for (auto treeInfo : terrainPtr->GetTreeInformation())
 		{
@@ -584,7 +588,6 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 
 
 		CMesh* plantMeshes = LoadMesh("Resources/Models/Bushes/LS13_01.3ds");
-		mpListOfTreeMeshes.push_back(plantMeshes);
 
 		for (auto plantInfo : terrainPtr->GetPlantInformation())
 		{
@@ -601,6 +604,9 @@ bool CEngine::AddSceneryToTerrain(CTerrain* terrainPtr)
 			plant->SetRotationY(plantInfo.rotation.y);
 			plant->SetScale(plantInfo.scale);
 		}
+
+		mpListOfTreeMeshes.push_back(treeMesh);
+		mpListOfTreeMeshes.push_back(plantMeshes);
 	}
 	else
 	{

@@ -672,6 +672,8 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 		return true;
 	}
 
+	mRenderingMeshes = true;
+
 	mpDiffuseLightShader->SetViewMatrix(view);
 	mpDiffuseLightShader->SetProjMatrix(proj);
 	mpDiffuseLightShader->SetViewProjMatrix(viewProj);
@@ -681,6 +683,8 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 	{
 		mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight);
 	}
+
+	mRenderingMeshes = false;
 
 	return true;
 }
@@ -1312,6 +1316,15 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 		return true;
 	}
 
+	mRenderingFoliage = true;
+
+	// Skip the render pass, don't want multi threads to destroy program.
+	if (mpFoliage->IsUpdating())
+	{
+		mRenderingFoliage = false;
+		return true;
+	}
+
 	mpTerrain->GetWorldMatrix(world);
 	mpFoliageShader->SetWorldMatrix(world);
 	mpFoliageShader->SetViewMatrix(view);
@@ -1350,6 +1363,8 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	}
 	mpD3D->DisableAlphaBlending();
 	mpD3D->TurnOnBackFaceCulling();
+
+	mRenderingFoliage = false;
 
 	return true;
 }
@@ -1960,7 +1975,11 @@ bool CGraphics::UpdateFoliage(double ** heightMap, int width, int height)
 		return false;
 	}
 
+	while (mRenderingFoliage) {};
+
+	mpFoliage->SetUpdating(true);
 	mpFoliage->UpdateBuffers(mpD3D->GetDevice(), heightMap, width, height, mpTerrain->GetTerrainTiles(), mpTerrain->GetWidth(), mpTerrain->GetHeight());
+	mpFoliage->SetUpdating(false);
 	return false;
 }
 

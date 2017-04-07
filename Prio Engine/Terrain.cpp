@@ -1038,6 +1038,17 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 {
 	position.x += 0.5f;
 	position.z += 0.5f;
+
+	// Don't place if within a radius of 20 units.
+	for (auto info : mTreesInfo)
+	{
+		if (sqrt((position.x - info.position.x) * (position.x - info.position.x)) < 20.0f &&
+			sqrt((position.z - info.position.z) * (position.z - info.position.z)) < 20.0f)
+		{
+			return false;
+		}
+	}
+
 	if (PositionTreeHere() && normal.y >= 0.8f)
 	{
 		position.y += GetPosY();
@@ -1080,6 +1091,17 @@ bool CTerrain::CreatePlant(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 {
 	position.x += 0.5f;
 	position.z += 0.5f;
+
+	// Don't place if within a radius of 20 units.
+	for (auto info : mPlantsInfo)
+	{
+		if (sqrt((position.x - info.position.x) * (position.x - info.position.x)) < 20.0f &&
+			sqrt((position.z - info.position.z) * (position.z - info.position.z)) < 20.0f)
+		{
+			return false;
+		}
+	}
+
 	if (PositionTreeHere() && normal.y > 0.7f)
 	{
 		position.y += GetPosY();

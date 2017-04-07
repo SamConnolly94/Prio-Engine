@@ -383,12 +383,13 @@ void CFoliage::RenderBuffers(ID3D11DeviceContext * deviceContext, int quadIndex,
 bool CFoliage::UpdateBuffers(ID3D11Device* device, double** heightMap, int mapWidth, int mapHeight, CTerrainTile** terrainTiles, int terrainWidth, int terrainHeight)
 {
 	Shutdown();
+	mIstanceInfoList.clear();
 
 	SetWidth(mapWidth);
 	SetHeight(mapHeight);
 	LoadHeightMap(heightMap);
 
-	bool result = InitialiseBuffers(device, terrainTiles, terrainWidth, terrainHeight);
+	bool result = Initialise(device, terrainTiles, terrainWidth, terrainHeight);
 
 	if (!result)
 	{
