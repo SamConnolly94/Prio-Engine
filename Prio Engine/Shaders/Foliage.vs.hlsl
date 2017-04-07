@@ -55,55 +55,97 @@ float3 GetPosition(VertexInputType input)
 {
 	float3 pos = float3(0.0f, 0.0f, 0.0f);
 
-	switch (input.VertexIndex)
-	{
-		// Lower left vertex on centre quad.
-	case 0:
-		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Lower right vertex on centre quad.
-	case 1:
-		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
-		break;
-		// Upper left vertex on centre quad.
-	case 2:
-		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Upper right vertex on centre quad.
-	case 3:
-		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
-		break;
-		// Lower left vertex on diag down and to the right quad.
-	case 4:
-		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Lower right vertex on diag down and to the right quad.
-	case 5:
-		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Upper left vertex on diag down and to the right quad.
-	case 6:
-		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Upper right vertex on diag down and to the right quad.
-	case 7:
-		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-		// Lower left vertex on diag up and to the right quad.
-	case 8:
-		pos.y = 0.0f;
-		break;
-		// Lower right vertex on diag up and to the right.
-	case 9:
-		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-	case 10:
-		pos.y = 0.0f;
-		break;
-	case 11:
-		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
-		break;
-	}
+	//switch (input.VertexIndex)
+	//{
+	//	// Lower left vertex on centre quad.
+	//case 0:
+	//	pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	break;
+	//	// Lower right vertex on centre quad.
+	//case 1:
+	//	pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
+	//	break;
+	//	// Upper left vertex on centre quad.
+	//case 2:
+	//	pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	break;
+	//	// Upper right vertex on centre quad.
+	//case 3:
+	//	pos.y = input.instanceTileURVertexPos.y - input.instanceTileLRVertexPos.y;
+	//	break;
+	//	// Lower left vertex on diag down and to the right quad.
+	//case 4:
+	//	if (input.instanceTileULVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileULVertexPos.y;
+	//	}
+	//	break;
+	//	// Lower right vertex on diag down and to the right quad.
+	//case 5:
+	//	if (input.instanceTileLLVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileLRVertexPos.y;
+	//	}
+	//	break;
+	//	// Upper left vertex on diag down and to the right quad.
+	//case 6:
+	//	if (input.instanceTileULVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileULVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileULVertexPos.y;
+	//	}
+	//	break;
+	//	// Upper right vertex on diag down and to the right quad.
+	//case 7:
+	//	if (input.instanceTileLRVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileLRVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileLRVertexPos.y;
+	//	}
+	//	break;
+	//	// Lower left vertex on diag up and to the right quad.
+	//case 8:
+	//	pos.y = 0.0f;
+	//	break;
+	//	// Lower right vertex on diag up and to the right.
+	//case 9:
+	//	if (input.instanceTileURVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileURVertexPos.y;
+	//	}
+	//	break;
+	//case 10:
+	//	pos.y = 0.0f;
+	//	break;
+	//case 11:
+	//	if (input.instanceTileURVertexPos.y > input.instanceTileLLVertexPos.y)
+	//	{
+	//		pos.y = input.instanceTileURVertexPos.y - input.instanceTileLLVertexPos.y;
+	//	}
+	//	else
+	//	{
+	//		pos.y = input.instanceTileLLVertexPos.y - input.instanceTileURVertexPos.y;
+	//	}
+	//	break;
+	//}
 
 	//pos += input.instanceTileLLVertexPos;
 

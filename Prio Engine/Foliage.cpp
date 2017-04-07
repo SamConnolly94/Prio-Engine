@@ -106,7 +106,7 @@ void CFoliage::Update(float updateTime)
 {
 	mFoliageTranslation += mWindDirection * updateTime;
 
-	if (mFoliageTranslation.z > 0.5f || mFoliageTranslation.z < 0.0f)
+	if ((mFoliageTranslation.z > 0.5f && mWindDirection.z > 0.0f) || (mFoliageTranslation.z < 0.0f && mWindDirection.z < 0.0f))
 	{
 		mWindDirection = -mWindDirection;
 	}

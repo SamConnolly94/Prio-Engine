@@ -177,7 +177,7 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	mpRain = new CRain();
-	if (!mpRain->Initialise(mpD3D->GetDevice(), "Resources/Textures/raindrop.dds", 25000))
+	if (!mpRain->Initialise(mpD3D->GetDevice(), "Resources/Textures/raindrop.dds", 150000))
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the rain particle emitter.");
 		return false;
@@ -516,9 +516,16 @@ void CGraphics::UpdateScene(float updateTime)
 
 	mpRain->Update(updateTime);
 
-	mpReflectionCamera->SetPosition(mpCamera->GetPosition().x, (mpTerrain->GetWater()->GetPosY() + mpTerrain->GetWater()->GetDepth()) - mpCamera->GetPosition().y, mpCamera->GetPosition().z);
-	mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
-	mpReflectionCamera->Render();
+
+	if (mpTerrain)
+	{
+		if (!mpTerrain->GetUpdateFlag())
+		{
+			mpReflectionCamera->SetPosition(mpCamera->GetPosition().x, (mpTerrain->GetWater()->GetPosY() + mpTerrain->GetWater()->GetDepth()) - mpCamera->GetPosition().y, mpCamera->GetPosition().z);
+			mpReflectionCamera->SetRotation(-mpCamera->GetRotation().x, mpCamera->GetRotation().y, mpCamera->GetRotation().z);
+			mpReflectionCamera->Render();
+		}
+	}
 }
 
 bool CGraphics::Render()
