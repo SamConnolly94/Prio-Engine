@@ -52,6 +52,8 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="SkyboxShader.h" />
+    <ClInclude Include="Snow.h" />
+    <ClInclude Include="SnowShader.h" />
     <ClInclude Include="SpecularLightingShader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainShader.h" />
@@ -97,6 +99,8 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="SkyboxShader.cpp" />
+    <ClCompile Include="Snow.cpp" />
+    <ClCompile Include="SnowShader.cpp" />
     <ClCompile Include="SpecularLightingShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
@@ -226,6 +230,23 @@
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\FoliageRefraction.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Snow.gs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Snow.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Snow.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\SnowParticleUpdate.gs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\SnowParticleUpdate.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

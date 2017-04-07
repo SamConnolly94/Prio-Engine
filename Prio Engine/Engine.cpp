@@ -475,6 +475,26 @@ bool CEngine::KeyHeld(const unsigned int key)
 	return mpInput->KeyHeld(key);
 }
 
+void CEngine::SetRainEnabled(bool value)
+{
+	mpGraphics->SetRainEnabled(value);
+}
+
+bool CEngine::GetRainEnabled()
+{
+	return mpGraphics->GetRainEnabled();
+}
+
+void CEngine::SetSnowEnabled(bool value)
+{
+	mpGraphics->SetSnowEnabled(value);
+}
+
+bool CEngine::GetSnowEnabled()
+{
+	return mpGraphics->GetSnowEnabled();
+}
+
 /* Prevent the engine from running for any longer. */
 void CEngine::Stop()
 {

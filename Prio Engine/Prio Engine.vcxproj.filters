@@ -49,6 +49,9 @@
     <Filter Include="Shaders\Foliage">
       <UniqueIdentifier>{9786f927-6aee-44d7-891a-f4dc0895003f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Snow">
+      <UniqueIdentifier>{28d47ea6-953b-49c6-bf80-cf04c0f77002}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -179,6 +182,12 @@
     </ClInclude>
     <ClInclude Include="TerrainTile.h">
       <Filter>Header Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Snow.h">
+      <Filter>Header Files\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SnowShader.h">
+      <Filter>Header Files\Engine\Render\Shader Classes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -311,6 +320,12 @@
     <ClCompile Include="TerrainTile.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Snow.cpp">
+      <Filter>Source Files\Engine\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SnowShader.cpp">
+      <Filter>Source Files\Engine\Render\Shader Classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Font.ps.hlsl">
@@ -411,6 +426,21 @@
     </None>
     <None Include="Shaders\FoliageRefraction.vs.hlsl">
       <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\Snow.gs.hlsl">
+      <Filter>Shaders\Snow</Filter>
+    </None>
+    <None Include="Shaders\Snow.ps.hlsl">
+      <Filter>Shaders\Snow</Filter>
+    </None>
+    <None Include="Shaders\Snow.vs.hlsl">
+      <Filter>Shaders\Snow</Filter>
+    </None>
+    <None Include="Shaders\SnowParticleUpdate.gs.hlsl">
+      <Filter>Shaders\Snow</Filter>
+    </None>
+    <None Include="Shaders\SnowParticleUpdate.vs.hlsl">
+      <Filter>Shaders\Snow</Filter>
     </None>
   </ItemGroup>
 </Project>

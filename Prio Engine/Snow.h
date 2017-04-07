@@ -1,5 +1,5 @@
-#ifndef RAIN_H
-#define RAIN_H
+#ifndef SNOW_H
+#define SNOW_H
 
 #include <d3d11.h>
 #include <D3DX10math.h>
@@ -8,7 +8,7 @@
 #include "D3D11.h"
 #include "RainShader.h"
 
-class CRain
+class CSnow
 {
 private:
 	CLogger* logger;
@@ -22,8 +22,8 @@ private:
 		unsigned int Type;
 	};
 public:
-	CRain();
-	~CRain();
+	CSnow();
+	~CSnow();
 public:
 	bool Initialise(ID3D11Device* device, std::string rainTexture, unsigned int numberOfParticles);
 	bool InitialiseBuffers(ID3D11Device* device);
@@ -55,7 +55,7 @@ public:
 	void SetGameTime(float gameTime);
 	void SetEmitterPos(D3DXVECTOR3 pos);
 	void SetEmitterDir(D3DXVECTOR3 dir);
-	
+
 
 	unsigned int GetNumberOfParticles();
 	bool GetIsFirstRun();
@@ -69,6 +69,7 @@ public:
 
 	void SetEnabled(bool value) { mEnabled = value; };
 	bool IsEnabled() { return mEnabled; };
+
 };
 
 #endif

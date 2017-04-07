@@ -29,6 +29,8 @@
 #include "CloudShader.h"
 #include "RainShader.h"
 #include "Rain.h"
+#include "SnowShader.h"
+#include "Snow.h"
 #include "FoliageShader.h"
 #include "Foliage.h"
 
@@ -69,6 +71,7 @@ private:
 	bool RenderSkybox(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 	bool RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj, D3DXMATRIX reflectionViewProj);
 	bool RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
+	bool RenderSnow(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 	bool RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj);
 private:
 	CD3D11* mpD3D;
@@ -86,6 +89,7 @@ private:
 	CWaterShader* mpWaterShader;
 	CReflectRefractShader* mpRefractionShader;
 	CRainShader* mpRainShader;
+	CSnowShader* mpSnowShader;
 	CFoliageShader* mpFoliageShader;
 	
 	bool RenderPrimitiveWithTexture(CPrimitive* model, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projMatrix);
@@ -166,6 +170,7 @@ private:
 	CCloudPlane* mpCloudPlane;
 	CCloudShader* mpCloudShader;
 	CRain* mpRain;
+	CSnow* mpSnow;
 	float mRunTime = 0.0f;
 	CFoliage* mpFoliage;
 public:
@@ -173,6 +178,10 @@ public:
 	bool CreateFoliage(double** heightMap, int width, int height);
 	CFoliage* GetFoliage() { return mpFoliage; };
 	bool UpdateFoliage(double** heightMap, int width, int height);
+	void SetSnowEnabled(bool value);
+	bool GetSnowEnabled();
+	void SetRainEnabled(bool value);
+	bool GetRainEnabled();
 };
 
 #endif

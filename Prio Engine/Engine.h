@@ -174,6 +174,19 @@ public:
 	bool KeyHit(const unsigned int key);
 	// Has keen been held down?
 	bool KeyHeld(const unsigned int key);
+
+	/////////////////////////
+	// Weather functions
+	////////////////////////
+
+	// Toggle on or off rain which will fall from above the terrain.
+	void SetRainEnabled(bool value);
+	// Grab the toggle to find if rain is enabled or not.
+	bool GetRainEnabled();
+	// Toggle on or off snow which will fall from above the terrain.
+	void SetSnowEnabled(bool value);
+	// Grab the toggle to find if snow is enabled or not.
+	bool GetSnowEnabled();
 private:
 	std::vector<CMesh*> mpListOfTreeMeshes;
 };

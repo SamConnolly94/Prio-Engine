@@ -22,6 +22,8 @@ CGraphics::CGraphics()
 	mFrameTime = 0.0f;
 	mpRain = nullptr;
 	mpRainShader = nullptr;
+	mpSnow = nullptr;
+	mpSnowShader = nullptr;
 	mpFoliage = nullptr;
 	mpReflectionCamera = nullptr;
 }
@@ -191,6 +193,20 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	mpSnow = new CSnow();
+	if (!mpSnow->Initialise(mpD3D->GetDevice(), "Resources/Textures/raindrop.dds", 1500000))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the snow particle emitter.");
+		return false;
+	}
+
+	mpSnowShader = new CSnowShader();
+	if (!mpSnowShader->Initialise(mpD3D->GetDevice(), hwnd))
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the snow shader.");
+		return false;
+	}
+
 	mpFoliageShader = new CFoliageShader();
 	if (!mpFoliageShader->Initialise(mpD3D->GetDevice(), hwnd))
 	{
@@ -221,6 +237,20 @@ void CGraphics::Shutdown()
 		mpFoliageShader->Shutdown();
 		delete mpFoliageShader;
 		mpFoliageShader = nullptr;
+	}
+
+	if (mpSnow)
+	{
+		mpSnow->Shutdown();
+		delete mpSnow;
+		mpSnow = nullptr;
+	}
+
+	if (mpSnowShader)
+	{
+		mpSnowShader->Shutdown();
+		delete mpSnowShader;
+		mpSnowShader = nullptr;
 	}
 
 	if (mpRain)
@@ -514,8 +544,15 @@ void CGraphics::UpdateScene(float updateTime)
 
 	mTimeSinceLastSkyboxUpdate += updateTime;
 
-	mpRain->Update(updateTime);
+	if (mpRain->IsEnabled())
+	{
+		mpRain->Update(updateTime);
+	}
 
+	if (mpSnow->IsEnabled())
+	{
+		mpSnow->Update(updateTime);
+	}
 
 	if (mpTerrain)
 	{
@@ -796,6 +833,9 @@ bool CGraphics::RenderModels(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 		return false;
 
 	if (!RenderRain(world, view, proj, viewProj))
+		return false;
+	
+	if (!RenderSnow(world, view, proj, viewProj))
 		return false;
 
 	return true;
@@ -1144,6 +1184,12 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
 {
+	if (!mpRain->IsEnabled())
+	{
+		logger->GetInstance().WriteLine("Skipping rain render pass as it isn't enabled.");
+		return true;
+	}
+
 	mpD3D->GetWorldMatrix(world);
 
 	mpRain->SetEmitterPos(D3DXVECTOR3(0.0f, 40.0f, 100.0f));
@@ -1189,6 +1235,65 @@ bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 	mpRain->Render(mpD3D->GetDeviceContext());
 	mpD3D->SetDepthState(true, false, false);
 	mpRainShader->Render(mpD3D->GetDeviceContext());
+
+	mpD3D->TurnOnBackFaceCulling();
+
+	return true;
+}
+
+bool CGraphics::RenderSnow(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D3DXMATRIX viewProj)
+{
+	if (!mpSnow->IsEnabled())
+	{
+		logger->GetInstance().WriteLine("Skipping snow render pass as it isn't enabled.");
+		return true;
+	}
+
+	mpD3D->GetWorldMatrix(world);
+
+	mpSnow->SetEmitterPos(D3DXVECTOR3(0.0f, 40.0f, 100.0f));
+	mpSnow->SetEmitterDir(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
+
+	mpSnowShader->SetCameraWorldPosition(mpCamera->GetPosition());
+	mpSnowShader->SetEmitterWorldDirection(mpSnow->GetEmitterDir());
+	mpSnowShader->SetEmitterWorldPosition(mpSnow->GetEmitterPos());
+	mpSnowShader->SetFrameTime(mFrameTime);
+	mpSnowShader->SetGameTime(mpSnow->GetAge());
+	mpSnowShader->SetGravityAcceleration(-1.0f);
+	mpSnowShader->SetWorldMatrix(world);
+	mpSnowShader->SetProjMatrix(proj);
+	mpSnowShader->SetViewMatrix(view);
+	mpSnowShader->SetViewProjMatrix(viewProj);
+	mpSnowShader->SetRainTexture(mpSnow->GetRainTexture());
+	mpSnowShader->SetFirstRun(mpSnow->GetIsFirstRun());
+	mpSnowShader->SetWindX(0.0f);
+	mpSnowShader->SetWindZ(0.0f);
+
+	mpSnowShader->SetWorldMatrix(world);
+	mpSnowShader->SetViewMatrix(view);
+	mpSnowShader->SetProjMatrix(proj);
+	mpSnowShader->SetViewProjMatrix(viewProj);
+
+	////////////////////
+	// Update
+	////////////////////
+
+	mpD3D->TurnOffBackFaceCulling();
+	mpD3D->SetDepthState(false, false, false);
+
+	mpSnow->UpdateRender(mpD3D->GetDeviceContext());
+	mpSnowShader->SetRandomTexture(mpSnow->GetRandomTexture());
+	mpSnowShader->SetFirstRun(mpSnow->GetIsFirstRun());
+	mpSnowShader->UpdateRender(mpD3D->GetDeviceContext());
+	mpSnow->SetFirstRun(false);
+
+	////////////////////
+	// Draw
+	////////////////////
+
+	mpSnow->Render(mpD3D->GetDeviceContext());
+	mpD3D->SetDepthState(true, false, false);
+	mpSnowShader->Render(mpD3D->GetDeviceContext());
 
 	mpD3D->TurnOnBackFaceCulling();
 
@@ -1857,6 +1962,38 @@ bool CGraphics::UpdateFoliage(double ** heightMap, int width, int height)
 
 	mpFoliage->UpdateBuffers(mpD3D->GetDevice(), heightMap, width, height, mpTerrain->GetTerrainTiles(), mpTerrain->GetWidth(), mpTerrain->GetHeight());
 	return false;
+}
+
+void CGraphics::SetSnowEnabled(bool value)
+{
+	if (mpSnow->IsEnabled() == value)
+	{
+		return;
+	}
+
+	mpSnow->SetEnabled(value);
+	mpSnow->SetFirstRun(true);
+}
+
+bool CGraphics::GetSnowEnabled()
+{
+	return mpSnow->IsEnabled();
+}
+
+void CGraphics::SetRainEnabled(bool value)
+{
+	if (mpRain->IsEnabled() == value)
+	{
+		return;
+	}
+
+	mpRain->SetEnabled(value);
+	mpRain->SetFirstRun(true);
+}
+
+bool CGraphics::GetRainEnabled()
+{
+	return mpSnow->IsEnabled();
 }
 
 CCamera* CGraphics::CreateCamera()
