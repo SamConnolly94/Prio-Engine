@@ -6,7 +6,7 @@ CReflectRefractShader::CReflectRefractShader()
 {
 	mpVertexShader					= nullptr;
 	mpRefractionPixelShader			= nullptr;
-	mpLayout						= nullptr;
+	mpTerrainLayout					= nullptr;
 	mpTrilinearWrap					= nullptr;
 	mpLightBuffer					= nullptr;
 	mpViewportBuffer				= nullptr;
@@ -15,6 +15,10 @@ CReflectRefractShader::CReflectRefractShader()
 	mpPositioningBuffer				= nullptr;
 	mpFoliageVertexShader			= nullptr;
 	mpFoliageRefractionPixelShader  = nullptr;
+	mpCloudLayout					= nullptr;
+	mpCloudVertexShader				= nullptr;
+	mpCloudPixelShader				= nullptr;
+	mpCloudBuffer					= nullptr;
 }
 
 
@@ -41,6 +45,16 @@ bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to initialise refraction shader.");
+		return false;
+	}
+
+	std::string CloudVSName = "Shaders/CloudReflection.vs.hlsl";
+	std::string CloudPSName = "Shaders/CloudReflection.ps.hlsl";
+	result = InitialiseCloudShader(device, hwnd, CloudVSName, CloudPSName);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the cloud reflection shaders.");
 		return false;
 	}
 
@@ -85,6 +99,25 @@ bool CReflectRefractShader::ReflectionRender(ID3D11DeviceContext* deviceContext,
 
 	// Now render the prepared buffers with the shader.
 	RenderReflectionShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CReflectRefractShader::RenderCloudReflection(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	bool result;
+
+	// Set the shader parameters that it will use for rendering.
+	result = SetCloudShaderParameters(deviceContext);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to set the shader parameters for cloud reflection.");
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderCloudReflectionShader(deviceContext, indexCount);
 
 	return true;
 }
@@ -328,7 +361,7 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpLayout);
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpTerrainLayout);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create polygon layout.");
@@ -503,8 +536,168 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	return true;
 }
 
+// No need to set up any refraction for clouds because they're bitmaps going across the sky.
+bool CReflectRefractShader::InitialiseCloudShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+{
+	HRESULT result;
+	ID3D10Blob* errorMessage;
+	ID3D10Blob* vertexShaderBuffer;
+	//ID3D10Blob* skyboxVertexShaderBuffer;
+	ID3D10Blob* pixelShaderBuffer;
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+	unsigned int numElements;
+	D3D11_BUFFER_DESC cloudBufferDesc;
+
+
+	// Initialise pointers in this function to null.
+	errorMessage = nullptr;
+	vertexShaderBuffer = nullptr;
+	pixelShaderBuffer = nullptr;
+
+	//////////////////////////////////
+	// Cloud Reflection
+	//////////////////////////////////
+
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "CloudReflectionVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
+			MessageBox(hwnd, vsFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + vsFilename + "'");
+		return false;
+	}
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "CloudReflectionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilename + "'");
+			MessageBox(hwnd, psFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilename + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpCloudVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction vertex shader from the buffer.");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpCloudPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction pixel shader from the buffer.");
+		return false;
+	}
+
+	/*
+	* The polygonLayout.Format describes what size item should be placed in here, check if it's a float3 or float2 basically, and pass in DXGI_FORMAT_R32/G32/B32_FLOAT accordingly.
+	*/
+
+	// Setup the layout of the data that goes into the shader.
+	polygonLayout[0].SemanticName = "POSITION";
+	polygonLayout[0].SemanticIndex = 0;
+	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[0].InputSlot = 0;
+	polygonLayout[0].AlignedByteOffset = 0;
+	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[0].InstanceDataStepRate = 0;
+
+	// Position only has 2 co-ords. Only need format of R32G32.
+	polygonLayout[1].SemanticName = "TEXCOORD";
+	polygonLayout[1].SemanticIndex = 0;
+	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	polygonLayout[1].InputSlot = 0;
+	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[1].InstanceDataStepRate = 0;
+
+	// Get a count of the elements in the layout.
+	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpCloudLayout);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create polygon layout.");
+		return false;
+	}
+
+	vertexShaderBuffer->Release();
+	vertexShaderBuffer = nullptr;
+
+	pixelShaderBuffer->Release();
+	pixelShaderBuffer = nullptr;
+
+	//////////////////////////////////
+	// Set up cloud buffer
+	/////////////////////////////////
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	cloudBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cloudBufferDesc.ByteWidth = sizeof(CloudBufferType);
+	cloudBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cloudBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cloudBufferDesc.MiscFlags = 0;
+	cloudBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&cloudBufferDesc, NULL, &mpCloudBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the cloud buffer from within the refraction shader class.");
+		return false;
+	}
+
+	return true;
+}
+
 void CReflectRefractShader::ShutdownShader()
 {
+	if (mpCloudLayout)
+	{
+		mpCloudLayout->Release();
+		mpCloudLayout = nullptr;
+	}
+
+	if (mpCloudVertexShader)
+	{
+		mpCloudVertexShader->Release();
+		mpCloudVertexShader = nullptr;
+	}
+
+	if (mpCloudPixelShader)
+	{
+		mpCloudPixelShader->Release();
+		mpCloudPixelShader = nullptr;
+	}
+
+	if (mpCloudBuffer)
+	{
+		mpCloudBuffer->Release();
+		mpCloudBuffer = nullptr;
+	}
+
 	if (mpTrilinearWrap)
 	{
 		mpTrilinearWrap->Release();
@@ -547,10 +740,10 @@ void CReflectRefractShader::ShutdownShader()
 		mpViewportBuffer = nullptr;
 	}
 
-	if (mpLayout)
+	if (mpTerrainLayout)
 	{
-		mpLayout->Release();
-		mpLayout = nullptr;
+		mpTerrainLayout->Release();
+		mpTerrainLayout = nullptr;
 	}
 
 	if (mpRefractionPixelShader)
@@ -836,10 +1029,69 @@ bool CReflectRefractShader::SetFoliageShaderParameters(ID3D11DeviceContext * dev
 	return true;
 }
 
+bool CReflectRefractShader::SetCloudShaderParameters(ID3D11DeviceContext * deviceContext)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	unsigned int bufferNumber = 0;
+
+	////////////////////////////////
+	// Matrix const buffer
+	///////////////////////////////
+
+	if (!SetMatrixBuffer(deviceContext, 0, CShader::ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer when setting foliage shader parameters in refraction shader.");
+		return false;
+	}
+
+	/////////////////////////////////
+	// Update the cloud constant buffer.
+	/////////////////////////////////
+
+	result = deviceContext->Map(mpCloudBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the light constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	CloudBufferType* cloudBufferPtr = (CloudBufferType*)mappedResource.pData;
+
+	// Copy the current cloud values into the constant buffer.
+	cloudBufferPtr->Brightness = mCloudBrightness;
+	cloudBufferPtr->Cloud1Movement = mCloud1Movement;
+	cloudBufferPtr->Cloud2Movement = mCloud2Movement;
+	cloudBufferPtr->ViewportSize = mViewportSize;
+	cloudBufferPtr->WaterPlaneY = mWaterPlaneYOffset;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpCloudBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpCloudBuffer);
+
+
+	////////////////////////////
+	// Shader resources
+	///////////////////////////
+
+	deviceContext->PSSetShaderResources(0, 1, &mpWaterHeightMap);
+	deviceContext->PSSetShaderResources(1, 1, &mpCloudTex1);
+	deviceContext->PSSetShaderResources(2, 1, &mpCloudTex2);
+
+	return true;
+}
+
 void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpLayout);
+	deviceContext->IASetInputLayout(mpTerrainLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
@@ -858,7 +1110,7 @@ void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceC
 void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpLayout);
+	deviceContext->IASetInputLayout(mpTerrainLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpFoliageVertexShader, NULL, 0);
@@ -873,10 +1125,27 @@ void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * 
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
 
+void CReflectRefractShader::RenderCloudReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(mpCloudLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpCloudVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpCloudPixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
 void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpLayout);
+	deviceContext->IASetInputLayout(mpTerrainLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
@@ -954,6 +1223,23 @@ void CReflectRefractShader::SetRockTexture(CTexture ** rockTexArray)
 {
 	mpRockTextures[0] = rockTexArray[0]->GetTexture();
 	mpRockTextures[1] = rockTexArray[1]->GetTexture();
+}
+
+void CReflectRefractShader::SetCloudTextures(ID3D11ShaderResourceView * tex1, ID3D11ShaderResourceView * tex2)
+{
+	mpCloudTex1 = tex1;
+	mpCloudTex2 = tex2;
+}
+
+void CReflectRefractShader::SetCloudMovement(D3DXVECTOR2 cloud1Movement, D3DXVECTOR2 cloud2Movement)
+{
+	mCloud1Movement = cloud1Movement;
+	mCloud2Movement = cloud2Movement;
+}
+
+void CReflectRefractShader::SetCloudBrightness(float value)
+{
+	mCloudBrightness = value;
 }
 
 void CReflectRefractShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)

@@ -442,5 +442,11 @@
     <None Include="Shaders\SnowParticleUpdate.vs.hlsl">
       <Filter>Shaders\Snow</Filter>
     </None>
+    <None Include="Shaders\CloudReflection.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\CloudReflection.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
   </ItemGroup>
 </Project>

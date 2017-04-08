@@ -1228,21 +1228,22 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Reflection
 		/////////////////////////////////
 
+
+
 		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		mpD3D->TurnOffBackFaceCulling();
+		
+		/***********
+		* Terrain 
+		************/
 
 		mpTerrain->GetWorldMatrix(world);
 		mpRefractionShader->SetWorldMatrix(world);
 		mpReflectionCamera->GetReflectionView(reflectionView);
 		mpRefractionShader->SetViewMatrix(reflectionView);
 		mpRefractionShader->SetProjMatrix(proj);
-
-		mpD3D->TurnOffBackFaceCulling();
-
-		////////////////////////////
-		// Terrain
-		////////////////////////////
 
 		mpRefractionShader->SetWaterHeightmap(mpTerrain->GetWater()->GetHeightTexture()->GetShaderResourceView());
 		mpRefractionShader->SetPatchMap(mpTerrain->GetPatchMap());
@@ -1253,9 +1254,32 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			logger->GetInstance().WriteLine("Failed to render the reflection of terrain on the reflection render target.");
 			return false;
 		}
-		///////////////////////////////
-		// End of terrain
-		///////////////////////////////
+
+		/***********
+		* Clouds
+		* TODO: 
+		* Clouds aren't rendering, doesn't appear that pixel shader is running for some reason.
+		************/
+
+		mpD3D->GetWorldMatrix(world);
+		D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
+		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		mpD3D->DisableZBuffer();
+		mpRefractionShader->SetWorldMatrix(world);
+		mpD3D->EnableAdditiveAlphaBlending();
+		mpRefractionShader->SetCloudBrightness(mpCloudPlane->GetBrightness());
+		mpRefractionShader->SetCloudMovement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
+		mpRefractionShader->SetCloudTextures(mpCloudPlane->GetCloudTexture1(), mpCloudPlane->GetCloudTexture2());
+
+
+		mpCloudPlane->Render(mpD3D->GetDeviceContext());
+		if (!mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount()))
+		{
+			logger->GetInstance().WriteLine("Failed to render the cloud reflection within the water.");
+			return false;
+		}
+		mpD3D->DisableAlphaBlending();
+		mpD3D->EnableZBuffer();
 
 		mpD3D->TurnOnBackFaceCulling();
 
