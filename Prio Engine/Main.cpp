@@ -81,6 +81,8 @@ void GameLoop(CEngine* &engine)
 	const float kTextUpdateInterval = 0.2f;
 	float timeSinceTextUpdate = kTextUpdateInterval;
 
+	engine->SetRainEnabled(true);
+
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{

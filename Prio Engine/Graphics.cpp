@@ -26,6 +26,12 @@ CGraphics::CGraphics()
 	mpSnowShader = nullptr;
 	mpFoliage = nullptr;
 	mpReflectionCamera = nullptr;
+	mpRainSound = nullptr;
+	mpRainSoundBuffer = nullptr;
+	mpBirdSquawkSoundBuffer = nullptr;
+	mpBirdSquawkSound = nullptr;
+	mpRunningWaterSoundBuffer = nullptr;
+	mpRunningWaterSound = nullptr;
 }
 
 CGraphics::~CGraphics()
@@ -218,6 +224,54 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 	mpReflectionCamera = new CCamera(mScreenWidth, mScreenHeight, mFieldOfView, SCREEN_NEAR, SCREEN_DEPTH);
 
+	///////////////////////////////
+	// Rain storm sound setup
+	//////////////////////////////
+
+	mpRainSoundBuffer = new sf::SoundBuffer();
+	if (!mpRainSoundBuffer->loadFromFile("Resources/Sounds/RainStorm.wav"))
+	{
+		logger->GetInstance().WriteLine("Failed to load RainStorm.wav from file into a sound buffer.");
+		return false;
+	}
+	mpRainSound = new sf::Sound();
+	mpRainSound->setBuffer(*mpRainSoundBuffer);
+	mpRainSound->setLoop(true);
+	mpRainSound->setVolume(30.0f);
+	//mpRainSound->play();
+
+	//////////////////////////////
+	// Bird squawk sound setup
+	//////////////////////////////
+
+	mpBirdSquawkSoundBuffer = new sf::SoundBuffer();
+	if (!mpBirdSquawkSoundBuffer->loadFromFile("Resources/Sounds/Merlin-Squawk.wav"))
+	{
+		logger->GetInstance().WriteLine("Failed to load Merlin-Squawk.wav from file into a sound buffer.");
+		return false;
+	}
+	mpBirdSquawkSound = new sf::Sound();
+	mpBirdSquawkSound->setBuffer(*mpBirdSquawkSoundBuffer);
+	mpBirdSquawkSound->setLoop(false);
+	mpBirdSquawkSound->setVolume(25.0f);
+
+	//////////////////////////////
+	// Running water sound setup
+	//////////////////////////////
+
+	mpRunningWaterSoundBuffer = new sf::SoundBuffer();
+	if (!mpRunningWaterSoundBuffer->loadFromFile("Resources/Sounds/Liquid.wav"))
+	{
+		logger->GetInstance().WriteLine("Failed to load Liquid.wav from file into a sound buffer.");
+		return false;
+	}
+	mpRunningWaterSound = new sf::Sound();
+	mpRunningWaterSound->setBuffer(*mpRunningWaterSoundBuffer);
+	mpRunningWaterSound->setLoop(true);
+	mpRunningWaterSound->setVolume(50.0f);
+	mpRunningWaterSound->play();
+
+
 	// Success!
 	logger->GetInstance().WriteLine("Direct3D was successfully initialised.");
 	return true;
@@ -225,6 +279,45 @@ bool CGraphics::Initialise(int screenWidth, int screenHeight, HWND hwnd)
 
 void CGraphics::Shutdown()
 {
+	if (mpRunningWaterSound != nullptr)
+	{
+		mpRunningWaterSound->stop();
+		delete mpRunningWaterSound;
+		mpRunningWaterSound = nullptr;
+	}
+
+	if (mpRunningWaterSoundBuffer)
+	{
+		delete mpRunningWaterSoundBuffer;
+		mpRunningWaterSoundBuffer = nullptr;
+	}
+	
+	if (mpBirdSquawkSound != nullptr)
+	{
+		mpBirdSquawkSound->stop();
+		delete mpBirdSquawkSound;
+		mpBirdSquawkSound = nullptr;
+	}
+
+	if (mpBirdSquawkSoundBuffer)
+	{
+		delete mpBirdSquawkSoundBuffer;
+		mpBirdSquawkSoundBuffer = nullptr;
+	}
+
+	if (mpRainSound != nullptr)
+	{
+		mpRainSound->stop();
+		delete mpRainSound;
+		mpRainSound = nullptr;
+	}
+
+	if (mpRainSoundBuffer)
+	{
+		delete mpRainSoundBuffer;
+		mpRainSoundBuffer = nullptr;
+	}
+
 	if (mpFoliage)
 	{
 		mpFoliage->Shutdown();
@@ -563,6 +656,13 @@ void CGraphics::UpdateScene(float updateTime)
 			mpReflectionCamera->Render();
 		}
 	}
+
+	if (mTimeSinceLastBirdSquawk > mBirdSquawkPlayInterval)
+	{
+		mpBirdSquawkSound->play();
+		mTimeSinceLastBirdSquawk = 0.0f;
+	}
+	mTimeSinceLastBirdSquawk += updateTime;
 }
 
 bool CGraphics::Render()
@@ -2008,6 +2108,15 @@ void CGraphics::SetRainEnabled(bool value)
 
 	mpRain->SetEnabled(value);
 	mpRain->SetFirstRun(true);
+
+	if (value)
+	{
+		mpRainSound->play();
+	}
+	else
+	{
+		mpRainSound->stop();
+	}
 }
 
 bool CGraphics::GetRainEnabled()

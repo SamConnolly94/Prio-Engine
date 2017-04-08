@@ -85,7 +85,6 @@ bool CWaterShader::InitialiseShader(ID3D11Device* device, HWND hwnd, std::string
 	const int kNumberOfPolygonElements = 3;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[kNumberOfPolygonElements];
 	unsigned int numElements;
-	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC waterBufferDesc;
 	D3D11_BUFFER_DESC cameraBufferDesc;
 	D3D11_BUFFER_DESC viewportBufferDesc;

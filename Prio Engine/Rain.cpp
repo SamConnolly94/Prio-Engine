@@ -62,6 +62,7 @@ bool CRain::InitialiseBuffers(ID3D11Device * device)
 	D3D11_SUBRESOURCE_DATA vertexData;
 	particle.Age = 0.0f;
 	particle.Type = 0;
+	particle.InitialVelocity = { 0.0f, 10.0f, 0.0f };
 	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = &particle;
 
