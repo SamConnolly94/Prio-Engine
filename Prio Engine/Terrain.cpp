@@ -487,6 +487,10 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 
 	vertex = 0;
 
+	// Want to start again so clear both of these lists.
+	mTreesInfo.clear();
+	mPlantsInfo.clear();
+
 	for (int heightCount = 0; heightCount < mHeight; heightCount++)
 	{
 		for (int widthCount = 0; widthCount < mWidth; widthCount++)
@@ -1022,14 +1026,12 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 
 bool CTerrain::PositionTreeHere()
 {
-	// Generate a random number from 0 - 100
-	int randomNum = rand() % 100 + 1;
-
-	if (randomNum < 2)
+	float randNum = (float)rand() / RAND_MAX;
+	if (randNum < 0.1f)
 	{
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -1038,16 +1040,35 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 	position.x += 0.5f;
 	position.z += 0.5f;
 
-	const float treeSeperationRadiusX = 30.0f;
-	const float treeSeperationRadiusZ = 30.0f;
+	position.y += GetPosY();
+	position.x += GetPosX();
+	position.z += GetPosZ();
+
 	// Don't place if within a radius of 20 units.
 	for (auto info : mTreesInfo)
 	{
-		float xDist = sqrt((position.x - info.position.x) * (position.x - info.position.x));
-		float zDist = sqrt((position.z - info.position.z) * (position.z - info.position.z));
+		float xDist = 0.0f;
+		float zDist = 0.0f;
 
-		if (xDist < treeSeperationRadiusX &&
-			zDist < treeSeperationRadiusZ)
+		if (position.x > info.position.x)
+		{
+			xDist = position.x - info.position.x;
+		}
+		else
+		{
+			xDist = info.position.x - position.x;
+		}
+
+		if (position.z > info.position.z)
+		{
+			zDist = position.z - info.position.z;
+		}
+		else
+		{
+			zDist = info.position.z - position.z;
+		}
+
+		if (xDist < mTreeClusterRadius && zDist < mTreeClusterRadius)
 		{
 			return false;
 		}
@@ -1055,10 +1076,6 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 
 	if (PositionTreeHere() && normal.y >= 0.8f)
 	{
-		position.y += GetPosY();
-		position.x += GetPosX();
-		position.z += GetPosZ();
-
 		TerrainEntityType tree;
 		tree.position = position;
 
@@ -1081,11 +1098,8 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 
 bool CTerrain::PositionPlantHere()
 {
-	// Generate a random number from 0 - 100
-	int randomNum = rand() % 1000;
-
-	// Give a 99.6% chance to generate a plant.
-	if (randomNum >= 996.0f)
+	float randNum = (float)rand() / RAND_MAX;
+	if (randNum < 0.1f)
 	{
 		return true;
 	}
@@ -1098,20 +1112,42 @@ bool CTerrain::CreatePlant(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 	position.x += 0.5f;
 	position.z += 0.5f;
 
+	position.y += GetPosY();
+	position.x += GetPosX();
+	position.z += GetPosZ();
+
 	// Don't place if within a radius of 20 units.
 	for (auto info : mPlantsInfo)
 	{
-		if (sqrt((position.x - info.position.x) * (position.x - info.position.x)) < 20.0f &&
-			sqrt((position.z - info.position.z) * (position.z - info.position.z)) < 20.0f)
+		float xDist = 0.0f;
+		float zDist = 0.0f;
+
+		if (position.x > info.position.x)
+		{
+			xDist = position.x - info.position.x;
+		}
+		else
+		{
+			xDist = info.position.x - position.x;
+		}
+
+		if (position.z > info.position.z)
+		{
+			zDist = position.z - info.position.z;
+		}
+		else
+		{
+			zDist = info.position.z - position.z;
+		}
+
+		if (xDist < mPlantClusterRadius && zDist < mPlantClusterRadius)
 		{
 			return false;
 		}
 	}
 
-	if (PositionTreeHere() && normal.y > 0.7f)
+	if (PositionPlantHere() && normal.y > 0.7f)
 	{
-		position.y += GetPosY();
-		position.x += GetPosX();
 		TerrainEntityType plant;
 		plant.position = position;
 
@@ -1155,4 +1191,24 @@ CTerrain::VertexAreaType CTerrain::FindAreaType(float height)
 	}
 
 	return area;
+}
+
+void CTerrain::SetTreeClusterRadius(float value)
+{
+	mTreeClusterRadius = value;
+}
+
+float CTerrain::GetTreeClusterRadius()
+{
+	return mTreeClusterRadius;
+}
+
+void CTerrain::SetPlantClusterRadius(float value)
+{
+	mPlantClusterRadius = value;
+}
+
+float CTerrain::GetPlantClusterRadius()
+{
+	return mPlantClusterRadius;
 }

@@ -59,26 +59,34 @@ bool CMesh::LoadMesh(std::string filename, float modelRadius)
 
 void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, CLight* light)
 {
-	for (auto model : mpModels)
+	for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
 	{
-		model->UpdateMatrices();
-		bool inFrustum = true;
-		inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
+		unsigned int offset;
+		unsigned int stride;
+		stride = sizeof(VertexType);
+		offset = 0;
 
-		if (inFrustum)
+		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		context->IASetVertexBuffers(0, 1, &mpSubMeshes[subMeshCount].vertexBuffer, &stride, &offset);
+
+		// Set the index buffer to active in the input assembler so it can be rendered.
+		context->IASetIndexBuffer(mpSubMeshes[subMeshCount].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
+		bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
+		shader->UpdateMapBuffer(context, useAlpha, useSpecular);
+
+		for (auto model : mpModels)
 		{
+			model->UpdateMatrices();
+			bool inFrustum = true;
+			inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
 
-			for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
+			if (inFrustum)
 			{
-				// Prepare the buffers for rendering.
-				model->RenderBuffers(context, subMeshCount, mpSubMeshes[subMeshCount].vertexBuffer, mpSubMeshes[subMeshCount].indexBuffer, sizeof(VertexType));
-
-				// Get the textures.
-
-				bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
-				bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
-				shader->UpdateMapBuffer(context, useAlpha, useSpecular);
-				
 				shader->SetWorldMatrix(model->GetWorldMatrix());
 
 				// Pass over the textures for rendering.
@@ -108,7 +116,7 @@ CModel* CMesh::CreateModel()
 		logger->GetInstance().WriteLine("Failed to allocate space to model. ");
 		return nullptr;
 	}
-	
+
 	// Stick our models on a list to prevent losing the pointers.
 	mpModels.push_back(model);
 
@@ -173,7 +181,7 @@ bool CMesh::LoadAssimpModel(std::string filename)
 
 			if (FAILED(result))
 			{
-				logger->GetInstance().WriteLine("Failed to load the diffuse map for texture " + sFullPath );
+				logger->GetInstance().WriteLine("Failed to load the diffuse map for texture " + sFullPath);
 				return false;
 			}
 			logger->GetInstance().WriteLine("Successfully loaded diffuse map named '" + sFullPath + "'.");
@@ -266,7 +274,7 @@ bool CMesh::CreateSubmesh(const aiMesh& mesh, SubMesh* subMesh)
 			index++;
 		}
 	}
-	
+
 	subMesh->faces = mesh.mFaces;
 	subMesh->numberOfVertices = mesh.mNumVertices;
 	subMesh->numberOfIndices = mesh.mNumFaces * kNumberOfIndicesInFace;
