@@ -66,7 +66,7 @@ public:
 	bool RefractionRender(ID3D11DeviceContext* deviceContext, int indexCount);
 	bool ReflectionRender(ID3D11DeviceContext* deviceContext, int indexCount);
 	bool RenderCloudReflection(ID3D11DeviceContext* deviceContext, int indexCount);
-	bool RenderFoliageRefraction(ID3D11DeviceContext* deviceContext, int indexCount);
+	bool RenderFoliageRefraction(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount);
 private:
 	D3DXMATRIX mWorldMatrix; 
 	D3DXMATRIX mViewMatrix;
@@ -113,7 +113,8 @@ public:
 	void SetCloudMovement(D3DXVECTOR2 cloud1Movement, D3DXVECTOR2 cloud2Movement);
 	void SetCloudBrightness(float value);
 private:
-	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName, std::string foliageRefractionVSName, std::string foliageRefractionPSName);
+	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName);
+	bool InitialiseFoliageShader(ID3D11Device * device, HWND hwnd, std::string foliageRefractionVSName, std::string foliageRefractionPSName);
 	bool InitialiseCloudShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename);
@@ -125,7 +126,7 @@ private:
 
 	void RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
-	void RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
+	void RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount);
 	void RenderCloudReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 private:
 	ID3D11VertexShader* mpVertexShader;
@@ -134,7 +135,7 @@ private:
 	ID3D11PixelShader* mpReflectionPixelShader;
 	ID3D11PixelShader* mpModelReflectionPixelShader;
 
-	ID3D11VertexShader* mpFoliageVertexShader;
+	ID3D11VertexShader* mpFoliageRefractionVertexShader;
 	ID3D11PixelShader* mpFoliageRefractionPixelShader;
 
 	ID3D11VertexShader* mpCloudVertexShader;
@@ -142,6 +143,7 @@ private:
 
 	ID3D11InputLayout* mpTerrainLayout;
 	ID3D11InputLayout* mpCloudLayout;
+	ID3D11InputLayout* mpFoliageLayout;
 	ID3D11SamplerState* mpTrilinearWrap;
 	ID3D11SamplerState* mpPointClamp;
 	ID3D11SamplerState* mpBilinearMirror;

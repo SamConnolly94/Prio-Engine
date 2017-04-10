@@ -15,7 +15,8 @@ CWater::CWater()
 	mMaxDistortionDistance = 40.0f;
 	mRefractionStrength = 0.95f;
 	mReflectionStrength = 0.9f;
-	mWaterDepth = 6.0f;
+	//mWaterDepth = 6.0f;
+	mWaterDepth = 26.0f;
 }
 
 

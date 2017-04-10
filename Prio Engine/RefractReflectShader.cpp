@@ -13,7 +13,7 @@ CReflectRefractShader::CReflectRefractShader()
 	mpReflectionPixelShader			= nullptr;
 	mpTerrainAreaBuffer				= nullptr;
 	mpPositioningBuffer				= nullptr;
-	mpFoliageVertexShader			= nullptr;
+	mpFoliageRefractionVertexShader			= nullptr;
 	mpFoliageRefractionPixelShader  = nullptr;
 	mpCloudLayout					= nullptr;
 	mpCloudVertexShader				= nullptr;
@@ -37,14 +37,23 @@ bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 	std::string SkyboxVSName = "Shaders/SkyboxRefraction.vs.hlsl";
 	std::string SkyboxPSName = "Shaders/SkyboxRefraction.ps.hlsl";
 	std::string ModelReflectionPSName = "Shaders/ModelReflection.ps.hlsl";
-	std::string FoliageVSName = "Shaders/FoliageRefraction.vs.hlsl";
-	std::string FoliagePSName = "Shaders/FoliageRefraction.ps.hlsl";
 
-	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName, FoliageVSName, FoliagePSName);
+	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName);
 
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to initialise refraction shader.");
+		return false;
+	}
+
+	std::string FoliageVSName = "Shaders/FoliageRefraction.vs.hlsl";
+	std::string FoliagePSName = "Shaders/FoliageRefraction.ps.hlsl";
+
+	result = InitialiseFoliageShader(device, hwnd, FoliageVSName, FoliagePSName);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the foliage refraction shaders in refract reflect shader.");
 		return false;
 	}
 
@@ -122,7 +131,7 @@ bool CReflectRefractShader::RenderCloudReflection(ID3D11DeviceContext * deviceCo
 	return true;
 }
 
-bool CReflectRefractShader::RenderFoliageRefraction(ID3D11DeviceContext * deviceContext, int indexCount)
+bool CReflectRefractShader::RenderFoliageRefraction(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount)
 {
 	bool result;
 
@@ -135,17 +144,16 @@ bool CReflectRefractShader::RenderFoliageRefraction(ID3D11DeviceContext * device
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderFoliageRefractionShader(deviceContext, indexCount);
+	RenderFoliageRefractionShader(deviceContext, vertexCount, instanceCount);
 
 	return true;
 }
 
-bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName, std::string FoliageVSName, std::string FoliagePSName)
+bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
-	//ID3D10Blob* skyboxVertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
 	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	unsigned int numElements;
@@ -268,62 +276,6 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the reflection pixel shader from the buffer.");
-		return false;
-	}
-
-	///////////////////////////////////
-	// Foliage refraction
-	///////////////////////////////////
-
-	// Compile the vertex shader code.
-	result = D3DX11CompileFromFile(FoliageVSName.c_str(), NULL, NULL, "FoliageRefractionVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
-	if (FAILED(result))
-	{
-		if (errorMessage)
-		{
-			OutputShaderErrorMessage(errorMessage, hwnd, FoliageVSName);
-		}
-		else
-		{
-			std::string errMsg = "Missing shader file. ";
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + FoliageVSName + "'");
-			MessageBox(hwnd, FoliageVSName.c_str(), errMsg.c_str(), MB_OK);
-		}
-		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + FoliageVSName + "'");
-		return false;
-	}
-
-	// Compile the pixel shader code.
-	result = D3DX11CompileFromFile(FoliagePSName.c_str(), NULL, NULL, "FoliageRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
-	if (FAILED(result))
-	{
-		if (errorMessage)
-		{
-			OutputShaderErrorMessage(errorMessage, hwnd, FoliagePSName);
-		}
-		else
-		{
-			std::string errMsg = "Missing shader file.";
-			logger->GetInstance().WriteLine("Could not find a shader file with name '" + FoliagePSName + "'");
-			MessageBox(hwnd, FoliagePSName.c_str(), errMsg.c_str(), MB_OK);
-		}
-		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + FoliagePSName + "'");
-		return false;
-	}
-
-	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpFoliageVertexShader);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the foliage refraction vertex shader from the buffer.");
-		return false;
-	}
-
-	// Create the pixel shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpFoliageRefractionPixelShader);
-	if (FAILED(result))
-	{
-		logger->GetInstance().WriteLine("Failed to create the foliage refraction pixel shader from the buffer.");
 		return false;
 	}
 
@@ -511,6 +463,217 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 		logger->GetInstance().WriteLine("Failed to create the terrain positioning buffer from within the refraction shader class.");
 		return false;
 	}
+
+	return true;
+}
+
+bool CReflectRefractShader::InitialiseFoliageShader(ID3D11Device * device, HWND hwnd, std::string vsName, std::string psName)
+{
+	HRESULT result;
+	ID3D10Blob* vertexShaderBuffer;
+	ID3D10Blob* pixelShaderBuffer;
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[11];
+	ID3D10Blob* errorMessage;
+	unsigned int numElements;
+
+	///////////////////////////////////
+	// Foliage refraction
+	///////////////////////////////////
+
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(vsName.c_str(), NULL, NULL, "FoliageRefractionVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, vsName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file. ";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsName + "'");
+			MessageBox(hwnd, vsName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the vertex shader named '" + vsName + "'");
+		return false;
+	}
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(psName.c_str(), NULL, NULL, "FoliageRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, psName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psName + "'");
+			MessageBox(hwnd, psName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psName + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpFoliageRefractionVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction vertex shader from the buffer.");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpFoliageRefractionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the foliage refraction pixel shader from the buffer.");
+		return false;
+	}
+
+
+	int polyIndex = 0;
+
+	// Setup the layout of the data that goes into the shader.
+	polygonLayout[polyIndex].SemanticName = "POSITION";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = 0;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 1;
+
+	// Position only has 2 co-ords. Only need format of R32G32.
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 2;
+
+	polygonLayout[polyIndex].SemanticName = "NORMAL";
+	polygonLayout[polyIndex].SemanticIndex = 0;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 3;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 1;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	polyIndex = 4;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 2;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	/// Vertex index 
+
+	polyIndex = 5;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 3;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32_UINT;
+	polygonLayout[polyIndex].InputSlot = 0;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 0;
+
+	/// Tile centre pos
+
+	polyIndex = 6;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 4;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = 0;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile LL pos
+
+	polyIndex = 7;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 5;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile LR pos
+
+	polyIndex = 8;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 6;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile UL pos
+
+	polyIndex = 9;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 7;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+
+	/// Tile UL pos
+
+	polyIndex = 10;
+
+	polygonLayout[polyIndex].SemanticName = "TEXCOORD";
+	polygonLayout[polyIndex].SemanticIndex = 8;
+	polygonLayout[polyIndex].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[polyIndex].InputSlot = 1;
+	polygonLayout[polyIndex].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[polyIndex].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+
+	polygonLayout[polyIndex].InstanceDataStepRate = 1;
+	// Get a count of the elements in the layout.
+	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpFoliageLayout);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create polygon layout.");
+		return false;
+	}
+
+	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	vertexShaderBuffer->Release();
+	vertexShaderBuffer = nullptr;
+
+	pixelShaderBuffer->Release();
+	pixelShaderBuffer = nullptr;
 
 	//////////////////////////////////
 	// Set up foliage buffer
@@ -957,6 +1120,33 @@ bool CReflectRefractShader::SetFoliageShaderParameters(ID3D11DeviceContext * dev
 		return false;
 	}
 
+	//////////////////////////////
+	// Update the viewport constant buffer.
+	//////////////////////////////
+
+	result = deviceContext->Map(mpViewportBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the clip plane constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	ViewportBufferType* viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
+
+	// Copy the current water buffer values into the constant buffer.
+	viewportBufferPtr->ViewportSize = mViewportSize;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpViewportBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpViewportBuffer);
+
 	/////////////////////////////////
 	// Update the light constant buffer.
 	/////////////////////////////////
@@ -1107,13 +1297,13 @@ void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceC
 	return;
 }
 
-void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpTerrainLayout);
+	deviceContext->IASetInputLayout(mpFoliageLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(mpFoliageVertexShader, NULL, 0);
+	deviceContext->VSSetShader(mpFoliageRefractionVertexShader, NULL, 0);
 	deviceContext->PSSetShader(mpFoliageRefractionPixelShader, NULL, 0);
 
 	// Set the sampler state in the pixel shader.
@@ -1121,8 +1311,8 @@ void CReflectRefractShader::RenderFoliageRefractionShader(ID3D11DeviceContext * 
 	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
 	deviceContext->PSSetSamplers(2, 1, &mpPointClamp);
 
-	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	// Render the quad.
+	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
 }
 
 void CReflectRefractShader::RenderCloudReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)

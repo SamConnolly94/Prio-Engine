@@ -1224,6 +1224,39 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			return false;
 		}
 
+		///////////////////////////////
+		// Foliage refraction.
+		//////////////////////////////
+		mpRefractionShader->SetFrameTime(mFrameTime);
+		mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
+		mpRefractionShader->SetTranslation(mpFoliage->GetTranslation());
+		mpRefractionShader->SetWindStrength(1.0f);
+		mpRefractionShader->SetGrassTexture(mpFoliage->GetFoliageTexture());
+		mpRefractionShader->SetGrassAlphaTexture(mpFoliage->GetFoliageAlphaTexture());
+		
+		if (!mWireframeEnabled)
+		{
+			mpD3D->TurnOffBackFaceCulling();
+		}
+		mpD3D->EnableAlphaBlending();
+
+		for (int quadCount = 0; quadCount < 3; quadCount++)
+		{
+			for (int triangleCount = 0; triangleCount < 2; triangleCount++)
+			{
+				mpFoliage->RenderBuffers(mpD3D->GetDeviceContext(), quadCount, triangleCount);
+
+				if (!mpRefractionShader->RenderFoliageRefraction(mpD3D->GetDeviceContext(), mpFoliage->GetQuadVertexCount(), mpFoliage->GetInstanceCount()))
+				{
+					logger->GetInstance().WriteLine("Failed to render foliage refraction. ");
+					return false;
+				}
+			}
+		}
+
+		mpD3D->DisableAlphaBlending();
+		mpD3D->TurnOnBackFaceCulling();
+
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
