@@ -449,4 +449,9 @@
       <Filter>Shaders\Water</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\ModelRefraction.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

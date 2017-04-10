@@ -102,6 +102,53 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 	}
 }
 
+void CMesh::Render(ID3D11DeviceContext * context, CFrustum * frustum, CReflectRefractShader * shader)
+{
+	for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
+	{
+		unsigned int offset;
+		unsigned int stride;
+		stride = sizeof(VertexType);
+		offset = 0;
+
+		// Set the vertex buffer to active in the input assembler so it can be rendered.
+		context->IASetVertexBuffers(0, 1, &mpSubMeshes[subMeshCount].vertexBuffer, &stride, &offset);
+
+		// Set the index buffer to active in the input assembler so it can be rendered.
+		context->IASetIndexBuffer(mpSubMeshes[subMeshCount].indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		bool useAlpha = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[1] != NULL ? true : false;
+		bool useSpecular = mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures[2] != NULL ? true : false;
+
+		shader->SetUseSpecular(useSpecular);
+		shader->SetUseAlpha(useAlpha);
+
+		for (auto model : mpModels)
+		{
+			model->UpdateMatrices();
+			bool inFrustum = true;
+			inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
+
+			if (inFrustum)
+			{
+				shader->SetWorldMatrix(model->GetWorldMatrix());
+				shader->SetModelTex(mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures);
+				shader->SetModelTexCount(mNumberOfTextures);
+
+				// Pass over the textures for rendering.
+				if (!shader->RenderModelRefraction(context, mpSubMeshes[subMeshCount].numberOfIndices))
+				{
+					logger->GetInstance().WriteLine("Failed to render the mesh model.");
+				}
+
+			}
+		}
+	}
+}
+
 /* Create an instance of this mesh.
 @Returns CModel* ptr
  */

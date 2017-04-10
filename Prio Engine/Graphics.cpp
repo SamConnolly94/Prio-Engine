@@ -1257,11 +1257,28 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpD3D->DisableAlphaBlending();
 		mpD3D->TurnOnBackFaceCulling();
 
+		//////////////////////////////////////
+		// Model refraction
+		/////////////////////////////////////
+
+		mRenderingMeshes = true;
+
+		mpDiffuseLightShader->SetViewMatrix(view);
+		mpDiffuseLightShader->SetProjMatrix(proj);
+		mpDiffuseLightShader->SetViewProjMatrix(viewProj);
+
+		// Render any models which belong to each mesh. Do this in batches to make it faster.
+		for (auto mesh : mpMeshes)
+		{
+			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpRefractionShader);
+		}
+
+		mRenderingMeshes = false;
+
+
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
-
-
 
 		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());

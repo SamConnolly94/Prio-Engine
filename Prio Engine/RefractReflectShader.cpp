@@ -6,19 +6,20 @@ CReflectRefractShader::CReflectRefractShader()
 {
 	mpVertexShader					= nullptr;
 	mpRefractionPixelShader			= nullptr;
-	mpTerrainLayout					= nullptr;
+	mpModelLayout					= nullptr;
 	mpTrilinearWrap					= nullptr;
 	mpLightBuffer					= nullptr;
 	mpViewportBuffer				= nullptr;
 	mpReflectionPixelShader			= nullptr;
 	mpTerrainAreaBuffer				= nullptr;
 	mpPositioningBuffer				= nullptr;
-	mpFoliageRefractionVertexShader			= nullptr;
+	mpFoliageRefractionVertexShader	= nullptr;
 	mpFoliageRefractionPixelShader  = nullptr;
 	mpCloudLayout					= nullptr;
 	mpCloudVertexShader				= nullptr;
 	mpCloudPixelShader				= nullptr;
 	mpCloudBuffer					= nullptr;
+	mpModelTextures					= nullptr;
 }
 
 
@@ -37,8 +38,9 @@ bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 	std::string SkyboxVSName = "Shaders/SkyboxRefraction.vs.hlsl";
 	std::string SkyboxPSName = "Shaders/SkyboxRefraction.ps.hlsl";
 	std::string ModelReflectionPSName = "Shaders/ModelReflection.ps.hlsl";
+	std::string ModelRefractionPSName = "Shaders/ModelRefraction.ps.hlsl";
 
-	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelReflectionPSName);
+	result = InitialiseShader(device, hwnd, TerrainVSName, TerrainPSRefractName, TerrainPSReflectName, ModelRefractionPSName, ModelReflectionPSName);
 
 	if (!result)
 	{
@@ -149,7 +151,26 @@ bool CReflectRefractShader::RenderFoliageRefraction(ID3D11DeviceContext * device
 	return true;
 }
 
-bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelReflectionPSName)
+bool CReflectRefractShader::RenderModelRefraction(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	bool result;
+
+	// Set the shader parameters that it will use for rendering.
+	result = SetModelRefractionShaderParameters(deviceContext);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to prepare the shader parameters for model refraction in water refraction shader.");
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderModelRefractionShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelRefractionPSName, std::string modelReflectionPSName)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -251,6 +272,35 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	}
 
 	//////////////////////////////////
+	// Model refraction
+	//////////////////////////////////
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(modelRefractionPSName.c_str(), NULL, NULL, "ModelRefractionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, modelRefractionPSName);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + modelRefractionPSName + "'");
+			MessageBox(hwnd, modelRefractionPSName.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + modelRefractionPSName + "'");
+		return false;
+	}
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpModelRefractionPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the model refraction pixel shader from the buffer.");
+		return false;
+	}
+
+	//////////////////////////////////
 	// Model Reflection
 	//////////////////////////////////
 
@@ -313,7 +363,7 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpTerrainLayout);
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpModelLayout);
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create polygon layout.");
@@ -461,6 +511,27 @@ bool CReflectRefractShader::InitialiseShader(ID3D11Device * device, HWND hwnd, s
 	if (FAILED(result))
 	{
 		logger->GetInstance().WriteLine("Failed to create the terrain positioning buffer from within the refraction shader class.");
+		return false;
+	}
+
+	//////////////////////////////////
+	// Set up map buffer
+	/////////////////////////////////
+	D3D11_BUFFER_DESC mapBufferDesc;
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	mapBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	mapBufferDesc.ByteWidth = sizeof(MapBufferType);
+	mapBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	mapBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	mapBufferDesc.MiscFlags = 0;
+	mapBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&mapBufferDesc, NULL, &mpMapBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the map buffer from within the refraction shader class.");
 		return false;
 	}
 
@@ -903,10 +974,10 @@ void CReflectRefractShader::ShutdownShader()
 		mpViewportBuffer = nullptr;
 	}
 
-	if (mpTerrainLayout)
+	if (mpModelLayout)
 	{
-		mpTerrainLayout->Release();
-		mpTerrainLayout = nullptr;
+		mpModelLayout->Release();
+		mpModelLayout = nullptr;
 	}
 
 	if (mpRefractionPixelShader)
@@ -1278,10 +1349,120 @@ bool CReflectRefractShader::SetCloudShaderParameters(ID3D11DeviceContext * devic
 	return true;
 }
 
+bool CReflectRefractShader::SetModelRefractionShaderParameters(ID3D11DeviceContext * deviceContext)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	unsigned int bufferNumber;
+
+	if (!SetMatrixBuffer(deviceContext, 0, CShader::ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer in vertex shader when setting shader params for model refraction shader.");
+		return false;
+	}
+
+	//////////////////////////////
+	// Update the viewport constant buffer.
+	//////////////////////////////
+
+	result = deviceContext->Map(mpViewportBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the clip plane constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	ViewportBufferType* viewportBufferPtr = (ViewportBufferType*)mappedResource.pData;
+
+	// Copy the current water buffer values into the constant buffer.
+	viewportBufferPtr->ViewportSize = mViewportSize;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpViewportBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpViewportBuffer);
+
+	/////////////////////////////////
+	// Update the light constant buffer.
+	/////////////////////////////////
+	result = deviceContext->Map(mpLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the light constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	LightBufferType* lightBufferPtr = (LightBufferType*)mappedResource.pData;
+
+	// Copy the current light values into the constant buffer.
+	lightBufferPtr->AmbientColour = mAmbientColour;
+	lightBufferPtr->DiffuseColour = mDiffuseColour;
+	lightBufferPtr->LightDirection = mLightDirection;
+	lightBufferPtr->mLightPosition = mLightPosition;
+	lightBufferPtr->mSpecularColour = mSpecularColour;
+	lightBufferPtr->mSpecularPower = mSpecularPower;
+	lightBufferPtr->lightBufferPadding = 0.0f;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpLightBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 1;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpLightBuffer);
+
+
+	//////////////////////////////
+	// Update the map constant buffer.
+	//////////////////////////////
+
+	result = deviceContext->Map(mpMapBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the map buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	MapBufferType* mapBufferPtr = (MapBufferType*)mappedResource.pData;
+
+	// Copy the current water buffer values into the constant buffer.
+	mapBufferPtr->useAlphaMap = mUseAlpha;
+	mapBufferPtr->useSpecularMap = mUseSpecular;
+	mapBufferPtr->padding2 = { 0.0f, 0.0f, 0.0f };
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpMapBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 2;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpMapBuffer);
+
+	//////////////////////////////
+	// Resources
+	//////////////////////////////
+	deviceContext->PSSetShaderResources(0, 1, &mpWaterHeightMap);
+	deviceContext->PSSetShaderResources(1, mModelTextureCount, mpModelTextures);
+
+	return true;
+}
+
 void CReflectRefractShader::RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpTerrainLayout);
+	deviceContext->IASetInputLayout(mpModelLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
@@ -1332,10 +1513,27 @@ void CReflectRefractShader::RenderCloudReflectionShader(ID3D11DeviceContext * de
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
 
+void CReflectRefractShader::RenderModelRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(mpModelLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpModelRefractionPixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
 void CReflectRefractShader::RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(mpTerrainLayout);
+	deviceContext->IASetInputLayout(mpModelLayout);
 
 	// Set the vertex and pixel shaders that will be used to render this triangle.
 	deviceContext->VSSetShader(mpVertexShader, NULL, 0);
@@ -1430,6 +1628,31 @@ void CReflectRefractShader::SetCloudMovement(D3DXVECTOR2 cloud1Movement, D3DXVEC
 void CReflectRefractShader::SetCloudBrightness(float value)
 {
 	mCloudBrightness = value;
+}
+
+void CReflectRefractShader::SetModelTex(ID3D11ShaderResourceView** resources)
+{
+	mpModelTextures = resources;
+}
+
+void CReflectRefractShader::SetViewDirection(D3DXVECTOR3 viewDir)
+{
+	mViewDir = viewDir;
+}
+
+void CReflectRefractShader::SetUseSpecular(bool value)
+{
+	mUseSpecular = value;
+}
+
+void CReflectRefractShader::SetUseAlpha(bool value)
+{
+	mUseAlpha = value;
+}
+
+void CReflectRefractShader::SetModelTexCount(int value)
+{
+	mModelTextureCount = value;
 }
 
 void CReflectRefractShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)
