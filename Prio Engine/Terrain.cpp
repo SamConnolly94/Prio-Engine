@@ -300,8 +300,8 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 	// Define the position in world space which we should decide on the terrain type.
 	const float changeInHeight = mHighestPoint - mLowestPoint;
 	float onePerc = changeInHeight / 100.0f;
-	mSnowHeight = mLowestPoint + (onePerc * 60) - mLowestPoint;	// 60% and upwards will be snow.
-	mGrassHeight = mLowestPoint + (onePerc * 30) - mLowestPoint;	// 30% and upwards will be grass.
+	mRockHeight = mLowestPoint + (onePerc * 60) - mLowestPoint;	// 60% and upwards will be rock.
+	mGrassHeight = mLowestPoint + (onePerc * 30) - mLowestPoint; // 30% and upwards will be grass.
 	mSandHeight = mLowestPoint + (onePerc * 10) - mLowestPoint;	// 10% and upwards will be sand.
 	mDirtHeight = mLowestPoint + (onePerc * 15) - mLowestPoint;	// 15% and upwards will be dirt.
 
@@ -1023,10 +1023,9 @@ bool CTerrain::UpdateBuffers(ID3D11Device * device, ID3D11DeviceContext* deviceC
 bool CTerrain::PositionTreeHere()
 {
 	// Generate a random number from 0 - 100
-	int randomNum = rand() % 1000;
+	int randomNum = rand() % 100 + 1;
 
-	// Give a 99.7% chance to generate a tree.
-	if (randomNum >= 997.0f)
+	if (randomNum < 2)
 	{
 		return true;
 	}
@@ -1039,11 +1038,16 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 	position.x += 0.5f;
 	position.z += 0.5f;
 
+	const float treeSeperationRadiusX = 30.0f;
+	const float treeSeperationRadiusZ = 30.0f;
 	// Don't place if within a radius of 20 units.
 	for (auto info : mTreesInfo)
 	{
-		if (sqrt((position.x - info.position.x) * (position.x - info.position.x)) < 20.0f &&
-			sqrt((position.z - info.position.z) * (position.z - info.position.z)) < 20.0f)
+		float xDist = sqrt((position.x - info.position.x) * (position.x - info.position.x));
+		float zDist = sqrt((position.z - info.position.z) * (position.z - info.position.z));
+
+		if (xDist < treeSeperationRadiusX &&
+			zDist < treeSeperationRadiusZ)
 		{
 			return false;
 		}
@@ -1053,6 +1057,8 @@ bool CTerrain::CreateTree(D3DXVECTOR3 position, D3DXVECTOR3 normal)
 	{
 		position.y += GetPosY();
 		position.x += GetPosX();
+		position.z += GetPosZ();
+
 		TerrainEntityType tree;
 		tree.position = position;
 
@@ -1131,7 +1137,7 @@ CTerrain::VertexAreaType CTerrain::FindAreaType(float height)
 {
 	CTerrain::VertexAreaType area = CTerrain::Sand;
 
-	if (height > mSnowHeight)
+	if (height > mRockHeight)
 	{
 		area = CTerrain::VertexAreaType::Snow;
 	}
