@@ -1311,25 +1311,25 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		* Clouds aren't rendering, doesn't appear that pixel shader is running for some reason.
 		************/
 
-		mpD3D->GetWorldMatrix(world);
-		D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
-		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
-		mpD3D->DisableZBuffer();
-		mpRefractionShader->SetWorldMatrix(world);
-		mpD3D->EnableAdditiveAlphaBlending();
-		mpRefractionShader->SetCloudBrightness(mpCloudPlane->GetBrightness());
-		mpRefractionShader->SetCloudMovement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
-		mpRefractionShader->SetCloudTextures(mpCloudPlane->GetCloudTexture1(), mpCloudPlane->GetCloudTexture2());
+		//mpD3D->GetWorldMatrix(world);
+		//D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
+		//D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		//mpD3D->DisableZBuffer();
+		//mpRefractionShader->SetWorldMatrix(world);
+		//mpD3D->EnableAdditiveAlphaBlending();
+		//mpRefractionShader->SetCloudBrightness(mpCloudPlane->GetBrightness());
+		//mpRefractionShader->SetCloudMovement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
+		//mpRefractionShader->SetCloudTextures(mpCloudPlane->GetCloudTexture1(), mpCloudPlane->GetCloudTexture2());
 
 
-		mpCloudPlane->Render(mpD3D->GetDeviceContext());
-		if (!mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount()))
-		{
-			logger->GetInstance().WriteLine("Failed to render the cloud reflection within the water.");
-			return false;
-		}
-		mpD3D->DisableAlphaBlending();
-		mpD3D->EnableZBuffer();
+		//mpCloudPlane->Render(mpD3D->GetDeviceContext());
+		//if (!mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount()))
+		//{
+		//	logger->GetInstance().WriteLine("Failed to render the cloud reflection within the water.");
+		//	return false;
+		//}
+		//mpD3D->DisableAlphaBlending();
+		//mpD3D->EnableZBuffer();
 
 		mpD3D->TurnOnBackFaceCulling();
 
@@ -2159,11 +2159,6 @@ bool CGraphics::UpdateFoliage(double ** heightMap, int width, int height)
 
 void CGraphics::SetSnowEnabled(bool value)
 {
-	if (mpSnow->IsEnabled() == value)
-	{
-		return;
-	}
-
 	mpSnow->SetEnabled(value);
 	mpSnow->SetFirstRun(true);
 }
@@ -2175,11 +2170,6 @@ bool CGraphics::GetSnowEnabled()
 
 void CGraphics::SetRainEnabled(bool value)
 {
-	if (mpRain->IsEnabled() == value)
-	{
-		return;
-	}
-
 	mpRain->SetEnabled(value);
 	mpRain->SetFirstRun(true);
 
@@ -2195,7 +2185,7 @@ void CGraphics::SetRainEnabled(bool value)
 
 bool CGraphics::GetRainEnabled()
 {
-	return mpSnow->IsEnabled();
+	return mpRain->IsEnabled();
 }
 
 CCamera* CGraphics::CreateCamera()
