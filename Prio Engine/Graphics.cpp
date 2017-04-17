@@ -1215,7 +1215,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpRefractionShader->SetRockTexture(mpTerrain->GetRockTextureArray());
 
 		mpTerrain->Render(mpD3D->GetDeviceContext()); 
-		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 
 		if (!result)
@@ -1280,7 +1280,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Reflection
 		/////////////////////////////////
 
-		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetDiffuseColour().x, mpSceneLight->GetDiffuseColour().y, mpSceneLight->GetDiffuseColour().z, 1.0f);
+		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		mpD3D->TurnOffBackFaceCulling();
