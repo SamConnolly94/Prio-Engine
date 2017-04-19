@@ -1,0 +1,6 @@
+Add alternatives to UI elements
+Add alternative noise algorithms
+Discuss render pipeline in a little more detail
+Apply render pipeline to project
+Add section which describes how normals are calculated
+Add code snippet regarding how normals are generated
