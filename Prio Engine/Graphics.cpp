@@ -1137,6 +1137,11 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		logger->GetInstance().WriteLine("Skipping render pass for water as the terrain is currently being updated.");
 		return true;
 	}
+	if (mpFoliage == nullptr)
+	{
+		logger->GetInstance().WriteLine("Foliage is not available, skipping render pass for water.");
+		return true;
+	}
 
 	bool result = true;
 
