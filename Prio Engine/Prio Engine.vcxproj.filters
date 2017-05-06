@@ -418,9 +418,6 @@
     <None Include="Shaders\Foliage.ps.hlsl">
       <Filter>Shaders\Foliage</Filter>
     </None>
-    <None Include="Shaders\Foliage.vs.hlsl">
-      <Filter>Shaders\Foliage</Filter>
-    </None>
     <None Include="Shaders\FoliageRefraction.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
@@ -448,10 +445,11 @@
     <None Include="Shaders\CloudReflection.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
+    <None Include="Shaders\ModelRefraction.ps.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\ModelRefraction.ps.hlsl">
-      <Filter>Shaders\Water</Filter>
+    <FxCompile Include="Shaders\Foliage.vs.hlsl">
+      <Filter>Shaders\Foliage</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

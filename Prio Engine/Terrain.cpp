@@ -526,7 +526,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			}
 			else
 			{
-				mpTerrainTiles[y][x].SetDownTile(nullptr);
+				mpTerrainTiles[y][x].SetDownTile(&mpTerrainTiles[y][x]);
 			}
 
 			if (x > 0)
@@ -535,7 +535,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			}
 			else
 			{
-				mpTerrainTiles[y][x].SetLeftTile(nullptr);
+				mpTerrainTiles[y][x].SetLeftTile(&mpTerrainTiles[y][x]);
 			}
 
 			if (y < mHeight - 1)
@@ -544,7 +544,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			}
 			else
 			{
-				mpTerrainTiles[y][x].SetUpTile(nullptr);
+				mpTerrainTiles[y][x].SetUpTile(&mpTerrainTiles[y][x]);
 			}
 
 			if (x < mWidth - 1)
@@ -553,21 +553,21 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			}
 			else
 			{
-				mpTerrainTiles[y][x].SetRightTile(nullptr);
+				mpTerrainTiles[y][x].SetRightTile(&mpTerrainTiles[y][x]);
 			}
 
 			/////////////////////////////////
 			// Calculate vertices of surrounding grids.
 			////////////////////////////////
 			LL = vertices[vertex].position;
-
+			
 			if (x < mWidth - 1)
 			{
 				LR = vertices[vertex + 1].position;
 			}
 			else
 			{
-				LR = vertices[vertex + 1].position;
+				LR = vertices[vertex].position;
 			}
 
 			if (y < mHeight - 1)
@@ -576,7 +576,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 			}
 			else
 			{
-				UL = vertices[vertex - mWidth].position;
+				UL = vertices[vertex].position;
 			}
 
 			if (y < mHeight - 1)
@@ -587,7 +587,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 				}
 				else
 				{
-					UR = vertices[vertex + mWidth - 1].position;
+					UR = vertices[vertex].position;
 				}
 			}
 			else
@@ -598,7 +598,7 @@ bool CTerrain::InitialiseBuffers(ID3D11Device * device)
 				}
 				else
 				{
-					UR = vertices[vertex - mWidth - 1].position;
+					UR = vertices[vertex].position;
 				}
 			}
 			D3DXVECTOR3 centrePos = (LL + LR + UL + UR) / 4;

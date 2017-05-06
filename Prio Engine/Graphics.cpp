@@ -781,7 +781,7 @@ bool CGraphics::RenderMeshes(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj,
 	// Render any models which belong to each mesh. Do this in batches to make it faster.
 	for (auto mesh : mpMeshes)
 	{
-		mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight);
+		mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpDiffuseLightShader, mpSceneLight, mpCamera->GetPosition());
 	}
 
 	mRenderingMeshes = false;
@@ -1127,21 +1127,31 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		logger->GetInstance().WriteLine("Skipping water as there's nothing to render.");
 		return true;
 	}
+
 	if (mpTerrain->GetWater() == nullptr)
 	{
 		logger->GetInstance().WriteLine("No body of water exists for this terrain yet, skipping render pass.");
 		return true;
 	}
+
 	if (mpTerrain->GetUpdateFlag())
 	{
 		logger->GetInstance().WriteLine("Skipping render pass for water as the terrain is currently being updated.");
 		return true;
 	}
+
 	if (mpFoliage == nullptr)
 	{
 		logger->GetInstance().WriteLine("Foliage is not available, skipping render pass for water.");
 		return true;
 	}
+
+	if (mpFoliage->IsUpdating())
+	{
+		logger->GetInstance().WriteLine("Foliage is not available, skipping render pass for water.");
+		return true;
+	}
+
 
 	bool result = true;
 
@@ -1175,7 +1185,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 	// Set render target to the height texture map.
 	mpTerrain->GetWater()->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 	
-	mpTerrain->GetWater()->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+	mpTerrain->GetWater()->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
 	//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render the water height map.
@@ -1220,7 +1230,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpRefractionShader->SetRockTexture(mpTerrain->GetRockTextureArray());
 
 		mpTerrain->Render(mpD3D->GetDeviceContext()); 
-		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
 		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 
 		if (!result)
@@ -1275,7 +1285,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Render any models which belong to each mesh. Do this in batches to make it faster.
 		for (auto mesh : mpMeshes)
 		{
-			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpRefractionShader);
+			mesh->Render(mpD3D->GetDeviceContext(), mpFrustum, mpRefractionShader, mpCamera->GetPosition());
 		}
 
 		mRenderingMeshes = false;
@@ -1285,7 +1295,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Reflection
 		/////////////////////////////////
 
-		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		mpD3D->TurnOffBackFaceCulling();
@@ -1540,6 +1550,71 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 			}
 		}
 	}
+
+	/////////////////////////////
+	//// Offset 1
+	/////////////////////////////
+
+	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.5f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	//mpFoliageShader->SetWorldMatrix(world);
+
+	//for (int quadCount = 0; quadCount < 3; quadCount++)
+	//{
+	//	for (int triangleCount = 0; triangleCount < 2; triangleCount++)
+	//	{
+	//		mpFoliage->RenderBuffers(mpD3D->GetDeviceContext(), quadCount, triangleCount);
+
+	//		if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpFoliage->GetQuadVertexCount(), mpFoliage->GetInstanceCount()))
+	//		{
+	//			logger->GetInstance().WriteLine("Failed to render foliage. ");
+	//			return false;
+	//		}
+	//	}
+	//}
+
+	/////////////////////////////
+	//// Offset 2
+	/////////////////////////////
+
+	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.25f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	//mpFoliageShader->SetWorldMatrix(world);
+
+	//for (int quadCount = 0; quadCount < 3; quadCount++)
+	//{
+	//	for (int triangleCount = 0; triangleCount < 2; triangleCount++)
+	//	{
+	//		mpFoliage->RenderBuffers(mpD3D->GetDeviceContext(), quadCount, triangleCount);
+
+	//		if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpFoliage->GetQuadVertexCount(), mpFoliage->GetInstanceCount()))
+	//		{
+	//			logger->GetInstance().WriteLine("Failed to render foliage. ");
+	//			return false;
+	//		}
+	//	}
+	//}
+
+
+	///////////////////////////////
+	////// Offset 3
+	///////////////////////////////
+
+	//D3DXMatrixTranslation(&world, mpTerrain->GetPosX() + 0.75f, mpTerrain->GetPosY(), mpTerrain->GetPosZ());
+	//mpFoliageShader->SetWorldMatrix(world);
+
+	//for (int quadCount = 0; quadCount < 3; quadCount++)
+	//{
+	//	for (int triangleCount = 0; triangleCount < 2; triangleCount++)
+	//	{
+	//		mpFoliage->RenderBuffers(mpD3D->GetDeviceContext(), quadCount, triangleCount);
+
+	//		if (!mpFoliageShader->Render(mpD3D->GetDeviceContext(), mpFoliage->GetQuadVertexCount(), mpFoliage->GetInstanceCount()))
+	//		{
+	//			logger->GetInstance().WriteLine("Failed to render foliage. ");
+	//			return false;
+	//		}
+	//	}
+	//}
+
 	mpD3D->DisableAlphaBlending();
 	mpD3D->TurnOnBackFaceCulling();
 
@@ -2154,6 +2229,7 @@ bool CGraphics::UpdateFoliage(double ** heightMap, int width, int height)
 		return false;
 	}
 
+	while (mRenderingWater) {};
 	while (mRenderingFoliage) {};
 
 	mpFoliage->SetUpdating(true);

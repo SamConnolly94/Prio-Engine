@@ -57,7 +57,7 @@ bool CMesh::LoadMesh(std::string filename, float modelRadius)
 	return result;
 }
 
-void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, CLight* light)
+void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLightShader* shader, CLight* light, D3DXVECTOR3 cameraPos)
 {
 	for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
 	{
@@ -82,27 +82,36 @@ void CMesh::Render(ID3D11DeviceContext* context, CFrustum* frustum, CDiffuseLigh
 		for (auto model : mpModels)
 		{
 			model->UpdateMatrices();
-			bool inFrustum = true;
-			inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
 
-			if (inFrustum)
+			float distance = std::abs(cameraPos.x - model->GetPosX()) +
+				std::abs(cameraPos.y - model->GetPosY()) +
+				std::abs(cameraPos.z - model->GetPosZ());
+
+			if (distance < mLevelOfDetail)
 			{
-				shader->SetWorldMatrix(model->GetWorldMatrix());
 
-				// Pass over the textures for rendering.
-				if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
-					mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
-					light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+				bool inFrustum = true;
+				inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
+
+				if (inFrustum)
 				{
-					logger->GetInstance().WriteLine("Failed to render the mesh model.");
-				}
+					shader->SetWorldMatrix(model->GetWorldMatrix());
 
+					// Pass over the textures for rendering.
+					if (!shader->Render(context, mpSubMeshes[subMeshCount].numberOfIndices,
+						mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures, mNumberOfTextures,
+						light->GetDirection(), light->GetDiffuseColour(), light->GetAmbientColour()))
+					{
+						logger->GetInstance().WriteLine("Failed to render the mesh model.");
+					}
+
+				}
 			}
 		}
 	}
 }
 
-void CMesh::Render(ID3D11DeviceContext * context, CFrustum * frustum, CReflectRefractShader * shader)
+void CMesh::Render(ID3D11DeviceContext * context, CFrustum * frustum, CReflectRefractShader * shader, D3DXVECTOR3 cameraPos)
 {
 	for (unsigned int subMeshCount = 0; subMeshCount < mNumberOfSubMeshes; subMeshCount++)
 	{
@@ -125,25 +134,34 @@ void CMesh::Render(ID3D11DeviceContext * context, CFrustum * frustum, CReflectRe
 
 		shader->SetUseSpecular(useSpecular);
 		shader->SetUseAlpha(useAlpha);
+		shader->SetModelTex(mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures);
+		shader->SetModelTexCount(mNumberOfTextures);
 
 		for (auto model : mpModels)
 		{
 			model->UpdateMatrices();
-			bool inFrustum = true;
-			inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
 
-			if (inFrustum)
+			float distance = std::abs(cameraPos.x - model->GetPosX()) +
+							 std::abs(cameraPos.y - model->GetPosY()) +
+							 std::abs(cameraPos.z - model->GetPosZ());
+
+			if (distance < mLevelOfDetail)
 			{
-				shader->SetWorldMatrix(model->GetWorldMatrix());
-				shader->SetModelTex(mSubMeshMaterials[mpSubMeshes[subMeshCount].materialIndex].mTextures);
-				shader->SetModelTexCount(mNumberOfTextures);
 
-				// Pass over the textures for rendering.
-				if (!shader->RenderModelRefraction(context, mpSubMeshes[subMeshCount].numberOfIndices))
+				bool inFrustum = true;
+				inFrustum = frustum->CheckSphere(model->GetPos(), model->GetScaleRadius(mRadius));
+
+				if (inFrustum)
 				{
-					logger->GetInstance().WriteLine("Failed to render the mesh model.");
-				}
+					shader->SetWorldMatrix(model->GetWorldMatrix());
 
+					// Pass over the textures for rendering.
+					if (!shader->RenderModelRefraction(context, mpSubMeshes[subMeshCount].numberOfIndices))
+					{
+						logger->GetInstance().WriteLine("Failed to render the mesh model.");
+					}
+
+				}
 			}
 		}
 	}

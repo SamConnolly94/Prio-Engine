@@ -83,6 +83,7 @@ void GameLoop(CEngine* &engine)
 
 	//engine->SetRainEnabled(true);
 
+	terrain->GetWater()->SetDepth(20.0f);
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
 	{

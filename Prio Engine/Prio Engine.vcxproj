@@ -221,9 +221,9 @@
     <None Include="Shaders\Foliage.ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Foliage.vs.hlsl">
+    <FxCompile Include="Shaders\Foliage.vs.hlsl">
       <FileType>Document</FileType>
-    </None>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\FoliageRefraction.ps.hlsl">
@@ -369,6 +369,10 @@ echo "Made resources dir, copying resources to that dir."
 if not exist "$(TargetDir)Resources" mkdir "$(TargetDir)Resources"
 xcopy /e /y "$(ProjectDir)Resources" "$(TargetDir)Resources"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

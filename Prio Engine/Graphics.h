@@ -176,6 +176,7 @@ private:
 	CFoliage* mpFoliage;
 	bool mRenderingMeshes = false;
 	bool mRenderingFoliage = false;
+	bool mRenderingWater = false;
 	sf::SoundBuffer* mpRainSoundBuffer;
 	sf::Sound* mpRainSound;
 	sf::SoundBuffer* mpBirdSquawkSoundBuffer;
