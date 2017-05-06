@@ -58,7 +58,6 @@ private:
 		float WaterPlaneY;
 	};
 
-
 	struct MapBufferType
 	{
 		bool useAlphaMap;
@@ -76,6 +75,7 @@ public:
 	bool RenderCloudReflection(ID3D11DeviceContext* deviceContext, int indexCount);
 	bool RenderFoliageRefraction(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount);
 	bool RenderModelRefraction(ID3D11DeviceContext * deviceContext, int indexCount);
+	bool RenderModelReflection(ID3D11DeviceContext * deviceContext, int indexCount);
 private:
 	D3DXMATRIX mWorldMatrix; 
 	D3DXMATRIX mViewMatrix;
@@ -147,12 +147,14 @@ private:
 	bool SetFoliageShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetCloudShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetModelRefractionShaderParameters(ID3D11DeviceContext* deviceContext);
+	bool SetModelReflectionShaderParameters(ID3D11DeviceContext* deviceContext);
 
 	void RenderRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount);
 	void RenderCloudReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderModelRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
+	void RenderModelReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 private:
 	ID3D11VertexShader* mpVertexShader;
 	ID3D11PixelShader* mpRefractionPixelShader;

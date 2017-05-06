@@ -1320,33 +1320,116 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 			return false;
 		}
 
+		for (auto mesh : mpMeshes)
+		{
+			mesh->RenderReflection(mpD3D->GetDeviceContext(), mpFrustum, mpRefractionShader, mpCamera->GetPosition());
+		}
+
 		/***********
 		* Clouds
 		* TODO: 
 		* Clouds aren't rendering, doesn't appear that pixel shader is running for some reason.
 		************/
+		//D3DXVECTOR3 cameraPosition;
 
-		//mpD3D->GetWorldMatrix(world);
-		//D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
+		//// Get the position of the camera.
+		//cameraPosition = mpCamera->GetPosition();
+
+		//// Translate the sky dome to be centered around the camera position.
 		//D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+		//// Turn off back face culling.
+		//mpD3D->TurnOffBackFaceCulling();
+
+		//// Turn off the Z buffer.
 		//mpD3D->DisableZBuffer();
-		//mpRefractionShader->SetWorldMatrix(world);
+
+		//// Render the sky dome using the sky dome shader.
+		//mpSkybox->Render(mpD3D->GetDeviceContext());
+
+		//mpSkyboxShader->SetWorldMatrix(world);
+		//mpSkyboxShader->SetViewMatrix(view);
+		//mpSkyboxShader->SetProjMatrix(proj);
+		//mpSkyboxShader->SetViewProjMatrix(viewProj);
+
+		//mpSkyboxShader->Render(mpD3D->GetDeviceContext(), mpSkybox->GetIndexCount(),
+		//	mpSkybox->GetApexColor(), mpSkybox->GetCenterColour());
+
+		//// Turn back face culling back on.
+		//mpD3D->TurnOnBackFaceCulling();
+
+		//// Allow the clouds to additively blend with the skybox.
 		//mpD3D->EnableAdditiveAlphaBlending();
+
+		//// Place the cloud plane vertex / index data onto the rendering pipeline.
+		//mpCloudPlane->Render(mpD3D->GetDeviceContext());
+
+		//// Set shader variables before rendering clouds with the shader.
+		//mpCloudShader->SetBrightness(mpCloudPlane->GetBrightness());
+		//mpCloudShader->SetCloud1Movement(mpCloudPlane->GetMovement(0).x, mpCloudPlane->GetMovement(0).y);
+		//mpCloudShader->SetCloud2Movement(mpCloudPlane->GetMovement(1).x, mpCloudPlane->GetMovement(1).y);
+
+		//mpCloudShader->SetWorldMatrix(world);
+		//mpCloudShader->SetViewMatrix(view);
+		//mpCloudShader->SetProjMatrix(proj);
+		//mpCloudShader->SetViewProjMatrix(viewProj);
+		//mpCloudShader->SetCloudTexture1(mpCloudPlane->GetCloudTexture1());
+		//mpCloudShader->SetCloudTexture2(mpCloudPlane->GetCloudTexture2());
+
+		//// Render the clouds using vertex and pixel shaders.
+		//mpCloudShader->Render(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
+
+		//// Turn off alpha blending.
+		//mpD3D->DisableAlphaBlending();
+
+		//// Turn the Z buffer back on.
+		//mpD3D->EnableZBuffer();
+
+		//// Reset the world matrix.
+		//mpD3D->GetWorldMatrix(world);
+
+		//// Reset the world matrix.
+		//mpD3D->GetWorldMatrix(world);
+
+		//// Acquire the main camera position.
+		//D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
+
+		//// Make a world matrix which is moved about the camera position, this will make the skybox move with us.
+		////D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+		//// Turn off back face culling so we can render the inside of models.
+		//mpD3D->TurnOffBackFaceCulling();
+
+		//// Disable the Z buffer, we want to render the entire skybox so don't want areas blocked by terrain not to be renderd, we need it all.
+		//mpD3D->DisableZBuffer();
+
+		//// Set the world matrix (moved about the camera) in the refraction shader.
+		//mpRefractionShader->SetWorldMatrix(world);
+
+		//// Enable alpha blending, the clouds will blend with the skybox behind them this way.
+		//mpD3D->EnableAdditiveAlphaBlending();
+
+		//// Set the cloud colours.
 		//mpRefractionShader->SetCloudBrightness(mpCloudPlane->GetBrightness());
 		//mpRefractionShader->SetCloudMovement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
 		//mpRefractionShader->SetCloudTextures(mpCloudPlane->GetCloudTexture1(), mpCloudPlane->GetCloudTexture2());
 
-
+		//// Place the clouds onto the render pipeline.
 		//mpCloudPlane->Render(mpD3D->GetDeviceContext());
+
+		//// Render the clouds making use of the reflection shader.
 		//if (!mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount()))
 		//{
 		//	logger->GetInstance().WriteLine("Failed to render the cloud reflection within the water.");
 		//	return false;
 		//}
+
+		//// Enable alpha blending again.
 		//mpD3D->DisableAlphaBlending();
 		//mpD3D->EnableZBuffer();
 
-		mpD3D->TurnOnBackFaceCulling();
+		//// Enable back face culling again.
+		//mpD3D->TurnOnBackFaceCulling();
 
 		
 	}
