@@ -187,6 +187,13 @@ public:
 	void SetSnowEnabled(bool value);
 	// Grab the toggle to find if snow is enabled or not.
 	bool GetSnowEnabled();
+
+	///////////////////////////
+	// Model optimisation stuff.
+	///////////////////////////
+
+	float GetLevelOfDetail();
+	void SetLevelOfDetail(float value);
 private:
 	std::vector<CMesh*> mpListOfTreeMeshes;
 };

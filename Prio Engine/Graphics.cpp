@@ -2352,6 +2352,16 @@ bool CGraphics::GetRainEnabled()
 	return mpRain->IsEnabled();
 }
 
+void CGraphics::SetLevelOfDetail(float value)
+{
+	mLevelOfDetail = value;
+
+	for (auto mesh : mpMeshes)
+	{
+		mesh->SetLevelOfDetail(mLevelOfDetail);
+	}
+}
+
 CCamera* CGraphics::CreateCamera()
 {
 	// Create the camera.

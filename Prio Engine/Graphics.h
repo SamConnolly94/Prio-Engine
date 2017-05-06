@@ -186,6 +186,7 @@ private:
 
 	float mTimeSinceLastBirdSquawk = 0.0f;
 	const float mBirdSquawkPlayInterval = 20.0f;
+	float mLevelOfDetail = 1000.0f;
 public:
 	bool CreateFoliage(std::string filename);
 	bool CreateFoliage(double** heightMap, int width, int height);
@@ -197,6 +198,9 @@ public:
 	bool GetRainEnabled();
 	bool IsRenderingMeshes() { return mRenderingMeshes; };
 	bool IsRenderingFoliage() { return mRenderingFoliage; };
+	float GetLevelOfDetail() { return mLevelOfDetail; };
+
+	void SetLevelOfDetail(float value);
 };
 
 #endif

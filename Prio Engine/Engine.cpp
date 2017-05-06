@@ -495,6 +495,16 @@ bool CEngine::GetSnowEnabled()
 	return mpGraphics->GetSnowEnabled();
 }
 
+float CEngine::GetLevelOfDetail()
+{
+	return mpGraphics->GetLevelOfDetail();
+}
+
+void CEngine::SetLevelOfDetail(float value)
+{
+	mpGraphics->SetLevelOfDetail(value);
+}
+
 /* Prevent the engine from running for any longer. */
 void CEngine::Stop()
 {
