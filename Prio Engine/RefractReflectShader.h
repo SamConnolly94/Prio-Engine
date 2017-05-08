@@ -64,6 +64,15 @@ private:
 		bool useSpecularMap;
 		D3DXVECTOR3 padding2;
 	};
+
+	struct SkyboxBufferType
+	{
+		D3DXVECTOR4 apexColour;
+		D3DXVECTOR4 centreColour;
+		D3DXVECTOR2 ViewportSize;
+		float WaterPlaneY;
+		float gradientPadding;
+	};
 public:
 	CReflectRefractShader();
 	~CReflectRefractShader();
@@ -76,6 +85,7 @@ public:
 	bool RenderFoliageRefraction(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount);
 	bool RenderModelRefraction(ID3D11DeviceContext * deviceContext, int indexCount);
 	bool RenderModelReflection(ID3D11DeviceContext * deviceContext, int indexCount);
+	bool RenderSkyboxReflection(ID3D11DeviceContext * deviceContext, int indexCount);
 private:
 	D3DXMATRIX mWorldMatrix; 
 	D3DXMATRIX mViewMatrix;
@@ -103,21 +113,26 @@ private:
 	/////////////////////////////
 	// Cloud properties
 	/////////////////////////////
+
 	D3DXVECTOR2 mCloud1Movement;
 	D3DXVECTOR2 mCloud2Movement;
 	float mCloudBrightness;
 	ID3D11ShaderResourceView* mpCloudTex1;
 	ID3D11ShaderResourceView* mpCloudTex2;
 
-	//ID3D11ShaderResourceView* mpModelTex;
-	//ID3D11ShaderResourceView* mpModelAlphaMask;
-	//ID3D11ShaderResourceView* mpModelSpecularMask;
 	ID3D11ShaderResourceView** mpModelTextures;
 	int mModelTextureCount = 0;
 
 	D3DXVECTOR3 mViewDir;
 	bool mUseSpecular = false;
 	bool mUseAlpha = false;
+
+	/////////////////////////////////////
+	// Skybox properties.
+	////////////////////////////////////
+	D3DXVECTOR4 mApexColour;
+	D3DXVECTOR4 mCentreColour;
+
 public:
 	void SetLightProperties(CLight* light);
 	void SetViewportProperties(int screenWidth, int screenHeight);
@@ -136,16 +151,19 @@ public:
 	void SetUseSpecular(bool value);
 	void SetUseAlpha(bool value);
 	void SetModelTexCount(int value);
+	void SetSkyboxColours(D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour);
 private:
 	bool InitialiseShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename, std::string reflectionPSFilename, std::string modelRefractionPSName, std::string modelReflectionPSName);
 	bool InitialiseFoliageShader(ID3D11Device * device, HWND hwnd, std::string foliageRefractionVSName, std::string foliageRefractionPSName);
 	bool InitialiseCloudShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename);
+	bool InitialiseSkyboxShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwnd, std::string shaderFilename);
 
 	bool SetShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetFoliageShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetCloudShaderParameters(ID3D11DeviceContext* deviceContext);
+	bool SetSkyboxShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetModelRefractionShaderParameters(ID3D11DeviceContext* deviceContext);
 	bool SetModelReflectionShaderParameters(ID3D11DeviceContext* deviceContext);
 
@@ -153,6 +171,7 @@ private:
 	void RenderReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderFoliageRefractionShader(ID3D11DeviceContext * deviceContext, int vertexCount, int instanceCount);
 	void RenderCloudReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
+	void RenderSkyboxReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderModelRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 	void RenderModelReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount);
 private:
@@ -169,7 +188,11 @@ private:
 	ID3D11VertexShader* mpCloudVertexShader;
 	ID3D11PixelShader* mpCloudPixelShader;
 
+	ID3D11VertexShader* mpSkyboxVertexShader;
+	ID3D11PixelShader* mpSkyboxPixelShader;
+
 	ID3D11InputLayout* mpModelLayout;
+	ID3D11InputLayout* mpSkyboxLayout;
 	ID3D11InputLayout* mpCloudLayout;
 	ID3D11InputLayout* mpFoliageLayout;
 	ID3D11SamplerState* mpTrilinearWrap;
@@ -181,6 +204,7 @@ private:
 	ID3D11Buffer* mpPositioningBuffer;
 	ID3D11Buffer* mpFoliageBuffer;
 	ID3D11Buffer* mpCloudBuffer;
+	ID3D11Buffer* mpSkyboxBuffer;
 	ID3D11Buffer* mpMapBuffer;
 public:
 	void SetGrassTexture(ID3D11ShaderResourceView * grassTexture);

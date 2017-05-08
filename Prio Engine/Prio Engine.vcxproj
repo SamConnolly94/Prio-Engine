@@ -218,6 +218,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\SkyboxReflection.ps.hlsl" />
+    <FxCompile Include="Shaders\SkyboxReflection.vs.hlsl" />
     <None Include="Shaders\Foliage.ps.hlsl">
       <FileType>Document</FileType>
     </None>

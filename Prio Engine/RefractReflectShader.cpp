@@ -20,6 +20,9 @@ CReflectRefractShader::CReflectRefractShader()
 	mpCloudPixelShader				= nullptr;
 	mpCloudBuffer					= nullptr;
 	mpModelTextures					= nullptr;
+	mpSkyboxLayout					= nullptr;
+	mpSkyboxVertexShader			= nullptr;
+	mpSkyboxPixelShader				= nullptr;
 }
 
 
@@ -66,6 +69,16 @@ bool CReflectRefractShader::Initialise(ID3D11Device * device, HWND hwnd)
 	if (!result)
 	{
 		logger->GetInstance().WriteLine("Failed to initialise the cloud reflection shaders.");
+		return false;
+	}
+
+	std::string SkyboxReflectionVSName = "Shaders/SkyboxReflection.vs.hlsl";
+	std::string SkyboxReflectionPSName = "Shaders/SkyboxReflection.ps.hlsl";
+	result = InitialiseSkyboxShader(device, hwnd, SkyboxReflectionVSName, SkyboxReflectionPSName);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to initialise the skybox shaders.");
 		return false;
 	}
 
@@ -185,6 +198,25 @@ bool CReflectRefractShader::RenderModelReflection(ID3D11DeviceContext * deviceCo
 
 	// Now render the prepared buffers with the shader.
 	RenderModelReflectionShader(deviceContext, indexCount);
+
+	return true;
+}
+
+bool CReflectRefractShader::RenderSkyboxReflection(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	bool result;
+
+	// Set the shader parameters that it will use for rendering.
+	result = SetSkyboxShaderParameters(deviceContext);
+
+	if (!result)
+	{
+		logger->GetInstance().WriteLine("Failed to set the shader parameters for skybox reflection.");
+		return false;
+	}
+
+	// Now render the prepared buffers with the shader.
+	RenderSkyboxReflectionShader(deviceContext, indexCount);
 
 	return true;
 }
@@ -925,8 +957,157 @@ bool CReflectRefractShader::InitialiseCloudShader(ID3D11Device * device, HWND hw
 	return true;
 }
 
+bool CReflectRefractShader::InitialiseSkyboxShader(ID3D11Device * device, HWND hwnd, std::string vsFilename, std::string psFilename)
+{
+	HRESULT result;
+	ID3D10Blob* errorMessage;
+	ID3D10Blob* vertexShaderBuffer;
+	ID3D10Blob* pixelShaderBuffer;
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[1];
+	unsigned int numElements;
+	D3D11_BUFFER_DESC gradientBufferDesc;
+
+
+	// Initialise pointers in this function to null.
+	errorMessage = nullptr;
+	vertexShaderBuffer = nullptr;
+	pixelShaderBuffer = nullptr;
+
+	//////////////////////////////////
+	// Cloud Reflection
+	//////////////////////////////////
+
+	// Compile the vertex shader code.
+	result = D3DX11CompileFromFile(vsFilename.c_str(), NULL, NULL, "SkyboxReflectionVS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &vertexShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + vsFilename + "'");
+			MessageBox(hwnd, vsFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + vsFilename + "'");
+		return false;
+	}
+
+	// Compile the pixel shader code.
+	result = D3DX11CompileFromFile(psFilename.c_str(), NULL, NULL, "SkyboxReflectionPS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, NULL, &pixelShaderBuffer, &errorMessage, NULL);
+	if (FAILED(result))
+	{
+		if (errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+		}
+		else
+		{
+			std::string errMsg = "Missing shader file.";
+			logger->GetInstance().WriteLine("Could not find a shader file with name '" + psFilename + "'");
+			MessageBox(hwnd, psFilename.c_str(), errMsg.c_str(), MB_OK);
+		}
+		logger->GetInstance().WriteLine("Failed to compile the pixel shader named '" + psFilename + "'");
+		return false;
+	}
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &mpSkyboxVertexShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the skybox reflection vertex shader from the buffer.");
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &mpSkyboxPixelShader);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the skybox reflection pixel shader from the buffer.");
+		return false;
+	}
+
+	/*
+	* The polygonLayout.Format describes what size item should be placed in here, check if it's a float3 or float2 basically, and pass in DXGI_FORMAT_R32/G32/B32_FLOAT accordingly.
+	*/
+
+	// Setup the layout of the data that goes into the shader.
+	polygonLayout[0].SemanticName = "POSITION";
+	polygonLayout[0].SemanticIndex = 0;
+	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[0].InputSlot = 0;
+	polygonLayout[0].AlignedByteOffset = 0;
+	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[0].InstanceDataStepRate = 0;
+
+	// Get a count of the elements in the layout.
+	numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &mpSkyboxLayout);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create polygon layout.");
+		return false;
+	}
+
+	vertexShaderBuffer->Release();
+	vertexShaderBuffer = nullptr;
+
+	pixelShaderBuffer->Release();
+	pixelShaderBuffer = nullptr;
+
+	//////////////////////////////////
+	// Set up cloud buffer
+	/////////////////////////////////
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	gradientBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	gradientBufferDesc.ByteWidth = sizeof(SkyboxBufferType);
+	gradientBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	gradientBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	gradientBufferDesc.MiscFlags = 0;
+	gradientBufferDesc.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&gradientBufferDesc, NULL, &mpSkyboxBuffer);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the skybox buffer from within the refraction shader class.");
+		return false;
+	}
+
+	return true;
+}
+
 void CReflectRefractShader::ShutdownShader()
 {
+	if (mpSkyboxBuffer)
+	{
+		mpSkyboxBuffer->Release();
+		mpSkyboxBuffer = nullptr;
+	}
+
+	if (mpSkyboxLayout)
+	{
+		mpSkyboxLayout->Release();
+		mpSkyboxLayout = nullptr;
+	}
+
+	if (mpSkyboxPixelShader)
+	{
+		mpSkyboxPixelShader->Release();
+		mpSkyboxPixelShader = nullptr;
+	}
+
+	if (mpSkyboxVertexShader)
+	{
+		mpSkyboxVertexShader->Release();
+		mpSkyboxVertexShader = nullptr;
+	}
+
 	if (mpCloudLayout)
 	{
 		mpCloudLayout->Release();
@@ -1009,6 +1190,12 @@ void CReflectRefractShader::ShutdownShader()
 	{
 		mpReflectionPixelShader->Release();
 		mpReflectionPixelShader = nullptr;
+	}
+
+	if (mpBilinearMirror)
+	{
+		mpBilinearMirror->Release();
+		mpBilinearMirror = nullptr;
 	}
 
 	if (mpVertexShader)
@@ -1368,6 +1555,63 @@ bool CReflectRefractShader::SetCloudShaderParameters(ID3D11DeviceContext * devic
 	return true;
 }
 
+bool CReflectRefractShader::SetSkyboxShaderParameters(ID3D11DeviceContext * deviceContext)
+{
+	HRESULT result;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	unsigned int bufferNumber = 0;
+
+	////////////////////////////////
+	// Matrix const buffer
+	///////////////////////////////
+
+	if (!SetMatrixBuffer(deviceContext, 0, CShader::ShaderType::Vertex))
+	{
+		logger->GetInstance().WriteLine("Failed to set the matrix buffer when setting skybox reflection shader parameters in refraction shader.");
+		return false;
+	}
+
+	/////////////////////////////////
+	// Update the skybox constant buffer.
+	/////////////////////////////////
+
+	result = deviceContext->Map(mpSkyboxBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to set the skybox constant buffer in refraction shader class.");
+		return false;
+	}
+
+	// Get pointer to the data inside the constant buffer.
+	SkyboxBufferType* skyboxBufferPtr = (SkyboxBufferType*)mappedResource.pData;
+
+	// Copy the current cloud values into the constant buffer.
+	skyboxBufferPtr->apexColour = mApexColour;
+	skyboxBufferPtr->centreColour = mCentreColour;
+	skyboxBufferPtr->ViewportSize = mViewportSize;
+	skyboxBufferPtr->WaterPlaneY = mWaterPlaneYOffset;
+	skyboxBufferPtr->gradientPadding = 0.0f;
+
+	// Unlock the constnat buffer so we can write to it elsewhere.
+	deviceContext->Unmap(mpSkyboxBuffer, 0);
+
+	// Update the position of our constant buffer in the shader.
+	bufferNumber = 0;
+
+	// Set the constant buffer in the shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpSkyboxBuffer);
+
+
+	////////////////////////////
+	// Shader resources
+	///////////////////////////
+
+	deviceContext->PSSetShaderResources(0, 1, &mpWaterHeightMap);
+
+	return true;
+}
+
 bool CReflectRefractShader::SetModelRefractionShaderParameters(ID3D11DeviceContext * deviceContext)
 {
 	HRESULT result;
@@ -1673,6 +1917,23 @@ void CReflectRefractShader::RenderCloudReflectionShader(ID3D11DeviceContext * de
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
 
+void CReflectRefractShader::RenderSkyboxReflectionShader(ID3D11DeviceContext * deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(mpSkyboxLayout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(mpSkyboxVertexShader, NULL, 0);
+	deviceContext->PSSetShader(mpSkyboxPixelShader, NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &mpTrilinearWrap);
+	deviceContext->PSSetSamplers(1, 1, &mpBilinearMirror);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+}
+
 void CReflectRefractShader::RenderModelRefractionShader(ID3D11DeviceContext * deviceContext, int indexCount)
 {
 	// Set the vertex input layout.
@@ -1830,6 +2091,12 @@ void CReflectRefractShader::SetUseAlpha(bool value)
 void CReflectRefractShader::SetModelTexCount(int value)
 {
 	mModelTextureCount = value;
+}
+
+void CReflectRefractShader::SetSkyboxColours(D3DXVECTOR4 apexColour, D3DXVECTOR4 centreColour)
+{
+	mApexColour = apexColour;
+	mCentreColour = centreColour;
 }
 
 void CReflectRefractShader::SetGrassTexture(ID3D11ShaderResourceView * grassTexture)

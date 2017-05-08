@@ -1187,8 +1187,9 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 	// Set render target to the height texture map.
 	mpTerrain->GetWater()->SetHeightMapRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 	
+	//mpTerrain->GetWater()->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 	mpTerrain->GetWater()->GetHeightTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
-	//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render the water height map.
 	mpTerrain->GetWater()->Render(mpD3D->GetDeviceContext());
@@ -1214,7 +1215,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 		
 		mpTerrain->GetWater()->SetRefractionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
-		//mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 		// Place our refract / reflect properties into the refract reflect shader.
 		mpRefractionShader->SetWorldMatrix(world);
@@ -1233,6 +1234,8 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 		mpTerrain->Render(mpD3D->GetDeviceContext()); 
 		mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
+		//mpTerrain->GetWater()->GetRefractionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
+
 		result = mpRefractionShader->RefractionRender(mpD3D->GetDeviceContext(), mpTerrain->GetIndexCount());
 
 		if (!result)
@@ -1296,14 +1299,16 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		/////////////////////////////////
 		// Reflection
 		/////////////////////////////////
-
+		//mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), 0.0f, 0.0f, 0.0f, 0.0f);
 		mpTerrain->GetWater()->GetReflectionTexture()->ClearRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView(), mpSceneLight->GetAmbientColour().x, mpSceneLight->GetAmbientColour().y, mpSceneLight->GetAmbientColour().z, 1.0f);
 		mpTerrain->GetWater()->SetReflectionRenderTarget(mpD3D->GetDeviceContext(), mpD3D->GetDepthStencilView());
 		mpD3D->GetDeviceContext()->ClearDepthStencilView(mpD3D->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 		mpD3D->TurnOffBackFaceCulling();
-		
+		mpRefractionShader->SetViewMatrix(reflectionView);
+		mpRefractionShader->SetProjMatrix(proj);
+
 		/***********
-		* Clouds
+		* Skybox 
 		************/
 
 		D3DXVECTOR3 cameraPosition;
@@ -1314,14 +1319,35 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpD3D->GetWorldMatrix(world);
 
 		// Translate the sky dome to be centered around the camera position.
-		D3DXMATRIX rotX, rotY, rotZ;
-		D3DXMatrixRotationX(&rotX, D3DXToRadian(0.0f));
-		D3DXMatrixRotationY(&rotY, D3DXToRadian(0.0f));
-		D3DXMatrixRotationZ(&rotZ, D3DXToRadian(0.0f));
+		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+		// Turn off the Z buffer.
+		mpD3D->DisableZBuffer();
+
+		// Render the sky dome using the sky dome shader.
+		mpSkybox->Render(mpD3D->GetDeviceContext());
+
 		D3DXMATRIX scale;
+		D3DXMatrixScaling(&scale, 1000.0f, 1000.0f, 1000.0f);
+		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		world = scale * world;
+
+		mpRefractionShader->SetWorldMatrix(world);
+		mpRefractionShader->SetSkyboxColours(mpSkybox->GetApexColor(), mpSkybox->GetCenterColour());
+
+		mpRefractionShader->RenderSkyboxReflection(mpD3D->GetDeviceContext(), mpSkybox->GetIndexCount());
+
+		/*****************
+		** Clouds
+		*******************/
+		mpD3D->GetWorldMatrix(world);
+
+		// Translate the sky dome to be centered around the camera position.
+
+		//D3DXMATRIX scale;
 		D3DXMatrixScaling(&scale, 100.0f, 100.0f, 100.0f);
 		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
-		world = rotX * rotY * rotZ * scale * world;
+		world = scale * world;
 		// Turn off the Z buffer.
 		mpD3D->DisableZBuffer();
 
@@ -1339,8 +1365,6 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 		// Render the clouds using vertex and pixel shaders.
 		mpRefractionShader->SetWorldMatrix(world);
-		mpRefractionShader->SetViewMatrix(reflectionView);
-		mpRefractionShader->SetProjMatrix(proj);
 
 		mpRefractionShader->SetViewportProperties(mScreenWidth, mScreenHeight);
 		mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount());
@@ -1361,8 +1385,8 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 		mpTerrain->GetWorldMatrix(world);
 		mpRefractionShader->SetWorldMatrix(world);
-		mpReflectionCamera->GetReflectionView(reflectionView);
-		mpRefractionShader->SetViewMatrix(reflectionView);
+		//mpReflectionCamera->GetReflectionView(reflectionView);
+		//mpRefractionShader->SetViewMatrix(reflectionView);
 		mpRefractionShader->SetProjMatrix(proj);
 
 		mpRefractionShader->SetWaterHeightmap(mpTerrain->GetWater()->GetHeightTexture()->GetShaderResourceView());
@@ -1379,50 +1403,6 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		{
 			mesh->RenderReflection(mpD3D->GetDeviceContext(), mpFrustum, mpRefractionShader, mpCamera->GetPosition());
 		}
-
-		//////// Reset the world matrix.
-		//////mpD3D->GetWorldMatrix(world);
-
-		//////// Acquire the main camera position.
-		//////D3DXVECTOR3 cameraPosition = mpCamera->GetPosition();
-
-		//////// Make a world matrix which is moved about the camera position, this will make the skybox move with us.
-		////////D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
-
-		//////// Turn off back face culling so we can render the inside of models.
-		//////mpD3D->TurnOffBackFaceCulling();
-
-		//////// Disable the Z buffer, we want to render the entire skybox so don't want areas blocked by terrain not to be renderd, we need it all.
-		//////mpD3D->DisableZBuffer();
-
-		//////// Set the world matrix (moved about the camera) in the refraction shader.
-		//////mpRefractionShader->SetWorldMatrix(world);
-
-		//////// Enable alpha blending, the clouds will blend with the skybox behind them this way.
-		//////mpD3D->EnableAdditiveAlphaBlending();
-
-		//////// Set the cloud colours.
-		//////mpRefractionShader->SetCloudBrightness(mpCloudPlane->GetBrightness());
-		//////mpRefractionShader->SetCloudMovement(mpCloudPlane->GetMovement(0), mpCloudPlane->GetMovement(1));
-		//////mpRefractionShader->SetCloudTextures(mpCloudPlane->GetCloudTexture1(), mpCloudPlane->GetCloudTexture2());
-
-		//////// Place the clouds onto the render pipeline.
-		//////mpCloudPlane->Render(mpD3D->GetDeviceContext());
-
-		//////// Render the clouds making use of the reflection shader.
-		//////if (!mpRefractionShader->RenderCloudReflection(mpD3D->GetDeviceContext(), mpCloudPlane->GetIndexCount()))
-		//////{
-		//////	logger->GetInstance().WriteLine("Failed to render the cloud reflection within the water.");
-		//////	return false;
-		//////}
-
-		//////// Enable alpha blending again.
-		//////mpD3D->DisableAlphaBlending();
-		//////mpD3D->EnableZBuffer();
-
-		//////// Enable back face culling again.
-		//////mpD3D->TurnOnBackFaceCulling();
-
 		
 	}
 
@@ -1435,7 +1415,6 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 
 	mpTerrain->GetWater()->Render(mpD3D->GetDeviceContext());
 
-	//mpWaterShader->SetNormalMap(mpWater->GetNormalMap());
 	mpWaterShader->SetRefractionMap(mpTerrain->GetWater()->GetRefractionTexture()->GetShaderResourceView());
 	mpWaterShader->SetReflectionMap(mpTerrain->GetWater()->GetReflectionTexture()->GetShaderResourceView());
 
