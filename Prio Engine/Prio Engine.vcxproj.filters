@@ -439,9 +439,6 @@
     <None Include="Shaders\SnowParticleUpdate.vs.hlsl">
       <Filter>Shaders\Snow</Filter>
     </None>
-    <None Include="Shaders\CloudReflection.vs.hlsl">
-      <Filter>Shaders\Water</Filter>
-    </None>
     <None Include="Shaders\CloudReflection.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
@@ -450,6 +447,9 @@
   <ItemGroup>
     <FxCompile Include="Shaders\Foliage.vs.hlsl">
       <Filter>Shaders\Foliage</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\CloudReflection.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -221,6 +221,7 @@
     <None Include="Shaders\Foliage.ps.hlsl">
       <FileType>Document</FileType>
     </None>
+    <FxCompile Include="Shaders\CloudReflection.vs.hlsl" />
     <FxCompile Include="Shaders\Foliage.vs.hlsl">
       <FileType>Document</FileType>
     </FxCompile>
@@ -252,9 +253,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CloudReflection.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Shaders\CloudReflection.vs.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

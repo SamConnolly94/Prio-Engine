@@ -48,14 +48,14 @@ void CTerrainShader::Shutdown()
 bool CTerrainShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, CTexture** texturesArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
 	CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour, float highestPos, float lowestPos, D3DXVECTOR3 worldPosition,
-	float snowHeight, float grassHeight, float dirtHeight, float sandHeight)
+	float snowHeight, float grassHeight, float dirtHeight, float sandHeight, float slopeGrassCutoff, float slopeRockCutoff)
 {
 	bool result;
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, texturesArray, 
 		numberOfTextures, grassTexturesArray, numberOfGrassTextures, rockTexturesArray, numberOfRockTextures, lightDirection, 
-		diffuseColour, ambientColour, highestPos, lowestPos, worldPosition, snowHeight, grassHeight, dirtHeight, sandHeight);
+		diffuseColour, ambientColour, highestPos, lowestPos, worldPosition, snowHeight, grassHeight, dirtHeight, sandHeight, slopeGrassCutoff, slopeRockCutoff);
 	if (!result)
 	{
 		return false;
@@ -80,6 +80,7 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC positioningBufferDesc;
 	D3D11_BUFFER_DESC terrainAreaBufferDesc;
+	D3D11_BUFFER_DESC slopeBufferDesc;
 
 	// Initialise pointers in this function to null.
 	errorMessage = nullptr;
@@ -268,11 +269,37 @@ bool CTerrainShader::InitialiseShader(ID3D11Device * device, HWND hwnd, std::str
 		return false;
 	}
 
+	///////////////////////////
+	// Slope buffer description
+	///////////////////////////
+
+	slopeBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	slopeBufferDesc.ByteWidth = sizeof(SlopeBufferType);
+	slopeBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	slopeBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	slopeBufferDesc.MiscFlags = 0;
+	slopeBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&slopeBufferDesc, NULL, &mpSlopeBuffer);
+
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to create the terrain slope constant buffer from the description provided.");
+		return false;
+	}
+
+
 	return true;
 }
 
 void CTerrainShader::ShutdownShader()
 {
+	if (mpSlopeBuffer)
+	{
+		mpSlopeBuffer->Release();
+		mpSlopeBuffer = nullptr;
+	}
+
 	if (mpPatchMap)
 	{
 		mpPatchMap->Shutdown();
@@ -358,7 +385,7 @@ void CTerrainShader::OutputShaderErrorMessage(ID3D10Blob *errorMessage, HWND hwn
 bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, CTexture** textureArray, unsigned int numberOfTextures, CTexture** grassTexturesArray, unsigned int numberOfGrassTextures,
 	CTexture** rockTexturesArray, unsigned int numberOfRockTextures,
 	D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColour, D3DXVECTOR4 ambientColour,
-	float highestPos, float lowestPos, D3DXVECTOR3 worldPosition, float snowHeight, float grassHeight, float dirtHeight, float sandHeight)
+	float highestPos, float lowestPos, D3DXVECTOR3 worldPosition, float snowHeight, float grassHeight, float dirtHeight, float sandHeight, float slopeGrassCutoff, float slopeRockCutoff)
 {
 	ID3D11ShaderResourceView** textures = new ID3D11ShaderResourceView*[numberOfTextures];
 	ID3D11ShaderResourceView** grassTextures = new ID3D11ShaderResourceView*[numberOfGrassTextures];
@@ -473,6 +500,34 @@ bool CTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, CTe
 
 	// Update the terrain constant buffer in the pixel shader.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpTerrainAreaBuffer);
+
+	///////////////////////////
+	// Slope Buffer
+	///////////////////////////
+
+	// Lock the terrain info constant buffer so it can be written to.
+	result = deviceContext->Map(mpSlopeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		logger->GetInstance().WriteLine("Failed to map the slope cosntant buffer when setting shader parameters in terrain shader class.");
+		return false;
+	}
+
+	SlopeBufferType* slopeBuffer = (SlopeBufferType*)mappedResource.pData;
+
+	// Append the positions before it gets locked in the const buffer.
+	slopeBuffer->slopeGrassCutoff = slopeGrassCutoff;
+	slopeBuffer->slopeRockCuttoff = slopeRockCutoff;
+	slopeBuffer->slopePadding = { 0.0f, 0.0f };
+
+	// Unlock the terrain constant buffer.
+	deviceContext->Unmap(mpSlopeBuffer, 0);
+
+	// We'll need to modify the buffer position in the pixel shader as we're looking at the next buffer now.
+	bufferNumber = 3;
+
+	// Update the terrain constant buffer in the pixel shader.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &mpSlopeBuffer);
 
 	delete[] textures;
 	delete[] grassTextures;

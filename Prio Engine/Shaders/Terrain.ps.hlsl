@@ -46,6 +46,12 @@ cbuffer TerrainAreaBuffer : register(b2)
 	float sandHeight;
 }
 
+cbuffer SlopeBuffer : register (b3)
+{
+	float slopeGrassCutoff;
+	float slopeRockCuttoff;
+	float2 slopePadding;
+}
 //////////////////////
 // Typedefs
 /////////////////////
@@ -157,8 +163,8 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 
 	float4 patchColour = patchMap.Sample(SampleType, input.tex);
 
-	float slopeGrassCutoff = 0.3f;
-	float slopeRockCuttoff = 0.8f;
+	//float slopeGrassCutoff = 0.6f;
+	//float slopeRockCuttoff = 0.8f;
 
 	/////////// SNOW //////////////////
 	if (worldPos > snowHeight)
