@@ -199,6 +199,16 @@ public:
 
 	float GetLevelOfDetail();
 	void SetLevelOfDetail(float value);
+
+	/////////////////////////
+	// Boolean flags to prevent threading issues.
+	/////////////////////////
+
+	bool IsRenderingFoliage() { return mpGraphics->IsRenderingFoliage(); };
+	bool IsRenderingWater() { return mpGraphics->IsRenderingWater(); };
+
+	int GetScreenWidth() { return mpGraphics->GetScreenWidth(); };
+	int GetScreenHeight() { return mpGraphics->GetScreenHeight(); };
 private:
 	std::vector<CMesh*> mpListOfTreeMeshes;
 };

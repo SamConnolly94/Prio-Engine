@@ -226,6 +226,34 @@ void CCamera::GetReflectionViewMatrix(D3DXMATRIX & reflectionView)
 */
 void CCamera::UpdateMatrices()
 {
+	// Move the rotation values back into degrees between 0 and 360.
+	if (mRotation.x > 360.0f)
+	{
+		mRotation.x -= 360.0f;
+	}
+	else if (mRotation.x < 0.0f)
+	{
+		mRotation.x += 360.0f;
+	}
+
+	if (mRotation.y > 360.0f)
+	{
+		mRotation.y -= 360.0f;
+	}
+	else if (mRotation.y < 0.0f)
+	{
+		mRotation.y += 360.0f;
+	}
+
+	if (mRotation.z > 360.0f)
+	{
+		mRotation.z -= 360.0f;
+	}
+	else if (mRotation.z < 0.0f)
+	{
+		mRotation.z += 360.0f;
+	}
+
 	// Rotation
 	D3DXMATRIX matrixRotationX;
 	D3DXMATRIX matrixRotationY;

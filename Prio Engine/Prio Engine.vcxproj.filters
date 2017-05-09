@@ -445,19 +445,17 @@
     <None Include="Shaders\ModelRefraction.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Foliage.vs.hlsl">
+    <None Include="Shaders\CloudReflection.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\SkyboxReflection.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\SkyboxReflection.vs.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
+    <None Include="Shaders\Foliage.vs.hlsl">
       <Filter>Shaders\Foliage</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\CloudReflection.vs.hlsl">
-      <Filter>Shaders\Water</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\SkyboxReflection.ps.hlsl">
-      <Filter>Shaders\Water</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\SkyboxReflection.vs.hlsl">
-      <Filter>Shaders\Water</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

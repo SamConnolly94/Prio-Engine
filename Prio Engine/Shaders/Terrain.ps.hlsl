@@ -182,7 +182,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		float blendFactor = heightDiff / 5.0f;
 		float4 grassColour = lerp(rockTex, grassTex, blendFactor);
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending); 
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;
@@ -205,7 +205,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	////////////// GRASS ///////////////////
 	else if (worldPos > grassHeight)
 	{
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 grassColour = GetPatchGrassColour(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
@@ -235,7 +235,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		float grassBlendFactor = heightDiff / 2.0f;
 		float4 grassColour = lerp(grassTex, dirtTex, grassBlendFactor);
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;
@@ -260,7 +260,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 	{
 		float4 grassColour = GetTriplanarTextureColour(0, blending, input.worldPosition, 1.0f);
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;
@@ -290,7 +290,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		float blendFactor = heightDiff / 2.0f;
 		float4 grassColour = lerp(dirtTex, sandTex, blendFactor);
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;
@@ -317,7 +317,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		float4 grassColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;
@@ -343,7 +343,7 @@ float4 TerrainPixel(PixelInputType input) : SV_TARGET
 		float4 grassColour = GetTriplanarTextureColour(1, blending, input.worldPosition, 1.0f);
 
 
-		float4 slopeColour = GetTriplanarRockTextureColour(0, blending, input.worldPosition, 1.0f);
+		float4 slopeColour = GetCombinedRockLerp(input, blending);
 		float4 rockColour = GetCombinedRockLerp(input, blending);
 
 		float slope = 1.0f - input.normal.y;

@@ -1328,7 +1328,9 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		mpSkybox->Render(mpD3D->GetDeviceContext());
 
 		D3DXMATRIX scale;
-		D3DXMatrixScaling(&scale, 1000.0f, 1000.0f, 1000.0f);
+		float scaleValue = (mpTerrain->GetWidth() * mpTerrain->GetHeight()) * 0.025f;
+
+		D3DXMatrixScaling(&scale, scaleValue, scaleValue, scaleValue);
 		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
 		world = scale * world;
 
@@ -1345,7 +1347,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Translate the sky dome to be centered around the camera position.
 
 		//D3DXMATRIX scale;
-		D3DXMatrixScaling(&scale, 100.0f, 100.0f, 100.0f);
+		D3DXMatrixScaling(&scale, scaleValue, scaleValue, scaleValue);
 		D3DXMatrixTranslation(&world, cameraPosition.x, cameraPosition.y, cameraPosition.z);
 		world = scale * world;
 		// Turn off the Z buffer.

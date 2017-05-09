@@ -8,6 +8,7 @@ CFoliage::CFoliage()
 	mpInstanceBuffer = nullptr;
 	mFoliageMinCuttoff = 120.0f;
 	mFoliageMaxCutoff = 125.0f;
+	mWindStrength = 1.0f;
 }
 
 
@@ -106,7 +107,9 @@ void CFoliage::Update(float updateTime)
 {
 	mFoliageTranslation += (mWindDirection * mWindStrength) * updateTime;
 
-	if ((mFoliageTranslation.z > 0.5f && mWindDirection.z > 0.0f) || (mFoliageTranslation.z < 0.0f && mWindDirection.z < 0.0f))
+	if ((mFoliageTranslation.z > 0.5f && mWindDirection.z > 0.0f) || (mFoliageTranslation.z < 0.0f && mWindDirection.z < 0.0f)
+		|| (mFoliageTranslation.x > 0.5f && mWindDirection.x > 0.0f) || (mFoliageTranslation.x < 0.0f && mWindDirection.x < 0.0f)
+		)
 	{
 		mWindDirection = -mWindDirection;
 		//mWindDirection -= (mWindDirection * mWindStrength) * updateTime;

@@ -203,6 +203,11 @@ public:
 	void SetLevelOfDetail(float value);
 	D3DXVECTOR3 GetWindDirection() { return mWindDirection; };
 	void SetWindDirection(D3DXVECTOR3 windDir);
+
+	bool IsRenderingWater() { return mRenderingWater; };
+
+	int GetScreenWidth() { return mScreenWidth; };
+	int GetScreenHeight() { return mScreenHeight; };
 };
 
 #endif

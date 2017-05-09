@@ -218,15 +218,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\SkyboxReflection.ps.hlsl" />
-    <FxCompile Include="Shaders\SkyboxReflection.vs.hlsl" />
+    <None Include="Shaders\SkyboxReflection.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\SkyboxReflection.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Shaders\Foliage.ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <FxCompile Include="Shaders\CloudReflection.vs.hlsl" />
-    <FxCompile Include="Shaders\Foliage.vs.hlsl">
+    <None Include="Shaders\CloudReflection.vs.hlsl">
       <FileType>Document</FileType>
-    </FxCompile>
+    </None>
+    <None Include="Shaders\Foliage.vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\FoliageRefraction.ps.hlsl">
