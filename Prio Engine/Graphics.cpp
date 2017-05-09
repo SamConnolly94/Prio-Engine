@@ -1248,7 +1248,7 @@ bool CGraphics::RenderWater(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, 
 		// Foliage refraction.
 		//////////////////////////////
 		mpRefractionShader->SetFrameTime(mFrameTime);
-		mpRefractionShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
+		//mpRefractionShader->SetWindDirection(mWindDirection);
 		mpRefractionShader->SetTranslation(mpFoliage->GetTranslation());
 		mpRefractionShader->SetWindStrength(1.0f);
 		mpRefractionShader->SetGrassTexture(mpFoliage->GetFoliageTexture());
@@ -1454,8 +1454,8 @@ bool CGraphics::RenderRain(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 	mpRainShader->SetViewProjMatrix(viewProj);
 	mpRainShader->SetRainTexture(mpRain->GetRainTexture());
 	mpRainShader->SetFirstRun(mpRain->GetIsFirstRun());
-	mpRainShader->SetWindX(0.0f);
-	mpRainShader->SetWindZ(0.0f);
+	//mpRainShader->SetWindX(mWindDirection.x);
+	//mpRainShader->SetWindZ(mWindDirection.z);
 
 	mpRainShader->SetWorldMatrix(world);
 	mpRainShader->SetViewMatrix(view);
@@ -1513,8 +1513,8 @@ bool CGraphics::RenderSnow(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj, D
 	mpSnowShader->SetViewProjMatrix(viewProj);
 	mpSnowShader->SetRainTexture(mpSnow->GetRainTexture());
 	mpSnowShader->SetFirstRun(mpSnow->GetIsFirstRun());
-	mpSnowShader->SetWindX(0.0f);
-	mpSnowShader->SetWindZ(0.0f);
+	//mpSnowShader->SetWindX(mWindDirection.x);
+	//mpSnowShader->SetWindZ(mWindDirection.z);
 
 	mpSnowShader->SetWorldMatrix(world);
 	mpSnowShader->SetViewMatrix(view);
@@ -1581,7 +1581,8 @@ bool CGraphics::RenderFoliage(D3DXMATRIX world, D3DXMATRIX view, D3DXMATRIX proj
 	mpFoliageShader->SetGrassAlphaTexture(mpFoliage->GetFoliageAlphaTexture());
 	mpFoliageShader->SetReedTexture(mpFoliage->GetReedsTexture());
 	mpFoliageShader->SetReedAlphaTexture(mpFoliage->GetReedsAlphaTexture());
-	mpFoliageShader->SetWindDirection({ 0.0f, 0.0f, 1.0f });
+	//mpFoliageShader->SetWindDirection(mWindDirection);
+	//mpFoliage->SetWindDirection(mWindDirection);
 	mpFoliageShader->SetWindStrength(1.0f);
 	mpFoliageShader->SetTranslation(mpFoliage->GetTranslation());
 
@@ -2330,6 +2331,29 @@ void CGraphics::SetLevelOfDetail(float value)
 	for (auto mesh : mpMeshes)
 	{
 		mesh->SetLevelOfDetail(mLevelOfDetail);
+	}
+}
+
+void CGraphics::SetWindDirection(D3DXVECTOR3 windDir)
+{
+	mWindDirection = windDir;
+
+	if (mpFoliage != nullptr)
+	{
+		mpFoliage->SetWindDirection(mWindDirection);
+		mpFoliageShader->SetWindDirection(mWindDirection);
+	}
+
+	if (mpSnow)
+	{
+		mpSnowShader->SetWindX(mWindDirection.x);
+		mpSnowShader->SetWindZ(mWindDirection.z);
+	}
+
+	if (mpRain)
+	{
+		mpRainShader->SetWindX(mWindDirection.x);
+		mpRainShader->SetWindZ(mWindDirection.z);
 	}
 }
 

@@ -104,11 +104,12 @@ void CFoliage::Shutdown()
 
 void CFoliage::Update(float updateTime)
 {
-	mFoliageTranslation += mWindDirection * updateTime;
+	mFoliageTranslation += (mWindDirection * mWindStrength) * updateTime;
 
 	if ((mFoliageTranslation.z > 0.5f && mWindDirection.z > 0.0f) || (mFoliageTranslation.z < 0.0f && mWindDirection.z < 0.0f))
 	{
 		mWindDirection = -mWindDirection;
+		//mWindDirection -= (mWindDirection * mWindStrength) * updateTime;
 	}
 }
 
@@ -398,6 +399,21 @@ bool CFoliage::UpdateBuffers(ID3D11Device* device, double** heightMap, int mapWi
 	}
 	
 	return true;
+}
+
+void CFoliage::SetWindDirection(D3DXVECTOR3 windDir)
+{
+	mWindDirection = windDir;
+}
+
+void CFoliage::SetWindStrength(float value)
+{
+	mWindStrength = value;
+}
+
+float CFoliage::GetWindStrength()
+{
+	return mWindStrength;
 }
 
 void CFoliage::ShutdownHeightMap()

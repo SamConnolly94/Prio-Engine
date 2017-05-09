@@ -540,7 +540,7 @@ void CFoliageShader::SetLightDirection(D3DXVECTOR3 lightDirection)
 
 void CFoliageShader::SetWindDirection(D3DXVECTOR3 direction)
 {
-	mWindDirection;
+	mWindDirection = direction;
 }
 
 void CFoliageShader::SetFrameTime(float frameTime)

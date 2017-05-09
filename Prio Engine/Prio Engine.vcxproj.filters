@@ -442,7 +442,9 @@
     <None Include="Shaders\CloudReflection.ps.hlsl">
       <Filter>Shaders\Water</Filter>
     </None>
-    <None Include="Shaders\ModelRefraction.ps.hlsl" />
+    <None Include="Shaders\ModelRefraction.ps.hlsl">
+      <Filter>Shaders\Water</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Foliage.vs.hlsl">

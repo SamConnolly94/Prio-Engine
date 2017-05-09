@@ -188,6 +188,11 @@ public:
 	// Grab the toggle to find if snow is enabled or not.
 	bool GetSnowEnabled();
 
+	// Get the direction of the wind, this will be applied throughout the scene to foliage and weather functions
+	D3DXVECTOR3 GetWindDirection();
+	// Set the direction of the wind, this will be applied throughout the scene to foliage and weather.
+	void SetWindDirection(D3DXVECTOR3 value);
+
 	///////////////////////////
 	// Model optimisation stuff.
 	///////////////////////////

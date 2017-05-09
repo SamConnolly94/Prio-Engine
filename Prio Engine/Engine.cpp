@@ -495,6 +495,16 @@ bool CEngine::GetSnowEnabled()
 	return mpGraphics->GetSnowEnabled();
 }
 
+D3DXVECTOR3 CEngine::GetWindDirection()
+{
+	return mpGraphics->GetWindDirection();
+}
+
+void CEngine::SetWindDirection(D3DXVECTOR3 value)
+{
+	mpGraphics->SetWindDirection(value);
+}
+
 float CEngine::GetLevelOfDetail()
 {
 	return mpGraphics->GetLevelOfDetail();

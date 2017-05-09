@@ -85,6 +85,8 @@ void GameLoop(CEngine* &engine)
 
 	terrain->GetWater()->SetDepth(6.0f);
 	engine->SetLevelOfDetail(200.0f);
+	engine->SetWindDirection({ 0.0f, 0.0f, 0.2f });
+	engine->GetFoliage()->SetWindStrength(2.0f);
 
 	// Process anything which should happen in the game here.
 	while (engine->IsRunning())
